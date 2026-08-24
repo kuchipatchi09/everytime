@@ -13,10 +13,10 @@
       property="og:description"
       content="충남과학고 시간표, 방과후, 급식과 공지를 한곳에서 확인하세요."
     />
-    <meta property="og:image" content="https://kuchipatchi09.github.io/everytime/thumbnail.png" />
+    <meta property="og:image" content="./thumbnail.png" />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="417" />
-    <meta property="og:image:height" content="193" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="충남과학고 충곽에타" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="충곽에타" />
@@ -24,903 +24,21 @@
       name="twitter:description"
       content="충남과학고 시간표, 방과후, 급식과 공지를 한곳에서 확인하세요."
     />
-    <meta name="twitter:image" content="https://kuchipatchi09.github.io/everytime/thumbnail.png" />
+    <meta name="twitter:image" content="./thumbnail.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <style>
-      @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
-      :root {
-        --r: #ad1d1d;
-        --rr: #ed2b2b;
-        --i: #181818;
-        --m: #777;
-        --l: #ddd;
-        --p: #f2f1ed;
-        --s: #fff;
-        --sh: 0 1px 0 #fff inset, 0 2px 0 #d2d0ca, 0 14px 30px #40352b0d;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        background: var(--p);
-        color: var(--i);
-        font-family:
-          Pretendard,
-          -apple-system,
-          sans-serif;
-        word-break: keep-all;
-      }
-      button,
-      input,
-      select,
-      textarea {
-        font: inherit;
-        color: inherit;
-      }
-      .shell {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-      }
-      header {
-        height: 145px;
-        background: #fffffff5;
-        border-top: 3px solid #eee;
-        border-bottom: 1px solid var(--l);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        backdrop-filter: blur(12px);
-      }
-      .head {
-        max-width: 1440px;
-        height: 100%;
-        margin: auto;
-        padding: 0 48px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 50px;
-      }
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        background: none;
-        border: 0;
-        padding: 0;
-        text-align: left;
-        cursor: pointer;
-      }
-      .brand > span {
-        display: flex;
-        flex-direction: column;
-      }
-      .brand em {
-        color: var(--rr);
-        font-style: normal;
-        font-size: 14px;
-        font-weight: 800;
-      }
-      .brand strong {
-        font-size: 30px;
-        letter-spacing: -0.06em;
-      }
-      .logo {
-        width: 70px;
-        height: 58px;
-        position: relative;
-      }
-      .logo span {
-        position: absolute;
-        width: 68px;
-        height: 35px;
-        bottom: 0;
-        border: 12px solid #222;
-        border-top: 0;
-        border-radius: 0 0 36px 36px;
-      }
-      .logo i {
-        position: absolute;
-        width: 10px;
-        height: 21px;
-        left: 30px;
-        bottom: 20px;
-        background: var(--rr);
-        border-radius: 8px;
-        transform: rotate(7deg);
-      }
-      .logo b {
-        position: absolute;
-        width: 14px;
-        height: 14px;
-        right: 3px;
-        border-radius: 50%;
-        background: #222;
-      }
-      nav {
-        height: 100%;
-        display: flex;
-        align-items: stretch;
-        gap: 36px;
-      }
-      nav button {
-        border: 0;
-        background: none;
-        padding: 5px 0 0;
-        position: relative;
-        font-size: 20px;
-        font-weight: 750;
-        white-space: nowrap;
-        cursor: pointer;
-      }
-      nav button:after {
-        content: "";
-        position: absolute;
-        height: 6px;
-        bottom: 0;
-        left: 50%;
-        right: 50%;
-        background: var(--rr);
-        transition: 0.2s;
-      }
-      nav button:hover,
-      nav button.active {
-        color: var(--rr);
-      }
-      nav button.active:after {
-        left: 0;
-        right: 0;
-      }
-      nav sup {
-        font-size: 10px;
-      }
-      main {
-        width: min(1220px, calc(100% - 48px));
-        margin: auto;
-        padding: 52px 0 80px;
-        flex: 1;
-      }
-      .title {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        margin-bottom: 28px;
-      }
-      .title p {
-        margin: 0 0 6px;
-        color: var(--m);
-        font-size: 14px;
-      }
-      .title h1 {
-        margin: 0;
-        font-size: 42px;
-        letter-spacing: -0.055em;
-      }
-      .picker {
-        display: flex;
-        gap: 6px;
-        padding: 5px;
-        background: #e4e2dd;
-        border-radius: 12px;
-      }
-      .picker label {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        background: white;
-        border-radius: 8px;
-        padding: 8px 11px;
-      }
-      .picker small {
-        font-size: 11px;
-        color: var(--m);
-        font-weight: 800;
-      }
-      .picker select {
-        border: 0;
-        background: transparent;
-        font-weight: 750;
-      }
-      .grid {
-        display: grid;
-        gap: 20px;
-      }
-      .timegrid {
-        grid-template-columns: minmax(0, 2.3fr) minmax(260px, 0.7fr);
-      }
-      .panel {
-        padding: 28px;
-        background: var(--s);
-        border: 1px solid #d6d4cf;
-        border-radius: 16px;
-        box-shadow: var(--sh);
-      }
-      .panelhead {
-        margin-bottom: 22px;
-      }
-      .panel h2 {
-        margin: 5px 0 0;
-        font-size: 22px;
-      }
-      .eyebrow {
-        color: var(--r);
-        font:
-          700 11px ui-monospace,
-          monospace;
-        letter-spacing: 0.12em;
-      }
-      .scroll {
-        overflow: auto;
-      }
-      table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        table-layout: fixed;
-      }
-      th,
-      td {
-        text-align: center;
-        height: 59px;
-        border-bottom: 1px solid #eceae5;
-        font-size: 14px;
-      }
-      thead th {
-        height: 42px;
-        color: var(--m);
-        font-size: 12px;
-      }
-      th:first-child {
-        width: 52px;
-        color: var(--m);
-        font-size: 12px;
-      }
-      tr:last-child > * {
-        border-bottom: 0;
-      }
-      .today {
-        background: #f8ebeb;
-        color: var(--r);
-        font-weight: 750;
-      }
-      .todaycard {
-        background: #202020;
-        color: white;
-      }
-      .todaycard .eyebrow {
-        color: #ff6262;
-      }
-      .todaylist div {
-        display: flex;
-        align-items: center;
-        gap: 13px;
-        padding: 10px 0;
-        border-bottom: 1px solid #383838;
-      }
-      .todaylist span {
-        display: grid;
-        place-items: center;
-        width: 27px;
-        height: 27px;
-        border: 1px solid #555;
-        border-radius: 7px;
-        color: #aaa;
-        font: 700 11px monospace;
-      }
-      .featuregrid {
-        grid-template-columns: 2fr 1fr;
-      }
-      .feature {
-        min-height: 340px;
-      }
-      .feature > div {
-        margin-top: 75px;
-      }
-      .feature h2 {
-        font-size: 38px;
-      }
-      .note {
-        background: #e5e3dd;
-      }
-      .note p {
-        line-height: 1.75;
-        color: #555;
-      }
-      .segments {
-        display: flex;
-        background: #e9e7e2;
-        padding: 5px;
-        border-radius: 12px;
-      }
-      .segments button {
-        border: 0;
-        background: transparent;
-        padding: 10px 26px;
-        border-radius: 8px;
-        color: #777;
-        font-weight: 750;
-        cursor: pointer;
-      }
-      .segments button.active {
-        background: white;
-        color: var(--r);
-        box-shadow: 0 1px 4px #0002;
-      }
-      .mealbar,
-      .boardbar {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 24px;
-        margin-bottom: 20px;
-      }
-      .mealbar h2 {
-        margin: 5px 0 0;
-      }
-      .mealdays {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 12px;
-      }
-      .mealday {
-        min-height: 310px;
-        padding: 20px;
-      }
-      .mealday.current {
-        border: 2px solid var(--r);
-        padding: 19px;
-      }
-      .mealdate {
-        display: flex;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--l);
-        padding-bottom: 14px;
-        margin-bottom: 16px;
-      }
-      .mealdate strong {
-        font-size: 20px;
-      }
-      .mealday p {
-        white-space: pre-line;
-        line-height: 1.75;
-        font-size: 14px;
-      }
-      .primary,
-      .secondary,
-      .back {
-        border: 0;
-        border-radius: 10px;
-        padding: 12px 20px;
-        font-weight: 800;
-        cursor: pointer;
-      }
-      .primary {
-        background: var(--r);
-        color: white;
-        box-shadow: 0 3px 0 #750d0d;
-      }
-      .secondary,
-      .back {
-        background: #e4e2dd;
-      }
-      .back {
-        padding: 9px 13px;
-        margin-bottom: 24px;
-        color: var(--m);
-      }
-      .boardbar p {
-        margin: 7px 0 0;
-        color: var(--m);
-      }
-      .postlist {
-        display: grid;
-        background: var(--s);
-        border: 1px solid #d6d4cf;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: var(--sh);
-      }
-      .postlist > button {
-        display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto auto;
-        align-items: center;
-        gap: 16px;
-        padding: 20px 22px;
-        border: 0;
-        border-bottom: 1px solid #e8e6e1;
-        background: transparent;
-        text-align: left;
-        cursor: pointer;
-      }
-      .postlist h3 {
-        margin: 0 0 5px;
-      }
-      .postlist p {
-        margin: 0;
-        color: var(--m);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .postlist time {
-        font-size: 12px;
-        color: var(--m);
-      }
-      .tag {
-        padding: 5px 7px;
-        border-radius: 6px;
-        background: #f5e3e3;
-        color: var(--r);
-        font-size: 11px;
-        font-weight: 800;
-      }
-      .editor,
-      .detail {
-        max-width: 850px;
-        margin: auto;
-      }
-      .editor label {
-        display: grid;
-        gap: 9px;
-        margin: 18px 0;
-        font-size: 13px;
-        font-weight: 800;
-      }
-      .editor input,
-      .editor textarea {
-        width: 100%;
-        border: 1px solid #d6d4cf;
-        border-radius: 10px;
-        background: var(--p);
-        padding: 14px;
-        outline: 0;
-        line-height: 1.65;
-      }
-      .actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 9px;
-      }
-      .detail time {
-        display: block;
-        color: var(--m);
-        margin: 12px 0 25px;
-      }
-      .body {
-        border-top: 1px solid var(--l);
-        padding-top: 28px;
-        white-space: pre-wrap;
-        line-height: 1.9;
-        min-height: 220px;
-      }
-      .empty {
-        text-align: center;
-        color: var(--m);
-        padding: 60px;
-        border: 1px dashed #c9c7c1;
-        border-radius: 16px;
-      }
-      footer {
-        padding: 25px max(24px, calc((100% - 1220px) / 2));
-        display: flex;
-        justify-content: space-between;
-        border-top: 1px solid var(--l);
-        color: #777;
-        font-size: 12px;
-      }
-      .toast {
-        position: fixed;
-        left: 50%;
-        bottom: 30px;
-        transform: translateX(-50%);
-        background: #202020;
-        color: white;
-        padding: 13px 18px;
-        border-radius: 10px;
-        z-index: 30;
-      }
-      .hidden {
-        display: none !important;
-      }
-      @media (max-width: 980px) {
-        header {
-          height: auto;
-        }
-        .head {
-          display: block;
-          padding: 18px 24px 0;
-        }
-        .brand {
-          margin-bottom: 12px;
-        }
-        nav {
-          height: 55px;
-          gap: 26px;
-          margin: 0 -24px;
-          padding: 0 24px;
-          overflow: auto;
-        }
-        nav button {
-          font-size: 16px;
-        }
-        .timegrid,
-        .featuregrid {
-          grid-template-columns: 1fr;
-        }
-        .todaycard {
-          order: -1;
-        }
-        .mealdays {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-      @media (max-width: 640px) {
-        main {
-          width: calc(100% - 28px);
-          padding: 32px 0 60px;
-        }
-        .head {
-          padding-left: 16px;
-          padding-right: 16px;
-        }
-        .logo {
-          transform: scale(0.68);
-          width: 50px;
-        }
-        .brand strong {
-          font-size: 21px;
-        }
-        nav {
-          margin: 0 -16px;
-          padding: 0 16px;
-          gap: 22px;
-        }
-        .title,
-        .mealbar,
-        .boardbar {
-          align-items: stretch;
-          flex-direction: column;
-          gap: 20px;
-        }
-        .title h1 {
-          font-size: 34px;
-        }
-        .picker {
-          width: 100%;
-        }
-        .picker label {
-          flex: 1;
-        }
-        .panel {
-          padding: 20px;
-        }
-        .mealdays {
-          grid-template-columns: 1fr;
-        }
-        .mealday {
-          min-height: 0;
-        }
-        .segments {
-          width: 100%;
-        }
-        .segments button {
-          flex: 1;
-          padding: 10px 8px;
-        }
-        .postlist > button {
-          grid-template-columns: auto minmax(0, 1fr) auto;
-        }
-        .postlist time {
-          display: none;
-        }
-        footer {
-          display: block;
-        }
-      }
-
-      /* ===== PDF-DS FINAL: angular, technical, grid-based ===== */
-      :root {
-        --r: #b51f24;
-        --rr: #d9232e;
-        --i: #17191d;
-        --m: #74777f;
-        --l: #cfd1d4;
-        --p: #f5f5f2;
-        --s: rgba(255, 255, 255, 0.94);
-        --sh: 0 1px 0 #ffffff inset, 0 2px 0 rgba(24, 26, 29, 0.08);
-      }
-      body {
-        background-color: var(--p);
-        background-image:
-          linear-gradient(rgba(28, 31, 36, 0.045) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(28, 31, 36, 0.045) 1px, transparent 1px);
-        background-size: 28px 28px;
-      }
-      header {
-        height: 116px;
-        border-top: 6px solid var(--r);
-        border-bottom: 1px solid #bfc1c5;
-        background: rgba(249, 249, 247, 0.97);
-      }
-      .head {
-        max-width: 1320px;
-      }
-      .brand strong {
-        font-family:
-          Pretendard,
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif;
-        font-size: 27px;
-        font-weight: 750;
-        letter-spacing: -0.045em;
-      }
-      .brand em {
-        font-family:
-          Pretendard,
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif;
-        font-weight: 750;
-        letter-spacing: -0.02em;
-      }
-      .eyebrow,
-      .title p,
-      footer {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      }
-      .logo {
-        transform: scale(0.78);
-        transform-origin: left center;
-        width: 58px;
-      }
-      nav {
-        gap: 30px;
-      }
-      nav a {
-        color: inherit;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        position: relative;
-        padding: 5px 0 0;
-        font-size: 18px;
-        font-weight: 750;
-        white-space: nowrap;
-      }
-      nav a::after {
-        content: "";
-        position: absolute;
-        height: 5px;
-        bottom: 0;
-        left: 50%;
-        right: 50%;
-        background: var(--rr);
-        transition: 0.18s ease;
-      }
-      nav a:hover {
-        color: var(--rr);
-      }
-      nav a:hover::after {
-        left: 0;
-        right: 0;
-      }
-      main {
-        max-width: 1220px;
-      }
-      .title {
-        padding: 20px 22px;
-        border: 1px solid var(--l);
-        border-left: 5px solid var(--r);
-        background: rgba(255, 255, 255, 0.84);
-        box-shadow: var(--sh);
-      }
-      .title h1 {
-        font-size: 35px;
-      }
-      .panel,
-      .picker,
-      .picker label,
-      .segments,
-      .segments button,
-      .primary,
-      .secondary,
-      .back,
-      .postlist,
-      .postlist > button,
-      .editor input,
-      .editor textarea,
-      .empty,
-      .toast,
-      .tag {
-        border-radius: 2px;
-      }
-      .panel {
-        border-color: #c9cbcf;
-      }
-      .primary {
-        box-shadow: 0 3px 0 #771014;
-      }
-      .primary:hover {
-        background: #94181c;
-      }
-      .board-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        padding: 22px 24px;
-        border: 1px solid #bfc1bd;
-        border-bottom: 0;
-        background: #e7e7e2;
-      }
-      .board-brand {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-      }
-      .board-symbol {
-        width: 54px;
-        height: 54px;
-        display: grid;
-        place-items: center;
-        background: var(--r);
-        color: white;
-        font:
-          800 23px ui-monospace,
-          monospace;
-        box-shadow: 0 4px 0 #771014;
-      }
-      .board-brand h2 {
-        margin: 0 0 5px;
-        font-size: 25px;
-      }
-      .board-brand p {
-        margin: 0;
-        color: var(--m);
-      }
-      .board-filters {
-        display: flex;
-        gap: 8px;
-        padding: 18px 24px;
-        overflow-x: auto;
-        border: 1px solid #c6c8c3;
-        background: rgba(255, 255, 255, 0.9);
-      }
-      .board-filters button {
-        min-width: 82px;
-        padding: 9px 15px;
-        border: 1px solid #c6c8c3;
-        border-radius: 2px;
-        background: white;
-        color: #757871;
-        font-weight: 700;
-        cursor: pointer;
-      }
-      .board-filters button.active {
-        border-color: var(--r);
-        background: var(--r);
-        color: white;
-      }
-      .postlist {
-        margin-top: 12px;
-      }
-      .post-table-head,
-      .post-row {
-        display: grid;
-        grid-template-columns: 82px minmax(0, 1fr) 110px 110px 34px;
-        align-items: center;
-        gap: 14px;
-      }
-      .post-table-head {
-        padding: 15px 22px;
-        border-bottom: 1px solid #cfd0cc;
-        background: #fafaf8;
-        color: #73766f;
-        font-size: 13px;
-        font-weight: 750;
-      }
-      .postlist > button.post-row {
-        grid-template-columns: 82px minmax(0, 1fr) 110px 110px 34px;
-        padding: 17px 22px;
-      }
-      .post-row:hover {
-        background: #f0f0ec;
-      }
-      .post-row h3 {
-        margin: 0;
-        font-size: 16px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .post-title-line {
-        min-width: 0;
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        flex-wrap: nowrap;
-      }
-      .post-title-line .tag {
-        flex: 0 0 auto;
-      }
-      .post-author,
-      .post-date {
-        color: var(--m);
-        font-size: 13px;
-      }
-      .post-index {
-        color: var(--r);
-        font-weight: 800;
-        text-align: center;
-      }
-      .editor-select {
-        width: 100%;
-        padding: 12px 14px;
-        border: 1px solid #d6d4cf;
-        border-radius: 2px;
-        background: var(--p);
-      }
-      .afterday {
-        min-height: 230px;
-      }
-      .afterday .after-subject {
-        margin: 26px 0 8px;
-        font-size: 21px;
-        line-height: 1.35;
-      }
-      .afterday .after-teacher {
-        color: var(--m);
-        font-size: 14px;
-      }
-      .afterday .after-empty {
-        margin-top: 28px;
-        color: var(--m);
-        font-size: 14px;
-        line-height: 1.65;
-      }
-      @media (max-width: 980px) {
-        header {
-          height: auto;
-        }
-        nav a {
-          flex: 0 0 auto;
-          height: 55px;
-          font-size: 16px;
-        }
-      }
-      @media (max-width: 700px) {
-        .post-table-head {
-          display: none;
-        }
-        .postlist > button.post-row {
-          grid-template-columns: 52px minmax(0, 1fr) 24px;
-        }
-        .post-author,
-        .post-date {
-          display: none;
-        }
-        .board-head {
-          align-items: stretch;
-          flex-direction: column;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="shell">
       <header>
         <div class="head">
-          <button class="brand" onclick="show('시간표')">
+          <button class="brand" onclick="show('메인')">
             <div class="logo"><span></span><i></i><b></b></div>
             <span><em>충남과학고</em><strong>충곽에타</strong></span>
           </button>
           <nav>
-            <button data-tab="시간표" onclick="show('시간표')">시간표</button
+            <button data-tab="메인" onclick="show('메인')">메인</button
+            ><button data-tab="시간표" onclick="show('시간표')">시간표</button
             ><button data-tab="방과후" onclick="show('방과후')">방과후</button
             ><button data-tab="급식" onclick="show('급식')">급식</button
             ><button data-tab="공지" onclick="show('공지')">공지</button
@@ -961,10 +79,21 @@
         ><span>학교생활에 필요한 모든 것을 한곳에</span>
       </footer>
       <div id="toast" class="toast hidden"></div>
+      <div id="welcome" class="welcome hidden">
+        <form onsubmit="saveName(event)">
+          <span class="eyebrow">WELCOME TO CHUNGGWA ETA</span>
+          <h2>처음 만났네요.</h2>
+          <p>메인 화면에서 부를 이름을 입력해주세요.</p>
+          <label>이름<input id="name-input" maxlength="12" autocomplete="name" placeholder="이름 입력" /></label>
+          <button type="submit">시작하기</button>
+          <small>입력한 정보는 이 기기에만 저장됩니다.</small>
+        </form>
+      </div>
     </div>
     <script>
       const APP_SCRIPT_URL =
-          "https://script.google.com/macros/s/AKfycbzzsIPRXrkyWtGl9YNqmEsuna6FVjNXYAmqekXb9JJ75UAMoBhsRZImM5tnym2-baDzAg/exec",
+          "https://script.google.com/macros/s/AKfycbxanKwIuGMmw15-sipt57hB8A8B5f73CNEhwAgau5Aweg_Hhw1OBkF7WwDMGlvP3RQXrA/exec",
+        OPENWEATHER_KEY = "e6298fcd99d3906fcfa480b13bee36c",
         DAYS = ["월", "화", "수", "목", "금"];
       const S = {
         1: {
@@ -1422,10 +551,11 @@
           4: ["수학1", "김솔이"],
         },
       };
-      let tab = "시간표",
+      let tab = "메인",
         mealCode = "2",
         posts = [],
-        boardFilter = "전체";
+        boardFilter = "전체",
+        afterschoolData = null;
       const $ = (s) => document.querySelector(s),
         esc = (s) =>
           String(s).replace(
@@ -1448,7 +578,10 @@
       }
       function show(t) {
         tab = t;
-        $("#page-title").textContent = t;
+        $("#page-title").textContent =
+          t === "메인"
+            ? `${localStorage.getItem("chunggwa-name") || "학생"}님, 오늘도 반가워요.`
+            : t;
         document
           .querySelectorAll("nav [data-tab]")
           .forEach((b) => b.classList.toggle("active", b.dataset.tab === t));
@@ -1461,10 +594,208 @@
         setTimeout(() => t.classList.add("hidden"), 2500);
       }
       function render() {
-        if (tab === "시간표") timetable();
+        if (tab === "메인") dashboard();
+        else if (tab === "시간표") timetable();
         else if (tab === "방과후") after();
         else if (tab === "급식") meals();
         else board();
+      }
+      const toMinutes = (value) => {
+        const [hour, minute] = value.split(":").map(Number);
+        return (hour % 24) * 60 + minute;
+      };
+      function routine(day) {
+        const morning = [
+          ["00:00", "08:30", "취침 및 등교 준비"],
+          ["08:30", "08:40", "아침 조회"],
+          ["08:40", "09:30", "1교시"],
+          ["09:30", "09:40", "쉬는 시간"],
+          ["09:40", "10:30", "2교시"],
+          ["10:30", "10:40", "쉬는 시간"],
+          ["10:40", "11:30", "3교시"],
+          ["11:30", "11:40", "쉬는 시간"],
+          ["11:40", "12:30", "4교시"],
+        ];
+        if (day === 0)
+          return [
+            ["00:00", "20:00", "귀사 준비"],
+            ["20:00", "21:30", "야간 자율학습"],
+            ["21:30", "22:20", "개인 정비 시간"],
+            ["22:20", "24:10", "기숙사 야자"],
+            ["24:10", "24:30", "개인정비 및 점호 준비"],
+            ["24:30", "24:59", "취침"],
+          ];
+        if (day === 6) return [["00:00", "24:59", "등록된 일과 없음"]];
+        const afternoon =
+          day === 3
+            ? [
+                ["12:30", "13:50", "점심시간"],
+                ["13:50", "14:40", "5교시"],
+                ["14:40", "15:30", "6교시"],
+                ["15:30", "16:20", "7교시"],
+              ]
+            : [
+                ["12:30", "13:30", "점심시간"],
+                ["13:30", "14:20", "5교시"],
+                ["14:20", "14:30", "쉬는 시간"],
+                ["14:30", "15:20", "6교시"],
+                ["15:20", "15:30", "쉬는 시간"],
+                ["15:30", "16:20", "7교시"],
+              ];
+        if (day === 5)
+          return [...morning, ...afternoon, ["16:20", "24:59", "종례 후 귀가"]];
+        return [
+          ...morning,
+          ...afternoon,
+          ["16:20", "16:30", "청소 시간"],
+          ["16:30", "17:50", "8교시 (방과후)"],
+          ["17:50", "19:00", "저녁시간"],
+          ["19:00", "20:20", "야자 1교시"],
+          ["20:20", "20:30", "쉬는 시간"],
+          ["20:30", "21:30", "야자 2교시"],
+          ["21:30", "22:20", "개인 정비 시간"],
+          ["22:20", "24:10", "기숙사 야자"],
+          ["24:10", "24:30", "개인정비 및 점호 준비"],
+          ["24:30", "24:59", "취침"],
+        ];
+      }
+      async function dashboard() {
+        const now = new Date();
+        const { g, c } = cfg();
+        const dayIndex = now.getDay() - 1;
+        const today =
+          dayIndex >= 0 && dayIndex < 5 ? S[g][c][DAYS[dayIndex]] : [];
+        const minutes = now.getHours() * 60 + now.getMinutes();
+        const items = routine(now.getDay());
+        const active =
+          items.find(
+            (item) =>
+              minutes >= toMinutes(item[0]) && minutes < toMinutes(item[1]),
+          ) || items[0];
+        const period = /^(\d)교시/.exec(active[2]);
+        const subject = period ? today[Number(period[1]) - 1] : "";
+        const remaining = Math.max(0, toMinutes(active[1]) - minutes);
+        const next = items[items.indexOf(active) + 1];
+        const duration = Math.max(1, toMinutes(active[1]) - toMinutes(active[0]));
+        const progress = Math.min(
+          100,
+          Math.max(3, ((minutes - toMinutes(active[0])) / duration) * 100),
+        );
+        const times = [
+          "08:40",
+          "09:40",
+          "10:40",
+          "11:40",
+          now.getDay() === 3 ? "13:50" : "13:30",
+          now.getDay() === 3 ? "14:40" : "14:30",
+          "15:30",
+        ];
+        $("#content").innerHTML = `
+          <section class="dashboard">
+            <article class="now-card">
+              <div class="now-top">
+                <span><i class="now-dot"></i>지금 ${subject ? "수업" : "일과"}</span>
+                <b>${remaining ? `종료까지 ${remaining}분` : "진행 중"}</b>
+              </div>
+              <p>${active[2]} · ${active[0]}–${active[1]}</p>
+              <h2>${esc(subject || active[2])}</h2>
+              <small>${g}학년 ${c}반</small>
+              <div class="routine-progress"><span style="width:${progress}%"></span></div>
+              <div class="now-next">
+                ${next ? `다음 일과 <strong>${next[2]} · ${next[0]}</strong>` : "오늘 일과가 끝났습니다."}
+              </div>
+            </article>
+            <article class="dash-card weather-card" id="weather-card">
+              <span class="eyebrow">LIVE WEATHER</span>
+              <div class="weather-main"><strong>—°</strong></div>
+              <h3>날씨 확인 중</h3><p>공주 기준 실시간 날씨</p>
+            </article>
+            <article class="dash-card meal-card" id="today-meal">
+              <span class="eyebrow">TODAY'S MEAL</span>
+              <h3>오늘의 급식</h3><p>급식 정보를 불러오는 중입니다.</p>
+              <button class="dash-link" onclick="show('급식')">주간 급식 보기 →</button>
+            </article>
+            <article class="dash-card notice-card" id="latest-notice">
+              <span class="eyebrow">LATEST NOTICE</span><h3>최신 공지</h3>
+              <p>공지를 불러오는 중입니다.</p>
+            </article>
+            <article class="dash-card today-schedule">
+              <div class="dash-head">
+                <div><span class="eyebrow">TODAY'S SCHEDULE</span><h3>오늘 시간표</h3></div>
+                <button class="dash-link" onclick="show('시간표')">전체 시간표 →</button>
+              </div>
+              <div class="today-lines">
+                ${today.length
+                  ? today.map((x,i)=>`<p class="today-line ${period && Number(period[1])===i+1 ? "current" : ""}"><span>${i+1}</span><time>${times[i]}</time><b>${esc(x)}</b></p>`).join("")
+                  : "<p>오늘은 정규 수업이 없습니다.</p>"}
+              </div>
+            </article>
+          </section>`;
+        loadDashboardWeather();
+        loadDashboardMeal(now);
+        loadDashboardNotices();
+      }
+      async function loadDashboardWeather() {
+        try {
+          const data = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?lat=36.446&lon=127.119&appid=${OPENWEATHER_KEY}&units=metric&lang=kr`,
+          ).then((response) => {
+            if (!response.ok) throw new Error();
+            return response.json();
+          });
+          $("#weather-card").innerHTML = `
+            <span class="eyebrow">LIVE WEATHER</span>
+            <div class="weather-main">
+              <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="">
+              <strong>${Math.round(data.main.temp)}°</strong>
+            </div>
+            <h3>${esc(data.weather[0].description)}</h3>
+            <p>체감 ${Math.round(data.main.feels_like)}° · 습도 ${data.main.humidity}%</p>`;
+        } catch {
+          $("#weather-card").innerHTML =
+            '<span class="eyebrow">LIVE WEATHER</span><h3>날씨를 불러오지 못했습니다.</h3><p>잠시 후 다시 확인해주세요.</p>';
+        }
+      }
+      async function loadDashboardMeal(now) {
+        const ymd = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}`;
+        const code = now.getHours() < 8 ? "1" : now.getHours() < 14 ? "2" : "3";
+        const label = code === "1" ? "조식" : code === "2" ? "중식" : "석식";
+        try {
+          const data = await fetch(
+            `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=eb38b586f6af486b9fa46bf786d629d3&Type=json&ATPT_OFCDC_SC_CODE=N10&SD_SCHUL_CODE=8140071&MLSV_YMD=${ymd}&MMEAL_SC_CODE=${code}`,
+          ).then((response) => response.json());
+          const row = data.mealServiceDietInfo?.[1]?.row?.[0];
+          const menu = row
+            ? row.DDISH_NM.replace(/\([^)]*\)/g, "").replace(/<br\/>/g, " · ")
+            : "오늘 등록된 급식이 없습니다.";
+          $("#today-meal").innerHTML = `
+            <span class="eyebrow">TODAY'S MEAL</span><h3>오늘의 ${label}</h3>
+            <p>${menu}</p><button class="dash-link" onclick="show('급식')">주간 급식 보기 →</button>`;
+        } catch {
+          $("#today-meal").querySelector("p").textContent = "급식을 불러오지 못했습니다.";
+        }
+      }
+      async function loadDashboardNotices() {
+        try {
+          const data = await fetch(`${APP_SCRIPT_URL}?action=getPosts`).then((r) => r.json());
+          posts = data.posts || [];
+          $("#latest-notice").innerHTML =
+            '<span class="eyebrow">LATEST NOTICE</span><h3>최신 공지</h3>' +
+            (posts.length
+              ? posts.slice(0,3).map((p,i)=>`<button onclick="show('공지');setTimeout(()=>detail(${i}),0)"><span>${esc(p.category||"공지")}</span><b>${esc(p.title)}</b><time>${p.createdAt ? new Date(p.createdAt).toLocaleDateString("ko-KR") : ""}</time></button>`).join("")
+              : "<p>등록된 공지가 없습니다.</p>");
+        } catch {
+          $("#latest-notice").innerHTML =
+            '<span class="eyebrow">LATEST NOTICE</span><h3>최신 공지</h3><p>공지를 불러오지 못했습니다.</p>';
+        }
+      }
+      function saveName(event) {
+        event.preventDefault();
+        const value = $("#name-input").value.trim();
+        if (!value) return;
+        localStorage.setItem("chunggwa-name", value);
+        $("#welcome").classList.add("hidden");
+        show("메인");
       }
       function timetable() {
         const { g, c } = cfg(),
@@ -1474,7 +805,14 @@
         $("#content").innerHTML =
           `<section class="grid timegrid"><article class="panel"><div class="panelhead"><span class="eyebrow">WEEKLY</span><h2>${g}학년 ${c}반 주간 시간표</h2></div><div class="scroll"><table><thead><tr><th>교시</th>${DAYS.map((d, i) => `<th class="${i === di ? "today" : ""}">${d}</th>`).join("")}</tr></thead><tbody>${[0, 1, 2, 3, 4, 5, 6].map((p) => `<tr><th>${p + 1}</th>${DAYS.map((d, i) => `<td class="${i === di ? "today" : ""}">${s[d][p] || "—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div></article><aside class="panel todaycard"><span class="eyebrow">TODAY</span><h2>${di >= 0 && di < 5 ? DAYS[di] + "요일 수업" : "주말"}</h2><div class="todaylist">${today.length ? today.map((x, i) => `<div><span>${i + 1}</span><b>${x}</b></div>`).join("") : "오늘은 정규 수업이 없습니다."}</div></aside></section>`;
       }
-      function after() {
+      async function loadAfterschool() {
+        if (afterschoolData) return afterschoolData;
+        const response = await fetch("./afterschool.json", { cache: "no-store" });
+        if (!response.ok) throw new Error("방과후 JSON을 불러오지 못했습니다.");
+        afterschoolData = await response.json();
+        return afterschoolData;
+      }
+      async function after() {
         const { g, c } = cfg();
         const now = new Date();
         const monday = new Date(now);
@@ -1482,6 +820,14 @@
         monday.setDate(now.getDate() + delta);
         const todayIndex = now.getDay() - 1;
 
+        let schedules = {};
+        try {
+          schedules = await loadAfterschool();
+        } catch {
+          $("#content").innerHTML =
+            '<div class="empty">방과후 정보를 불러오지 못했습니다.<br>afterschool.json 파일을 확인해주세요.</div>';
+          return;
+        }
         const cards = DAYS.map((day, index) => {
           const date = new Date(monday);
           date.setDate(monday.getDate() + index);
@@ -1490,7 +836,7 @@
             String(date.getMonth() + 1).padStart(2, "0") +
             "-" +
             String(date.getDate()).padStart(2, "0");
-          const schedule = g === "2" ? A[key]?.[c] : null;
+          const schedule = g === "2" ? schedules[key]?.[c] : null;
 
           return `
             <article class="panel mealday afterday ${index === todayIndex ? "current" : ""}">
@@ -1776,7 +1122,15 @@
         } catch {}
         const h = d.getHours();
         mealCode = h < 8 ? "1" : h < 13 ? "2" : "3";
-        show("시간표");
+        const savedName = localStorage.getItem("chunggwa-name");
+        if (!savedName) {
+          $("#welcome").classList.remove("hidden");
+          setTimeout(() => $("#name-input").focus(), 0);
+        }
+        show("메인");
+        setInterval(() => {
+          if (tab === "메인") dashboard();
+        }, 30000);
       });
     </script>
   </body>
