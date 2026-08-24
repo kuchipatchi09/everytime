@@ -1,1 +1,1289 @@
-
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>충곽에타</title>
+    <meta name="description" content="충남과학고 시간표, 방과후, 급식과 공지" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <style>
+      @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+      :root {
+        --r: #ad1d1d;
+        --rr: #ed2b2b;
+        --i: #181818;
+        --m: #777;
+        --l: #ddd;
+        --p: #f2f1ed;
+        --s: #fff;
+        --sh: 0 1px 0 #fff inset, 0 2px 0 #d2d0ca, 0 14px 30px #40352b0d;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--p);
+        color: var(--i);
+        font-family:
+          Pretendard,
+          -apple-system,
+          sans-serif;
+        word-break: keep-all;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+        color: inherit;
+      }
+      .shell {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        height: 145px;
+        background: #fffffff5;
+        border-top: 3px solid #eee;
+        border-bottom: 1px solid var(--l);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        backdrop-filter: blur(12px);
+      }
+      .head {
+        max-width: 1440px;
+        height: 100%;
+        margin: auto;
+        padding: 0 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 50px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        background: none;
+        border: 0;
+        padding: 0;
+        text-align: left;
+        cursor: pointer;
+      }
+      .brand > span {
+        display: flex;
+        flex-direction: column;
+      }
+      .brand em {
+        color: var(--rr);
+        font-style: normal;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .brand strong {
+        font-size: 30px;
+        letter-spacing: -0.06em;
+      }
+      .logo {
+        width: 70px;
+        height: 58px;
+        position: relative;
+      }
+      .logo span {
+        position: absolute;
+        width: 68px;
+        height: 35px;
+        bottom: 0;
+        border: 12px solid #222;
+        border-top: 0;
+        border-radius: 0 0 36px 36px;
+      }
+      .logo i {
+        position: absolute;
+        width: 10px;
+        height: 21px;
+        left: 30px;
+        bottom: 20px;
+        background: var(--rr);
+        border-radius: 8px;
+        transform: rotate(7deg);
+      }
+      .logo b {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        right: 3px;
+        border-radius: 50%;
+        background: #222;
+      }
+      nav {
+        height: 100%;
+        display: flex;
+        align-items: stretch;
+        gap: 36px;
+      }
+      nav button {
+        border: 0;
+        background: none;
+        padding: 5px 0 0;
+        position: relative;
+        font-size: 20px;
+        font-weight: 750;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      nav button:after {
+        content: "";
+        position: absolute;
+        height: 6px;
+        bottom: 0;
+        left: 50%;
+        right: 50%;
+        background: var(--rr);
+        transition: 0.2s;
+      }
+      nav button:hover,
+      nav button.active {
+        color: var(--rr);
+      }
+      nav button.active:after {
+        left: 0;
+        right: 0;
+      }
+      nav sup {
+        font-size: 10px;
+      }
+      main {
+        width: min(1220px, calc(100% - 48px));
+        margin: auto;
+        padding: 52px 0 80px;
+        flex: 1;
+      }
+      .title {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 28px;
+      }
+      .title p {
+        margin: 0 0 6px;
+        color: var(--m);
+        font-size: 14px;
+      }
+      .title h1 {
+        margin: 0;
+        font-size: 42px;
+        letter-spacing: -0.055em;
+      }
+      .picker {
+        display: flex;
+        gap: 6px;
+        padding: 5px;
+        background: #e4e2dd;
+        border-radius: 12px;
+      }
+      .picker label {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        background: white;
+        border-radius: 8px;
+        padding: 8px 11px;
+      }
+      .picker small {
+        font-size: 11px;
+        color: var(--m);
+        font-weight: 800;
+      }
+      .picker select {
+        border: 0;
+        background: transparent;
+        font-weight: 750;
+      }
+      .grid {
+        display: grid;
+        gap: 20px;
+      }
+      .timegrid {
+        grid-template-columns: minmax(0, 2.3fr) minmax(260px, 0.7fr);
+      }
+      .panel {
+        padding: 28px;
+        background: var(--s);
+        border: 1px solid #d6d4cf;
+        border-radius: 16px;
+        box-shadow: var(--sh);
+      }
+      .panelhead {
+        margin-bottom: 22px;
+      }
+      .panel h2 {
+        margin: 5px 0 0;
+        font-size: 22px;
+      }
+      .eyebrow {
+        color: var(--r);
+        font:
+          700 11px ui-monospace,
+          monospace;
+        letter-spacing: 0.12em;
+      }
+      .scroll {
+        overflow: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        table-layout: fixed;
+      }
+      th,
+      td {
+        text-align: center;
+        height: 59px;
+        border-bottom: 1px solid #eceae5;
+        font-size: 14px;
+      }
+      thead th {
+        height: 42px;
+        color: var(--m);
+        font-size: 12px;
+      }
+      th:first-child {
+        width: 52px;
+        color: var(--m);
+        font-size: 12px;
+      }
+      tr:last-child > * {
+        border-bottom: 0;
+      }
+      .today {
+        background: #f8ebeb;
+        color: var(--r);
+        font-weight: 750;
+      }
+      .todaycard {
+        background: #202020;
+        color: white;
+      }
+      .todaycard .eyebrow {
+        color: #ff6262;
+      }
+      .todaylist div {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 10px 0;
+        border-bottom: 1px solid #383838;
+      }
+      .todaylist span {
+        display: grid;
+        place-items: center;
+        width: 27px;
+        height: 27px;
+        border: 1px solid #555;
+        border-radius: 7px;
+        color: #aaa;
+        font: 700 11px monospace;
+      }
+      .featuregrid {
+        grid-template-columns: 2fr 1fr;
+      }
+      .feature {
+        min-height: 340px;
+      }
+      .feature > div {
+        margin-top: 75px;
+      }
+      .feature h2 {
+        font-size: 38px;
+      }
+      .note {
+        background: #e5e3dd;
+      }
+      .note p {
+        line-height: 1.75;
+        color: #555;
+      }
+      .segments {
+        display: flex;
+        background: #e9e7e2;
+        padding: 5px;
+        border-radius: 12px;
+      }
+      .segments button {
+        border: 0;
+        background: transparent;
+        padding: 10px 26px;
+        border-radius: 8px;
+        color: #777;
+        font-weight: 750;
+        cursor: pointer;
+      }
+      .segments button.active {
+        background: white;
+        color: var(--r);
+        box-shadow: 0 1px 4px #0002;
+      }
+      .mealbar,
+      .boardbar {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 20px;
+      }
+      .mealbar h2 {
+        margin: 5px 0 0;
+      }
+      .mealdays {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+      }
+      .mealday {
+        min-height: 310px;
+        padding: 20px;
+      }
+      .mealday.current {
+        border: 2px solid var(--r);
+        padding: 19px;
+      }
+      .mealdate {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--l);
+        padding-bottom: 14px;
+        margin-bottom: 16px;
+      }
+      .mealdate strong {
+        font-size: 20px;
+      }
+      .mealday p {
+        white-space: pre-line;
+        line-height: 1.75;
+        font-size: 14px;
+      }
+      .primary,
+      .secondary,
+      .back {
+        border: 0;
+        border-radius: 10px;
+        padding: 12px 20px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .primary {
+        background: var(--r);
+        color: white;
+        box-shadow: 0 3px 0 #750d0d;
+      }
+      .secondary,
+      .back {
+        background: #e4e2dd;
+      }
+      .back {
+        padding: 9px 13px;
+        margin-bottom: 24px;
+        color: var(--m);
+      }
+      .boardbar p {
+        margin: 7px 0 0;
+        color: var(--m);
+      }
+      .postlist {
+        display: grid;
+        background: var(--s);
+        border: 1px solid #d6d4cf;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--sh);
+      }
+      .postlist > button {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 22px;
+        border: 0;
+        border-bottom: 1px solid #e8e6e1;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+      }
+      .postlist h3 {
+        margin: 0 0 5px;
+      }
+      .postlist p {
+        margin: 0;
+        color: var(--m);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .postlist time {
+        font-size: 12px;
+        color: var(--m);
+      }
+      .tag {
+        padding: 5px 7px;
+        border-radius: 6px;
+        background: #f5e3e3;
+        color: var(--r);
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .editor,
+      .detail {
+        max-width: 850px;
+        margin: auto;
+      }
+      .editor label {
+        display: grid;
+        gap: 9px;
+        margin: 18px 0;
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .editor input,
+      .editor textarea {
+        width: 100%;
+        border: 1px solid #d6d4cf;
+        border-radius: 10px;
+        background: var(--p);
+        padding: 14px;
+        outline: 0;
+        line-height: 1.65;
+      }
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 9px;
+      }
+      .detail time {
+        display: block;
+        color: var(--m);
+        margin: 12px 0 25px;
+      }
+      .body {
+        border-top: 1px solid var(--l);
+        padding-top: 28px;
+        white-space: pre-wrap;
+        line-height: 1.9;
+        min-height: 220px;
+      }
+      .empty {
+        text-align: center;
+        color: var(--m);
+        padding: 60px;
+        border: 1px dashed #c9c7c1;
+        border-radius: 16px;
+      }
+      footer {
+        padding: 25px max(24px, calc((100% - 1220px) / 2));
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid var(--l);
+        color: #777;
+        font-size: 12px;
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 30px;
+        transform: translateX(-50%);
+        background: #202020;
+        color: white;
+        padding: 13px 18px;
+        border-radius: 10px;
+        z-index: 30;
+      }
+      .hidden {
+        display: none !important;
+      }
+      @media (max-width: 980px) {
+        header {
+          height: auto;
+        }
+        .head {
+          display: block;
+          padding: 18px 24px 0;
+        }
+        .brand {
+          margin-bottom: 12px;
+        }
+        nav {
+          height: 55px;
+          gap: 26px;
+          margin: 0 -24px;
+          padding: 0 24px;
+          overflow: auto;
+        }
+        nav button {
+          font-size: 16px;
+        }
+        .timegrid,
+        .featuregrid {
+          grid-template-columns: 1fr;
+        }
+        .todaycard {
+          order: -1;
+        }
+        .mealdays {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 640px) {
+        main {
+          width: calc(100% - 28px);
+          padding: 32px 0 60px;
+        }
+        .head {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+        .logo {
+          transform: scale(0.68);
+          width: 50px;
+        }
+        .brand strong {
+          font-size: 21px;
+        }
+        nav {
+          margin: 0 -16px;
+          padding: 0 16px;
+          gap: 22px;
+        }
+        .title,
+        .mealbar,
+        .boardbar {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .title h1 {
+          font-size: 34px;
+        }
+        .picker {
+          width: 100%;
+        }
+        .picker label {
+          flex: 1;
+        }
+        .panel {
+          padding: 20px;
+        }
+        .mealdays {
+          grid-template-columns: 1fr;
+        }
+        .mealday {
+          min-height: 0;
+        }
+        .segments {
+          width: 100%;
+        }
+        .segments button {
+          flex: 1;
+          padding: 10px 8px;
+        }
+        .postlist > button {
+          grid-template-columns: auto minmax(0, 1fr) auto;
+        }
+        .postlist time {
+          display: none;
+        }
+        footer {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <div class="head">
+          <button class="brand" onclick="show('시간표')">
+            <div class="logo"><span></span><i></i><b></b></div>
+            <span><em>충남과학고</em><strong>충곽에타</strong></span>
+          </button>
+          <nav>
+            <button data-tab="시간표" onclick="show('시간표')">시간표</button
+            ><button data-tab="방과후" onclick="show('방과후')">방과후</button
+            ><button data-tab="급식" onclick="show('급식')">급식</button
+            ><button data-tab="공지" onclick="show('공지')">공지</button
+            ><button onclick="external('커뮤니티')">
+              커뮤니티 <sup>↗</sup></button
+            ><button onclick="external('예약')">예약 <sup>↗</sup></button>
+          </nav>
+        </div>
+      </header>
+      <main>
+        <div class="title">
+          <div>
+            <p id="date"></p>
+            <h1 id="page-title">시간표</h1>
+          </div>
+          <div class="picker">
+            <label
+              ><small>학년</small
+              ><select id="grade" onchange="selectClass()">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+              </select></label
+            ><label
+              ><small>반</small
+              ><select id="class" onchange="selectClass()">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+              </select></label
+            >
+          </div>
+        </div>
+        <div id="content"></div>
+      </main>
+      <footer>
+        <b>충곽에타 · 충남과학고등학교</b
+        ><span>학교생활에 필요한 모든 것을 한곳에</span>
+      </footer>
+      <div id="toast" class="toast hidden"></div>
+    </div>
+    <script>
+      const APP_SCRIPT_URL =
+          "https://script.google.com/macros/s/AKfycbytwPjMR9vIYfwUKJWeM87CstRWRvkIPWTd2Izsy8zWdmOBQu3Xwmm4x2hHMX9_m4KkMw/exec",
+        PREFIX = "ETA_POST_V1:",
+        DAYS = ["월", "화", "수", "목", "금"];
+      const S = {
+        1: {
+          1: {
+            월: [
+              "미적1",
+              "정보과학",
+              "공영2",
+              "대수",
+              "생명과학",
+              "체육1",
+              "공국2",
+            ],
+            화: [
+              "물질E",
+              "물질E",
+              "공국2",
+              "역학E",
+              "과제연구",
+              "과제연구",
+              "과제연구",
+            ],
+            수: [
+              "생명과학",
+              "생명과학",
+              "지구과학",
+              "정보과학",
+              "창체1",
+              "창체1",
+              "창체1",
+            ],
+            목: [
+              "체육1",
+              "공영2",
+              "대수",
+              "공국2",
+              "미적1",
+              "지구과학",
+              "지구과학",
+            ],
+            금: [
+              "미적1",
+              "공영2",
+              "대수",
+              "물질E",
+              "역학E",
+              "역학E",
+              "정보과학",
+            ],
+          },
+          2: {
+            월: [
+              "체육1",
+              "공영2",
+              "생명과학",
+              "생명과학",
+              "정보과학",
+              "공국2",
+              "미적1",
+            ],
+            화: [
+              "지구과학",
+              "지구과학",
+              "정보과학",
+              "대수",
+              "과제연구",
+              "과제연구",
+              "과제연구",
+            ],
+            수: ["물질E", "물질E", "역학E", "역학E", "창체1", "창체1", "창체1"],
+            목: [
+              "역학E",
+              "체육1",
+              "공영2",
+              "미적1",
+              "공국2",
+              "대수",
+              "생명과학",
+            ],
+            금: [
+              "공국2",
+              "대수",
+              "물질E",
+              "정보과학",
+              "공영2",
+              "미적1",
+              "지구과학",
+            ],
+          },
+          3: {
+            월: [
+              "정보과학",
+              "대수",
+              "역학E",
+              "역학E",
+              "공영2",
+              "미적1",
+              "체육1",
+            ],
+            화: [
+              "공국2",
+              "미적1",
+              "생명과학",
+              "생명과학",
+              "과제연구",
+              "과제연구",
+              "과제연구",
+            ],
+            수: [
+              "체육1",
+              "대수",
+              "정보과학",
+              "지구과학",
+              "창체1",
+              "창체1",
+              "창체1",
+            ],
+            목: ["미적1", "대수", "물질E", "물질E", "역학E", "공영2", "공국2"],
+            금: [
+              "지구과학",
+              "지구과학",
+              "공영2",
+              "공국2",
+              "생명과학",
+              "정보과학",
+              "물질E",
+            ],
+          },
+          4: {
+            월: [
+              "역학E",
+              "체육1",
+              "미적1",
+              "정보과학",
+              "대수",
+              "공영2",
+              "지구과학",
+            ],
+            화: [
+              "체육1",
+              "정보과학",
+              "대수",
+              "공국2",
+              "과제연구",
+              "과제연구",
+              "과제연구",
+            ],
+            수: [
+              "미적1",
+              "정보과학",
+              "대수",
+              "공국2",
+              "창체1",
+              "창체1",
+              "창체1",
+            ],
+            목: [
+              "물질E",
+              "물질E",
+              "생명과학",
+              "생명과학",
+              "공영2",
+              "역학E",
+              "역학E",
+            ],
+            금: [
+              "공영2",
+              "공국2",
+              "지구과학",
+              "지구과학",
+              "물질E",
+              "생명과학",
+              "미적1",
+            ],
+          },
+        },
+        2: {
+          1: {
+            월: [
+              "생/지",
+              "생/지",
+              "한국사",
+              "문학",
+              "AP선대(정)",
+              "AP선대(김)",
+              "데과학",
+            ],
+            화: [
+              "AP물1",
+              "AP물1",
+              "데과학",
+              "스포츠",
+              "영어2",
+              "한국사",
+              "문학",
+            ],
+            수: [
+              "AP화1",
+              "AP화1",
+              "AP화1",
+              "AP선대(김)",
+              "창체2",
+              "창체2",
+              "창체2",
+            ],
+            목: [
+              "문학",
+              "AP선대(김)",
+              "AP선대(정)",
+              "영어2",
+              "생/지",
+              "생/지",
+              "한국사",
+            ],
+            금: [
+              "데과학",
+              "AP선대(정)",
+              "영어2",
+              "AP화1",
+              "AP선대(김)",
+              "AP물1",
+              "AP물1",
+            ],
+          },
+          2: {
+            월: [
+              "AP화1",
+              "AP화1",
+              "AP화1",
+              "한국사",
+              "AP물1",
+              "AP물1",
+              "AP선대(정)",
+            ],
+            화: [
+              "AP선대(김)",
+              "AP선대(정)",
+              "생/지",
+              "생/지",
+              "스포츠",
+              "영어2",
+              "한국사",
+            ],
+            수: [
+              "문학",
+              "AP선대(김)",
+              "데과학",
+              "영어2",
+              "창체2",
+              "창체2",
+              "창체2",
+            ],
+            목: [
+              "AP선대(정)",
+              "데과학",
+              "생/지",
+              "생/지",
+              "AP물1",
+              "AP물1",
+              "문학",
+            ],
+            금: [
+              "문학",
+              "한국사",
+              "데과학",
+              "영어2",
+              "AP화1",
+              "AP선대(정)",
+              "AP선대(김)",
+            ],
+          },
+          3: {
+            월: [
+              "AP물1",
+              "AP물1",
+              "문학",
+              "AP선대(김)",
+              "생/지",
+              "생/지",
+              "영어2",
+            ],
+            화: [
+              "데과학",
+              "AP선대(김)",
+              "AP선대(정)",
+              "한국사",
+              "문학",
+              "스포츠",
+              "영어2",
+            ],
+            수: [
+              "영어2",
+              "AP선대(정)",
+              "한국사",
+              "데과학",
+              "창체2",
+              "창체2",
+              "창체2",
+            ],
+            목: [
+              "AP물1",
+              "AP물1",
+              "문학",
+              "AP선대(김)",
+              "AP화1",
+              "AP화1",
+              "AP화1",
+            ],
+            금: [
+              "한국사",
+              "AP선대(김)",
+              "AP선대(정)",
+              "데과학",
+              "생/지",
+              "생/지",
+              "AP화1",
+            ],
+          },
+          4: {
+            월: [
+              "AP선대(정)",
+              "AP선대(김)",
+              "생/지",
+              "생/지",
+              "AP화1",
+              "AP화1",
+              "AP화1",
+            ],
+            화: [
+              "AP선대(정)",
+              "데과학",
+              "AP선대(김)",
+              "영어2",
+              "한국사",
+              "문학",
+              "스포츠",
+            ],
+            수: ["생/지", "생/지", "AP물1", "AP물1", "창체2", "창체2", "창체2"],
+            목: [
+              "데과학",
+              "한국사",
+              "영어2",
+              "AP선대(정)",
+              "문학",
+              "AP선대(김)",
+              "AP선대(정)",
+            ],
+            금: [
+              "영어2",
+              "데과학",
+              "AP물1",
+              "AP물1",
+              "문학",
+              "AP화1",
+              "한국사",
+            ],
+          },
+        },
+        3: {
+          1: {
+            월: [
+              "AP물2",
+              "AP물2",
+              "AP물2",
+              "AP미2",
+              "AP프로",
+              "생실험",
+              "생실험",
+            ],
+            화: ["음연", "AP화2", "AP화2", "AP화2"],
+            수: ["AP미2", "심영2", "AP미2", "운동", "창체3", "창체3", "창체3"],
+            목: ["AP화2", "심영2", "경제", "AP미2", "AP물2", "AP프로", "AP미2"],
+            금: ["운동", "AP미2", "경제", "심영2", "AP미2", "생실험", "생실험"],
+          },
+          2: {
+            월: [
+              "생실험",
+              "생실험",
+              "심영2",
+              "경제",
+              "AP미2",
+              "AP프로",
+              "AP물2",
+            ],
+            화: ["미창", "심영2", "AP미2", "AP미2"],
+            수: ["AP물2", "AP물2", "AP물2", "AP미2", "창체3", "창체3", "창체3"],
+            목: [
+              "생실험",
+              "생실험",
+              "AP화2",
+              "경제",
+              "AP프로",
+              "운동",
+              "AP미2",
+            ],
+            금: ["AP화2", "AP화2", "AP화2", "AP미2", "심영2", "AP미2", "운동"],
+          },
+          3: {
+            월: ["AP화2", "AP화2", "AP화2", "심영2", "AP물2", "AP미2", "경제"],
+            화: ["생실험", "생실험", "미창", "AP미2"],
+            수: ["심영2", "AP프로", "운동", "AP미2", "창체3", "창체3", "창체3"],
+            목: [
+              "AP물2",
+              "AP물2",
+              "AP물2",
+              "AP화2",
+              "AP미2",
+              "AP미2",
+              "AP프로",
+            ],
+            금: ["AP미2", "심영2", "생실험", "생실험", "운동", "경제", "AP미2"],
+          },
+          4: {
+            월: ["심영2", "경제", "AP미2", "운동", "AP화2", "AP화2", "AP화2"],
+            화: ["AP미2", "음연", "AP미2", "AP물2"],
+            수: [
+              "AP프로",
+              "AP미2",
+              "생실험",
+              "생실험",
+              "창체3",
+              "창체3",
+              "창체3",
+            ],
+            목: [
+              "심영2",
+              "AP화2",
+              "AP미2",
+              "AP프로",
+              "생실험",
+              "생실험",
+              "운동",
+            ],
+            금: ["경제", "AP물2", "AP물2", "AP물2", "AP미2", "AP미2", "심영2"],
+          },
+        },
+      };
+      const A = {
+        "08-24": {
+          1: ["수학1", "김솔이"],
+          2: ["물리", "박태수"],
+          3: ["수학2", "정종원"],
+          4: ["생명/지구", "임미정, 김미란"],
+        },
+        "08-25": {
+          1: ["물리", "박태수"],
+          2: ["화학", "윤자민"],
+          3: ["수학1", "김솔이"],
+          4: ["수학2", "정종원"],
+        },
+        "08-27": {
+          1: ["수학2", "정종원"],
+          2: ["물리", "박태수"],
+          3: ["화학", "윤자민"],
+          4: ["수학1", "김솔이"],
+        },
+      };
+      let tab = "시간표",
+        mealCode = "2",
+        posts = [];
+      const $ = (s) => document.querySelector(s),
+        esc = (s) =>
+          String(s).replace(
+            /[&<>"']/g,
+            (c) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              })[c],
+          );
+      function cfg() {
+        return { g: $("#grade").value, c: $("#class").value };
+      }
+      function selectClass() {
+        localStorage.setItem("class", JSON.stringify(cfg()));
+        render();
+      }
+      function show(t) {
+        tab = t;
+        $("#page-title").textContent = t;
+        document
+          .querySelectorAll("nav [data-tab]")
+          .forEach((b) => b.classList.toggle("active", b.dataset.tab === t));
+        render();
+      }
+      function external(n) {
+        const t = $("#toast");
+        t.textContent = n + " 사이트 주소가 연결되면 바로 이동할 수 있어요.";
+        t.classList.remove("hidden");
+        setTimeout(() => t.classList.add("hidden"), 2500);
+      }
+      function render() {
+        if (tab === "시간표") timetable();
+        else if (tab === "방과후") after();
+        else if (tab === "급식") meals();
+        else board();
+      }
+      function timetable() {
+        const { g, c } = cfg(),
+          s = S[g][c],
+          di = new Date().getDay() - 1,
+          today = di >= 0 && di < 5 ? s[DAYS[di]] : [];
+        $("#content").innerHTML =
+          `<section class="grid timegrid"><article class="panel"><div class="panelhead"><span class="eyebrow">WEEKLY</span><h2>${g}학년 ${c}반 주간 시간표</h2></div><div class="scroll"><table><thead><tr><th>교시</th>${DAYS.map((d, i) => `<th class="${i === di ? "today" : ""}">${d}</th>`).join("")}</tr></thead><tbody>${[0, 1, 2, 3, 4, 5, 6].map((p) => `<tr><th>${p + 1}</th>${DAYS.map((d, i) => `<td class="${i === di ? "today" : ""}">${s[d][p] || "—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div></article><aside class="panel todaycard"><span class="eyebrow">TODAY</span><h2>${di >= 0 && di < 5 ? DAYS[di] + "요일 수업" : "주말"}</h2><div class="todaylist">${today.length ? today.map((x, i) => `<div><span>${i + 1}</span><b>${x}</b></div>`).join("") : "오늘은 정규 수업이 없습니다."}</div></aside></section>`;
+      }
+      function after() {
+        const { g, c } = cfg(),
+          n = new Date(),
+          key =
+            String(n.getMonth() + 1).padStart(2, "0") +
+            "-" +
+            String(n.getDate()).padStart(2, "0"),
+          a = g === "2" ? A[key]?.[c] : null;
+        $("#content").innerHTML =
+          `<section class="grid featuregrid"><article class="panel feature"><span class="eyebrow">AFTER SCHOOL · TODAY</span><div><p>${g}학년 ${c}반 오늘의 방과후</p><h2>${a ? a[0] : "등록된 일정이 없습니다."}</h2><strong>${a ? a[1] + " 선생님" : "새 일정이 등록되면 이곳에 표시됩니다."}</strong></div></article><article class="panel note"><h3>방과후 안내</h3><p>현재 2학년 방과후 일정이 연결되어 있습니다.</p></article></section>`;
+      }
+      async function meals() {
+        $("#content").innerHTML =
+          `<div class="empty">급식 정보를 불러오는 중입니다.</div>`;
+        const now = new Date(),
+          mon = new Date(now),
+          delta = now.getDay() === 0 ? -6 : 1 - now.getDay();
+        mon.setDate(now.getDate() + delta);
+        const fri = new Date(mon);
+        fri.setDate(mon.getDate() + 4);
+        const y = (d) =>
+          `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+        try {
+          const x = await fetch(
+              `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=eb38b586f6af486b9fa46bf786d629d3&Type=json&ATPT_OFCDC_SC_CODE=N10&SD_SCHUL_CODE=8140071&MLSV_FROM_YMD=${y(mon)}&MLSV_TO_YMD=${y(fri)}`,
+            ).then((r) => r.json()),
+            rows = x.mealServiceDietInfo?.[1]?.row || [],
+            di = now.getDay() - 1;
+          $("#content").innerHTML =
+            `<section><div class="mealbar"><div><span class="eyebrow">WEEKLY MEAL</span><h2>이번 주 급식</h2></div><div class="segments">${[
+              ["1", "조식"],
+              ["2", "중식"],
+              ["3", "석식"],
+            ]
+              .map(
+                (x) =>
+                  `<button class="${mealCode === x[0] ? "active" : ""}" onclick="mealCode='${x[0]}';meals()">${x[1]}</button>`,
+              )
+              .join("")}</div></div><div class="mealdays">${DAYS.map(
+              (label, i) => {
+                const d = new Date(mon);
+                d.setDate(mon.getDate() + i);
+                const r = rows.find(
+                    (v) => v.MLSV_YMD === y(d) && v.MMEAL_SC_CODE === mealCode,
+                  ),
+                  menu = r
+                    ? r.DDISH_NM.replace(/\([^)]*\)/g, "").replace(
+                        /<br\/>/g,
+                        "\n",
+                      )
+                    : "예정된 급식이 없습니다.";
+                return `<article class="panel mealday ${i === di ? "current" : ""}"><div class="mealdate"><strong>${label}</strong><span>${d.getMonth() + 1}.${d.getDate()}</span></div><p>${menu}</p></article>`;
+              },
+            ).join("")}</div></section>`;
+        } catch {
+          $("#content").innerHTML =
+            `<div class="empty">급식 정보를 불러오지 못했습니다.</div>`;
+        }
+      }
+      async function board() {
+        $("#content").innerHTML =
+          `<div class="empty">공지를 불러오는 중입니다.</div>`;
+        try {
+          const x = await fetch(`${APP_SCRIPT_URL}?action=getPosts`).then((r) =>
+            r.json(),
+          );
+          posts = x.posts || [];
+          boardList();
+        } catch {
+          $("#content").innerHTML =
+            `<div class="empty">공지를 불러오지 못했습니다.</div>`;
+        }
+      }
+      function boardList() {
+        $("#content").innerHTML =
+          `<section><div class="boardbar"><div><span class="eyebrow">SCHOOL NOTICE</span><p>전교생에게 전달되는 공지입니다.</p></div><button class="primary" onclick="writePost()">글쓰기</button></div><div class="postlist">${posts.length ? posts.map((p, i) => `<button onclick="detail(${i})"><span class="tag">공지</span><div><h3>${esc(p.title)}</h3><p>${esc(p.content)}</p></div><time>${p.createdAt ? new Date(p.createdAt).toLocaleDateString("ko-KR") : ""}</time><b>›</b></button>`).join("") : '<div class="empty">등록된 공지가 없습니다.</div>'}</div></section>`;
+      }
+      function writePost() {
+        $("#content").innerHTML =
+          `<article class="panel editor"><button class="back" onclick="boardList()">← 목록으로</button><span class="eyebrow">NEW NOTICE</span><h2>공지 작성</h2><label>제목<input id="post-title" maxlength="80" placeholder="제목을 입력하세요"></label><label>내용<textarea id="post-body" rows="10" placeholder="전교생에게 전달할 내용을 입력하세요"></textarea></label><div class="actions"><button class="secondary" onclick="boardList()">취소</button><button class="primary" onclick="submitPost()">등록하기</button></div></article>`;
+      }
+      async function submitPost() {
+        const title = $("#post-title").value.trim(),
+          content = $("#post-body").value.trim();
+        if (!title || !content) return alert("제목과 내용을 모두 입력하세요.");
+        const body = new URLSearchParams({ action: "addPost", title, content });
+        try {
+          const x = await fetch(APP_SCRIPT_URL, { method: "POST", body }).then(
+            (r) => r.json(),
+          );
+          if (!x.success) throw new Error();
+          await board();
+        } catch {
+          alert("공지 등록에 실패했습니다.");
+        }
+      }
+      function detail(i) {
+        const p = posts[i];
+        $("#content").innerHTML =
+          `<article class="panel detail"><button class="back" onclick="boardList()">← 목록으로</button><span class="tag">전교생 공지</span><h2>${esc(p.title)}</h2><time>${p.createdAt ? new Date(p.createdAt).toLocaleString("ko-KR") : ""}</time><div class="body">${esc(p.content)}</div></article>`;
+      }
+      document.addEventListener("DOMContentLoaded", () => {
+        const d = new Date();
+        $("#date").textContent = new Intl.DateTimeFormat("ko-KR", {
+          month: "long",
+          day: "numeric",
+          weekday: "short",
+        }).format(d);
+        try {
+          const c = JSON.parse(localStorage.getItem("class"));
+          if (c) {
+            $("#grade").value = c.g;
+            $("#class").value = c.c;
+          }
+        } catch {}
+        const h = d.getHours();
+        mealCode = h < 8 ? "1" : h < 13 ? "2" : "3";
+        show("시간표");
+      });
+    </script>
+  </body>
+</html>
