@@ -599,6 +599,257 @@
           display: block;
         }
       }
+
+      /* ===== PDF-DS FINAL: angular, technical, grid-based ===== */
+      :root {
+        --r: #b51f24;
+        --rr: #d9232e;
+        --i: #17191d;
+        --m: #74777f;
+        --l: #cfd1d4;
+        --p: #f5f5f2;
+        --s: rgba(255, 255, 255, 0.94);
+        --sh: 0 1px 0 #ffffff inset, 0 2px 0 rgba(24, 26, 29, 0.08);
+      }
+      body {
+        background-color: var(--p);
+        background-image:
+          linear-gradient(rgba(28, 31, 36, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(28, 31, 36, 0.045) 1px, transparent 1px);
+        background-size: 28px 28px;
+      }
+      header {
+        height: 116px;
+        border-top: 6px solid var(--r);
+        border-bottom: 1px solid #bfc1c5;
+        background: rgba(249, 249, 247, 0.97);
+      }
+      .head {
+        max-width: 1320px;
+      }
+      .brand strong {
+        font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        font-size: 27px;
+        font-weight: 750;
+        letter-spacing: -0.045em;
+      }
+      .brand em {
+        font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+      }
+      .eyebrow,
+      .title p,
+      footer {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      .logo {
+        transform: scale(0.78);
+        transform-origin: left center;
+        width: 58px;
+      }
+      nav {
+        gap: 30px;
+      }
+      nav a {
+        color: inherit;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        position: relative;
+        padding: 5px 0 0;
+        font-size: 18px;
+        font-weight: 750;
+        white-space: nowrap;
+      }
+      nav a::after {
+        content: "";
+        position: absolute;
+        height: 5px;
+        bottom: 0;
+        left: 50%;
+        right: 50%;
+        background: var(--rr);
+        transition: 0.18s ease;
+      }
+      nav a:hover {
+        color: var(--rr);
+      }
+      nav a:hover::after {
+        left: 0;
+        right: 0;
+      }
+      main {
+        max-width: 1220px;
+      }
+      .title {
+        padding: 20px 22px;
+        border: 1px solid var(--l);
+        border-left: 5px solid var(--r);
+        background: rgba(255, 255, 255, 0.84);
+        box-shadow: var(--sh);
+      }
+      .title h1 {
+        font-size: 35px;
+      }
+      .panel,
+      .picker,
+      .picker label,
+      .segments,
+      .segments button,
+      .primary,
+      .secondary,
+      .back,
+      .postlist,
+      .postlist > button,
+      .editor input,
+      .editor textarea,
+      .empty,
+      .toast,
+      .tag {
+        border-radius: 2px;
+      }
+      .panel {
+        border-color: #c9cbcf;
+      }
+      .primary {
+        box-shadow: 0 3px 0 #771014;
+      }
+      .primary:hover {
+        background: #94181c;
+      }
+      .board-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 22px 24px;
+        border: 1px solid #bfc1bd;
+        border-bottom: 0;
+        background: #e7e7e2;
+      }
+      .board-brand {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .board-symbol {
+        width: 54px;
+        height: 54px;
+        display: grid;
+        place-items: center;
+        background: #4f5b3e;
+        color: white;
+        font:
+          800 23px ui-monospace,
+          monospace;
+        box-shadow: 0 4px 0 #39432d;
+      }
+      .board-brand h2 {
+        margin: 0 0 5px;
+        font-size: 25px;
+      }
+      .board-brand p {
+        margin: 0;
+        color: var(--m);
+      }
+      .board-filters {
+        display: flex;
+        gap: 8px;
+        padding: 18px 24px;
+        overflow-x: auto;
+        border: 1px solid #c6c8c3;
+        background: rgba(255, 255, 255, 0.9);
+      }
+      .board-filters button {
+        min-width: 82px;
+        padding: 9px 15px;
+        border: 1px solid #c6c8c3;
+        border-radius: 2px;
+        background: white;
+        color: #757871;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .board-filters button.active {
+        border-color: #4f5b3e;
+        background: #4f5b3e;
+        color: white;
+      }
+      .postlist {
+        margin-top: 12px;
+      }
+      .post-table-head,
+      .post-row {
+        display: grid;
+        grid-template-columns: 82px minmax(0, 1fr) 110px 110px 34px;
+        align-items: center;
+        gap: 14px;
+      }
+      .post-table-head {
+        padding: 15px 22px;
+        border-bottom: 1px solid #cfd0cc;
+        background: #fafaf8;
+        color: #73766f;
+        font-size: 13px;
+        font-weight: 750;
+      }
+      .postlist > button.post-row {
+        grid-template-columns: 82px minmax(0, 1fr) 110px 110px 34px;
+        padding: 17px 22px;
+      }
+      .post-row:hover {
+        background: #f0f0ec;
+      }
+      .post-row h3 {
+        margin: 0;
+        font-size: 16px;
+      }
+      .post-author,
+      .post-date {
+        color: var(--m);
+        font-size: 13px;
+      }
+      .post-index {
+        color: #555a4c;
+        font-weight: 800;
+        text-align: center;
+      }
+      .editor-select {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid #d6d4cf;
+        border-radius: 2px;
+        background: var(--p);
+      }
+      @media (max-width: 980px) {
+        header {
+          height: auto;
+        }
+        nav a {
+          flex: 0 0 auto;
+          height: 55px;
+          font-size: 16px;
+        }
+      }
+      @media (max-width: 700px) {
+        .post-table-head {
+          display: none;
+        }
+        .postlist > button.post-row {
+          grid-template-columns: 52px minmax(0, 1fr) 24px;
+        }
+        .post-author,
+        .post-date {
+          display: none;
+        }
+        .board-head {
+          align-items: stretch;
+          flex-direction: column;
+        }
+      }
     </style>
   </head>
   <body>
@@ -614,9 +865,8 @@
             ><button data-tab="방과후" onclick="show('방과후')">방과후</button
             ><button data-tab="급식" onclick="show('급식')">급식</button
             ><button data-tab="공지" onclick="show('공지')">공지</button
-            ><button onclick="external('커뮤니티')">
-              커뮤니티 <sup>↗</sup></button
-            ><button onclick="external('예약')">예약 <sup>↗</sup></button>
+            ><a href="https://community.qpi.digital/">커뮤니티 <sup>↗</sup></a
+            ><a href="https://www.cnshstudy.kro.kr/">예약 <sup>↗</sup></a>
           </nav>
         </div>
       </header>
@@ -1115,7 +1365,8 @@
       };
       let tab = "시간표",
         mealCode = "2",
-        posts = [];
+        posts = [],
+        boardFilter = "전체";
       const $ = (s) => document.querySelector(s),
         esc = (s) =>
           String(s).replace(
@@ -1238,18 +1489,148 @@
         }
       }
       function boardList() {
-        $("#content").innerHTML =
-          `<section><div class="boardbar"><div><span class="eyebrow">SCHOOL NOTICE</span><p>전교생에게 전달되는 공지입니다.</p></div><button class="primary" onclick="writePost()">글쓰기</button></div><div class="postlist">${posts.length ? posts.map((p, i) => `<button onclick="detail(${i})"><span class="tag">공지</span><div><h3>${esc(p.title)}</h3><p>${esc(p.content)}</p></div><time>${p.createdAt ? new Date(p.createdAt).toLocaleDateString("ko-KR") : ""}</time><b>›</b></button>`).join("") : '<div class="empty">등록된 공지가 없습니다.</div>'}</div></section>`;
+        const categories = ["전체", "학사", "생활", "행사", "긴급"];
+        const filteredPosts =
+          boardFilter === "전체"
+            ? posts
+            : posts.filter((post) => (post.category || "학사") === boardFilter);
+
+        $("#content").innerHTML = `
+          <section class="board-wrap">
+            <div class="board-head">
+              <div class="board-brand">
+                <div class="board-symbol">Q</div>
+                <div>
+                  <h2>충곽 공지 게시판</h2>
+                  <p>전체 게시글 ${posts.length}개</p>
+                </div>
+              </div>
+              <button class="primary" onclick="writePost()">✎ 글쓰기</button>
+            </div>
+
+            <div class="board-filters">
+              ${categories
+                .map(
+                  (category) => `
+                    <button
+                      class="${boardFilter === category ? "active" : ""}"
+                      onclick="setBoardFilter('${category}')"
+                    >
+                      ${category}
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+
+            <div class="postlist">
+              <div class="post-table-head">
+                <span>번호</span>
+                <span>제목</span>
+                <span>작성자</span>
+                <span>작성일</span>
+                <span></span>
+              </div>
+
+              ${
+                filteredPosts.length
+                  ? filteredPosts
+                      .map((post) => {
+                        const originalIndex = posts.indexOf(post);
+                        const postNumber = posts.length - originalIndex;
+                        const date = post.createdAt
+                          ? new Date(post.createdAt).toLocaleDateString(
+                              "ko-KR",
+                              {
+                                month: "2-digit",
+                                day: "2-digit",
+                              },
+                            )
+                          : "—";
+
+                        return `
+                          <button class="post-row" onclick="detail(${originalIndex})">
+                            <span class="post-index">${postNumber}</span>
+                            <div>
+                              <span class="tag">${esc(post.category || "학사")}</span>
+                              <h3>${esc(post.title)}</h3>
+                            </div>
+                            <span class="post-author">관리자</span>
+                            <time class="post-date">${date}</time>
+                            <b>›</b>
+                          </button>
+                        `;
+                      })
+                      .join("")
+                  : '<div class="empty">해당 분류에 등록된 공지가 없습니다.</div>'
+              }
+            </div>
+          </section>
+        `;
       }
+
+      function setBoardFilter(category) {
+        boardFilter = category;
+        boardList();
+      }
+
       function writePost() {
-        $("#content").innerHTML =
-          `<article class="panel editor"><button class="back" onclick="boardList()">← 목록으로</button><span class="eyebrow">NEW NOTICE</span><h2>공지 작성</h2><label>제목<input id="post-title" maxlength="80" placeholder="제목을 입력하세요"></label><label>내용<textarea id="post-body" rows="10" placeholder="전교생에게 전달할 내용을 입력하세요"></textarea></label><div class="actions"><button class="secondary" onclick="boardList()">취소</button><button class="primary" onclick="submitPost()">등록하기</button></div></article>`;
+        $("#content").innerHTML = `
+          <article class="panel editor">
+            <button class="back" onclick="boardList()">← 목록으로</button>
+            <span class="eyebrow">NEW SCHOOL NOTICE</span>
+            <h2>공지 작성</h2>
+
+            <label>
+              분류
+              <select id="post-category" class="editor-select">
+                <option value="학사">학사</option>
+                <option value="생활">생활</option>
+                <option value="행사">행사</option>
+                <option value="긴급">긴급</option>
+              </select>
+            </label>
+
+            <label>
+              제목
+              <input
+                id="post-title"
+                maxlength="80"
+                placeholder="제목을 입력하세요"
+              />
+            </label>
+
+            <label>
+              내용
+              <textarea
+                id="post-body"
+                rows="12"
+                placeholder="전교생에게 전달할 내용을 입력하세요"
+              ></textarea>
+            </label>
+
+            <div class="actions">
+              <button class="secondary" onclick="boardList()">취소</button>
+              <button class="primary" onclick="submitPost()">등록하기</button>
+            </div>
+          </article>
+        `;
       }
+
       async function submitPost() {
-        const title = $("#post-title").value.trim(),
+        const category = $("#post-category").value,
+          title = $("#post-title").value.trim(),
           content = $("#post-body").value.trim();
+
         if (!title || !content) return alert("제목과 내용을 모두 입력하세요.");
-        const body = new URLSearchParams({ action: "addPost", title, content });
+
+        const body = new URLSearchParams({
+          action: "addPost",
+          category,
+          title,
+          content,
+        });
+
         try {
           const x = await fetch(APP_SCRIPT_URL, { method: "POST", body }).then(
             (r) => r.json(),
@@ -1262,8 +1643,22 @@
       }
       function detail(i) {
         const p = posts[i];
-        $("#content").innerHTML =
-          `<article class="panel detail"><button class="back" onclick="boardList()">← 목록으로</button><span class="tag">전교생 공지</span><h2>${esc(p.title)}</h2><time>${p.createdAt ? new Date(p.createdAt).toLocaleString("ko-KR") : ""}</time><div class="body">${esc(p.content)}</div></article>`;
+        $("#content").innerHTML = `
+          <article class="panel detail">
+            <button class="back" onclick="boardList()">← 목록으로</button>
+            <span class="tag">${esc(p.category || "학사")}</span>
+            <h2>${esc(p.title)}</h2>
+            <time>
+              관리자 ·
+              ${
+                p.createdAt
+                  ? new Date(p.createdAt).toLocaleString("ko-KR")
+                  : "작성일 정보 없음"
+              }
+            </time>
+            <div class="body">${esc(p.content)}</div>
+          </article>
+        `;
       }
       document.addEventListener("DOMContentLoaded", () => {
         const d = new Date();
