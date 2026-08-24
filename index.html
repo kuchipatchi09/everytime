@@ -92,7 +92,8 @@
     </div>
     <script>
       const APP_SCRIPT_URL =
-          "https://script.google.com/macros/s/AKfycbzSgHsfjYfUZjp5_fQK2IfLOzaHRemnLK_GTz2hKrMoTGmXDD7IEI4SbI-S1uyk5L9ICg/exec",
+          "https://script.google.com/macros/s/AKfycbxanKwIuGMmw15-sipt57hB8A8B5f73CNEhwAgau5Aweg_Hhw1OBkF7WwDMGlvP3RQXrA/exec",
+        OPENWEATHER_API_KEY = "3e6298fcd99d3906fcfa480b13bee36c",
         DAYS = ["월", "화", "수", "목", "금"];
       const S = {
         1: {
@@ -758,24 +759,22 @@
       }
       async function loadDashboardWeather() {
         try {
-          const result = await fetch(
-            `${APP_SCRIPT_URL}?action=weather&_=${Date.now()}`,
+          const data = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?lat=36.446&lon=127.119&appid=${OPENWEATHER_API_KEY}&units=metric&lang=kr&_=${Date.now()}`,
           ).then((response) => {
-            if (!response.ok) throw new Error();
+            if (!response.ok) {
+              throw new Error(`OpenWeather 오류: ${response.status}`);
+            }
             return response.json();
           });
-          if (!result.success || !result.weather) {
-            throw new Error(result.message || "날씨 조회 실패");
-          }
-          const data = result.weather;
           $("#weather-card").innerHTML = `
             <span class="eyebrow">LIVE WEATHER</span>
             <div class="weather-main">
-              <img src="https://openweathermap.org/img/wn/${data.icon}@2x.png" alt="">
-              <strong>${Math.round(data.temperature)}°</strong>
+              <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="">
+              <strong>${Math.round(data.main.temp)}°</strong>
             </div>
-            <h3>${esc(data.description)}</h3>
-            <p>체감 ${Math.round(data.feelsLike)}° · 습도 ${data.humidity}%</p>
+            <h3>${esc(data.weather[0].description)}</h3>
+            <p>체감 ${Math.round(data.main.feels_like)}° · 습도 ${data.main.humidity}%</p>
             <small>Weather data © OpenWeather</small>`;
         } catch (error) {
           console.error("날씨 로딩 실패:", error);
