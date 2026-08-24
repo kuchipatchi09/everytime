@@ -628,14 +628,22 @@
         max-width: 1320px;
       }
       .brand strong {
-        font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        font-family:
+          Pretendard,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
           sans-serif;
         font-size: 27px;
         font-weight: 750;
         letter-spacing: -0.045em;
       }
       .brand em {
-        font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        font-family:
+          Pretendard,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
           sans-serif;
         font-weight: 750;
         letter-spacing: -0.02em;
@@ -740,12 +748,12 @@
         height: 54px;
         display: grid;
         place-items: center;
-        background: #4f5b3e;
+        background: var(--r);
         color: white;
         font:
           800 23px ui-monospace,
           monospace;
-        box-shadow: 0 4px 0 #39432d;
+        box-shadow: 0 4px 0 #771014;
       }
       .board-brand h2 {
         margin: 0 0 5px;
@@ -774,8 +782,8 @@
         cursor: pointer;
       }
       .board-filters button.active {
-        border-color: #4f5b3e;
-        background: #4f5b3e;
+        border-color: var(--r);
+        background: var(--r);
         color: white;
       }
       .postlist {
@@ -806,6 +814,19 @@
       .post-row h3 {
         margin: 0;
         font-size: 16px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .post-title-line {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        flex-wrap: nowrap;
+      }
+      .post-title-line .tag {
+        flex: 0 0 auto;
       }
       .post-author,
       .post-date {
@@ -813,7 +834,7 @@
         font-size: 13px;
       }
       .post-index {
-        color: #555a4c;
+        color: var(--r);
         font-weight: 800;
         text-align: center;
       }
@@ -823,6 +844,24 @@
         border: 1px solid #d6d4cf;
         border-radius: 2px;
         background: var(--p);
+      }
+      .afterday {
+        min-height: 230px;
+      }
+      .afterday .after-subject {
+        margin: 26px 0 8px;
+        font-size: 21px;
+        line-height: 1.35;
+      }
+      .afterday .after-teacher {
+        color: var(--m);
+        font-size: 14px;
+      }
+      .afterday .after-empty {
+        margin-top: 28px;
+        color: var(--m);
+        font-size: 14px;
+        line-height: 1.65;
       }
       @media (max-width: 980px) {
         header {
@@ -1416,15 +1455,56 @@
           `<section class="grid timegrid"><article class="panel"><div class="panelhead"><span class="eyebrow">WEEKLY</span><h2>${g}학년 ${c}반 주간 시간표</h2></div><div class="scroll"><table><thead><tr><th>교시</th>${DAYS.map((d, i) => `<th class="${i === di ? "today" : ""}">${d}</th>`).join("")}</tr></thead><tbody>${[0, 1, 2, 3, 4, 5, 6].map((p) => `<tr><th>${p + 1}</th>${DAYS.map((d, i) => `<td class="${i === di ? "today" : ""}">${s[d][p] || "—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div></article><aside class="panel todaycard"><span class="eyebrow">TODAY</span><h2>${di >= 0 && di < 5 ? DAYS[di] + "요일 수업" : "주말"}</h2><div class="todaylist">${today.length ? today.map((x, i) => `<div><span>${i + 1}</span><b>${x}</b></div>`).join("") : "오늘은 정규 수업이 없습니다."}</div></aside></section>`;
       }
       function after() {
-        const { g, c } = cfg(),
-          n = new Date(),
-          key =
-            String(n.getMonth() + 1).padStart(2, "0") +
+        const { g, c } = cfg();
+        const now = new Date();
+        const monday = new Date(now);
+        const delta = now.getDay() === 0 ? -6 : 1 - now.getDay();
+        monday.setDate(now.getDate() + delta);
+        const todayIndex = now.getDay() - 1;
+
+        const cards = DAYS.map((day, index) => {
+          const date = new Date(monday);
+          date.setDate(monday.getDate() + index);
+
+          const key =
+            String(date.getMonth() + 1).padStart(2, "0") +
             "-" +
-            String(n.getDate()).padStart(2, "0"),
-          a = g === "2" ? A[key]?.[c] : null;
-        $("#content").innerHTML =
-          `<section class="grid featuregrid"><article class="panel feature"><span class="eyebrow">AFTER SCHOOL · TODAY</span><div><p>${g}학년 ${c}반 오늘의 방과후</p><h2>${a ? a[0] : "등록된 일정이 없습니다."}</h2><strong>${a ? a[1] + " 선생님" : "새 일정이 등록되면 이곳에 표시됩니다."}</strong></div></article><article class="panel note"><h3>방과후 안내</h3><p>현재 2학년 방과후 일정이 연결되어 있습니다.</p></article></section>`;
+            String(date.getDate()).padStart(2, "0");
+          const schedule = g === "2" ? A[key]?.[c] : null;
+
+          return `
+            <article class="panel mealday afterday ${index === todayIndex ? "current" : ""}">
+              <div class="mealdate">
+                <strong>${day}</strong>
+                <span>${date.getMonth() + 1}.${date.getDate()}</span>
+              </div>
+              ${
+                schedule
+                  ? `
+                    <h3 class="after-subject">${esc(schedule[0])}</h3>
+                    <p class="after-teacher">${esc(schedule[1])} 선생님</p>
+                  `
+                  : `
+                    <p class="after-empty">
+                      등록된 방과후 일정이 없습니다.
+                    </p>
+                  `
+              }
+            </article>
+          `;
+        }).join("");
+
+        $("#content").innerHTML = `
+          <section>
+            <div class="mealbar">
+              <div>
+                <span class="eyebrow">WEEKLY AFTER SCHOOL</span>
+                <h2>${g}학년 ${c}반 이번 주 방과후</h2>
+              </div>
+            </div>
+            <div class="mealdays">${cards}</div>
+          </section>
+        `;
       }
       async function meals() {
         $("#content").innerHTML =
@@ -1551,7 +1631,7 @@
                         return `
                           <button class="post-row" onclick="detail(${originalIndex})">
                             <span class="post-index">${postNumber}</span>
-                            <div>
+                            <div class="post-title-line">
                               <span class="tag">${esc(post.category || "학사")}</span>
                               <h3>${esc(post.title)}</h3>
                             </div>
