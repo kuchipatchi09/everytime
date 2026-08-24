@@ -555,7 +555,8 @@
         mealCode = "2",
         posts = [],
         boardFilter = "전체",
-        afterschoolData = null;
+        afterschoolData = null,
+        routineDay = Math.min(5, Math.max(1, new Date().getDay()));
       const $ = (s) => document.querySelector(s),
         esc = (s) =>
           String(s).replace(
@@ -674,6 +675,27 @@
           ) || items[0];
         const period = /^(\d)교시/.exec(active[2]);
         const subject = period ? today[Number(period[1]) - 1] : "";
+        let activityName = subject || active[2];
+        let activityType = subject ? "수업" : "일과";
+        if (active[2].startsWith("8교시")) {
+          try {
+            const schedules = await loadAfterschool();
+            const dateKey =
+              String(now.getMonth() + 1).padStart(2, "0") +
+              "-" +
+              String(now.getDate()).padStart(2, "0");
+            const afterschool =
+              schedules[g]?.[dateKey]?.[c] ||
+              schedules[dateKey]?.[c] ||
+              null;
+            if (afterschool) {
+              activityName = afterschool[0];
+              activityType = "방과후";
+            }
+          } catch (error) {
+            console.error("방과후 과목 로딩 실패:", error);
+          }
+        }
         const remaining = Math.max(0, toMinutes(active[1]) - minutes);
         const next = items[items.indexOf(active) + 1];
         const duration = Math.max(1, toMinutes(active[1]) - toMinutes(active[0]));
@@ -694,11 +716,11 @@
           <section class="dashboard">
             <article class="now-card">
               <div class="now-top">
-                <span><i class="now-dot"></i>지금 ${subject ? "수업" : "일과"}</span>
+                <span><i class="now-dot"></i>지금 ${activityType}</span>
                 <b>${remaining ? `종료까지 ${remaining}분` : "진행 중"}</b>
               </div>
               <p>${active[2]} · ${active[0]}–${active[1]}</p>
-              <h2>${esc(subject || active[2])}</h2>
+              <h2>${esc(activityName)}</h2>
               <small>${g}학년 ${c}반</small>
               <div class="routine-progress"><span style="width:${progress}%"></span></div>
               <div class="now-next">
@@ -803,11 +825,38 @@
           di = new Date().getDay() - 1,
           today = di >= 0 && di < 5 ? s[DAYS[di]] : [];
         $("#content").innerHTML =
-          `<section class="grid timegrid"><article class="panel"><div class="panelhead"><span class="eyebrow">WEEKLY</span><h2>${g}학년 ${c}반 주간 시간표</h2></div><div class="scroll"><table><thead><tr><th>교시</th>${DAYS.map((d, i) => `<th class="${i === di ? "today" : ""}">${d}</th>`).join("")}</tr></thead><tbody>${[0, 1, 2, 3, 4, 5, 6].map((p) => `<tr><th>${p + 1}</th>${DAYS.map((d, i) => `<td class="${i === di ? "today" : ""}">${s[d][p] || "—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div></article><aside class="panel todaycard"><span class="eyebrow">TODAY</span><h2>${di >= 0 && di < 5 ? DAYS[di] + "요일 수업" : "주말"}</h2><div class="todaylist">${today.length ? today.map((x, i) => `<div><span>${i + 1}</span><b>${x}</b></div>`).join("") : "오늘은 정규 수업이 없습니다."}</div></aside></section>`;
+          `<section class="grid timegrid"><article class="panel"><div class="panelhead"><span class="eyebrow">WEEKLY</span><h2>${g}학년 ${c}반 주간 시간표</h2></div><div class="scroll"><table><thead><tr><th>교시</th>${DAYS.map((d, i) => `<th class="${i === di ? "today" : ""}">${d}</th>`).join("")}</tr></thead><tbody>${[0, 1, 2, 3, 4, 5, 6].map((p) => `<tr><th>${p + 1}</th>${DAYS.map((d, i) => `<td class="${i === di ? "today" : ""}">${s[d][p] || "—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div></article><aside class="panel todaycard"><span class="eyebrow">TODAY</span><h2>${di >= 0 && di < 5 ? DAYS[di] + "요일 수업" : "주말"}</h2><div class="todaylist">${today.length ? today.map((x, i) => `<div><span>${i + 1}</span><b>${x}</b></div>`).join("") : "오늘은 정규 수업이 없습니다."}</div></aside></section>${routineTable()}`;
+      }
+      function setRoutineDay(day) {
+        routineDay = day;
+        timetable();
+      }
+      function routineTable() {
+        const labels = ["월", "화", "수", "목", "금"];
+        const rows = routine(routineDay).filter(
+          (item) => item[2] !== "취침 및 등교 준비",
+        );
+        return `
+          <section class="routine-board">
+            <div class="routine-board-head">
+              <div>
+                <span class="eyebrow">DAILY ROUTINE</span>
+                <h2>${labels[routineDay - 1]}요일 하루 일과 시정표</h2>
+              </div>
+              <div class="routine-tabs">
+                ${labels.map((label,index)=>`<button class="${routineDay===index+1?"active":""}" onclick="setRoutineDay(${index+1})">${label}</button>`).join("")}
+              </div>
+            </div>
+            <div class="routine-rows">
+              ${rows.map((item)=>`<div><time>${item[0]}–${item[1]}</time><strong>${item[2]}</strong></div>`).join("")}
+            </div>
+          </section>`;
       }
       async function loadAfterschool() {
         if (afterschoolData) return afterschoolData;
-        const response = await fetch("./afterschool.json", { cache: "no-store" });
+        const response = await fetch("./afterschool.json?v=2", {
+          cache: "no-store",
+        });
         if (!response.ok) throw new Error("방과후 JSON을 불러오지 못했습니다.");
         afterschoolData = await response.json();
         return afterschoolData;
@@ -836,7 +885,10 @@
             String(date.getMonth() + 1).padStart(2, "0") +
             "-" +
             String(date.getDate()).padStart(2, "0");
-          const schedule = g === "2" ? schedules[key]?.[c] : null;
+          const schedule =
+            schedules[g]?.[key]?.[c] ||
+            schedules[key]?.[c] ||
+            null;
 
           return `
             <article class="panel mealday afterday ${index === todayIndex ? "current" : ""}">
