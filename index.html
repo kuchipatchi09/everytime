@@ -679,7 +679,7 @@
       }
       const toMinutes = (value) => {
         const [hour, minute] = value.split(":").map(Number);
-        return (hour % 24) * 60 + minute;
+        return hour * 60 + minute;
       };
       function routine(day) {
         const morning = [
@@ -742,8 +742,16 @@
         const dayIndex = now.getDay() - 1;
         const today =
           dayIndex >= 0 && dayIndex < 5 ? S[g][c][DAYS[dayIndex]] : [];
-        const minutes = now.getHours() * 60 + now.getMinutes();
-        const items = routine(now.getDay());
+        const isAfterMidnightRoutine =
+          now.getHours() === 0 && now.getMinutes() < 30;
+        const minutes =
+          now.getHours() * 60 +
+          now.getMinutes() +
+          (isAfterMidnightRoutine ? 24 * 60 : 0);
+        const routineDay = isAfterMidnightRoutine
+          ? (now.getDay() + 6) % 7
+          : now.getDay();
+        const items = routine(routineDay);
         const active =
           items.find(
             (item) =>
@@ -1264,4 +1272,3 @@
     </script>
   </body>
 </html>
-
