@@ -985,14 +985,6 @@ header {
   padding: 0;
 }
 
-.asterisk-logo {
-  display: block;
-  width: 148px;
-  height: auto;
-  object-fit: contain;
-  mix-blend-mode: multiply;
-}
-
 nav button,
 nav a {
   color: var(--black);
@@ -1186,5 +1178,27 @@ footer {
 
   .asterisk-logo {
     width: 112px;
+  }
+}
+
+.asterisk-wordmark {
+  display: block;
+  color: #000000;
+  font-family: "Asta Sans", sans-serif;
+  font-size: 42px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  white-space: nowrap;
+}
+
+.brand.asterisk-brand {
+  min-width: auto;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .asterisk-wordmark {
+    font-size: 34px;
   }
 }
