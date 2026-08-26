@@ -71,7 +71,8 @@
     );
 
     function AsteriskDesignSystem() {
-      const [activeTab, setActiveTab] = React.useState('design');
+      // 스토리가 기본으로 먼저 보이도록 'story'로 변경
+      const [activeTab, setActiveTab] = React.useState('story');
       const [copiedInfo, setCopiedInfo] = React.useState(null);
 
       const copyHex = (hex, name) => {
