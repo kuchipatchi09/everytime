@@ -217,9 +217,7 @@ main {
 }
 .eyebrow {
   color: var(--r);
-  font:
-    700 11px ui-"Asta Sans", sans-serif,
-    "Asta Sans", sans-serif;
+  font: 700 11px "Asta Sans", sans-serif;
   letter-spacing: 0.12em;
 }
 .scroll {
@@ -741,9 +739,7 @@ main {
   place-items: center;
   background: var(--r);
   color: white;
-  font:
-    800 23px ui-"Asta Sans", sans-serif,
-    "Asta Sans", sans-serif;
+  font: 800 23px "Asta Sans", sans-serif;
   box-shadow: 0 4px 0 #771014;
 }
 .board-brand h2 {
@@ -1059,6 +1055,32 @@ main {
   background: var(--black);
 }
 
+/* index 내부의 밝은 .panel 배경보다 우선하여 오늘 시간표의 대비를 보장합니다. */
+aside.panel.todaycard {
+  color: var(--white) !important;
+  background: var(--black) !important;
+  border-color: var(--black) !important;
+}
+
+aside.panel.todaycard h2,
+aside.panel.todaycard .todaylist b {
+  color: var(--white) !important;
+}
+
+aside.panel.todaycard .todaylist div {
+  border-bottom-color: rgba(246, 247, 240, 0.28) !important;
+}
+
+aside.panel.todaycard .todaylist span {
+  color: var(--white) !important;
+  border-color: rgba(246, 247, 240, 0.55) !important;
+  background: transparent !important;
+}
+
+aside.panel.todaycard .eyebrow {
+  color: #e35a5a !important;
+}
+
 .todaycard .eyebrow,
 .eyebrow,
 .post-index,
@@ -1166,4 +1188,3 @@ footer {
     width: 112px;
   }
 }
-
