@@ -3,70 +3,156 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>충곽에타</title>
-    <meta name="description" content="충남과학고 시간표, 방과후, 급식과 공지" />
+    <title>asterisk</title>
+    <meta name="description" content="시간표, 방과후, 급식, 공지까지 한곳에서 확인하는 asterisk" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
-    <meta property="og:site_name" content="충곽에타" />
-    <meta property="og:title" content="충곽에타" />
+    <meta property="og:site_name" content="asterisk" />
+    <meta property="og:title" content="asterisk" />
     <meta
       property="og:description"
-      content="충남과학고 시간표, 방과후, 급식과 공지를 한곳에서 확인하세요."
+      content="시간표, 방과후, 급식, 공지까지 충곽의 하루를 한곳에서 확인하세요."
     />
-    <meta property="og:image" content="./thumbnail.png" />
+    <meta property="og:image" content="./asterisk-logo.png" />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="충남과학고 충곽에타" />
+    <meta property="og:image:width" content="750" />
+    <meta property="og:image:height" content="423" />
+    <meta property="og:image:alt" content="asterisk 로고" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="충곽에타" />
+    <meta name="twitter:title" content="asterisk" />
     <meta
       name="twitter:description"
-      content="충남과학고 시간표, 방과후, 급식과 공지를 한곳에서 확인하세요."
+      content="시간표, 방과후, 급식, 공지까지 충곽의 하루를 한곳에서 확인하세요."
     />
-    <meta name="twitter:image" content="./thumbnail.png" />
+    <meta name="twitter:image" content="./asterisk-logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Asta+Sans:wght@300;400;500;600;700;800&display=swap"
+    />
     <link rel="stylesheet" href="./styles.css" />
+    <style>
+      :root {
+        --asterisk-black: #000000;
+        --asterisk-white: #f6f7f0;
+        --asterisk-red: #ad1d1d;
+        --i: var(--asterisk-black);
+        --p: var(--asterisk-white);
+        --s: var(--asterisk-white);
+        --r: var(--asterisk-red);
+      }
+
+      html,
+      body,
+      button,
+      input,
+      select,
+      textarea {
+        font-family: "Asta Sans", sans-serif !important;
+      }
+
+      html,
+      body {
+        color: var(--asterisk-black);
+        background-color: var(--asterisk-white);
+      }
+
+      body {
+        background-image:
+          linear-gradient(rgba(0, 0, 0, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.045) 1px, transparent 1px);
+      }
+
+      header {
+        border-top-color: var(--asterisk-black);
+        background: rgba(246, 247, 240, 0.96);
+      }
+
+      .asterisk-brand {
+        min-width: 154px;
+        padding: 0;
+      }
+
+      .asterisk-logo {
+        display: block;
+        width: 148px;
+        height: auto;
+        object-fit: contain;
+        mix-blend-mode: multiply;
+      }
+
+      nav button:hover,
+      nav button.active,
+      nav a:hover {
+        color: var(--asterisk-red);
+      }
+
+      .panel,
+      .title,
+      .postlist,
+      .dash-card,
+      .now-card,
+      .routine-board,
+      .welcome form {
+        background-color: rgba(246, 247, 240, 0.96);
+      }
+
+      footer {
+        color: var(--asterisk-black);
+        background: var(--asterisk-white);
+      }
+
+      @media (max-width: 640px) {
+        .asterisk-brand {
+          min-width: 112px;
+        }
+
+        .asterisk-logo {
+          width: 112px;
+        }
+      }
+    </style>
     <!-- 브라우저 파비콘 -->
     <link
       rel="icon"
-      type="image/png"
+      type="image/svg"
       sizes="32x32"
-      href="./favicon.png"
+      href="./favicon.svg"
     />
     
     <link
       rel="shortcut icon"
-      type="image/png"
-      href="./favicon.png"
+      type="image/svg"
+      href="./favicon.svg"
     />
     
     <!-- iPhone·iPad 홈 화면 아이콘 -->
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href="./favicon.png"
+      href="./favicon.svg"
     />
     
     <!-- Android·Chrome 홈 화면 및 미리보기 -->
     <link
       rel="icon"
-      type="image/png"
+      type="image/svg"
       sizes="192x192"
-      href="./favicon.png"
+      href="./favicon.svg"
     />
     
     <link
       rel="icon"
-      type="image/png"
+      type="image/svg"
       sizes="512x512"
-      href="./favicon.png"
+      href="./favicon.svg"
     />
     
     <!-- 브라우저 테마 색상 -->
     <meta
       name="theme-color"
-      content="#ad1d1d"
+      content="#000000"
     />
     
     <!-- iPhone 웹 앱 표시 설정 -->
@@ -82,7 +168,7 @@
     
     <meta
       name="apple-mobile-web-app-title"
-      content="충곽에타"
+      content="asterisk"
     />
     
     <!-- Android 웹 앱 설정 -->
@@ -95,9 +181,14 @@
     <div class="shell">
       <header>
         <div class="head">
-          <button class="brand" onclick="show('메인')">
-            <div class="logo"><span></span><i></i><b></b></div>
-            <span><em>에브리타임</em><strong>충남과학고 공주캠</strong></span>
+          <button class="brand asterisk-brand" onclick="show('메인')" aria-label="asterisk 메인으로 이동">
+            <img
+              class="asterisk-logo"
+              src="./asterisk-logo.png"
+              alt="asterisk"
+              width="750"
+              height="423"
+            />
           </button>
           <nav>
             <button data-tab="메인" onclick="show('메인')">메인</button
@@ -138,13 +229,13 @@
         <div id="content"></div>
       </main>
       <footer>
-        <b>충곽에타 · 충남과학고등학교</b
+        <b>asterisk · 충남과학고등학교</b
         ><span>학교생활에 필요한 모든 것을 한곳에</span>
       </footer>
       <div id="toast" class="toast hidden"></div>
       <div id="welcome" class="welcome hidden">
         <form onsubmit="saveName(event)">
-          <span class="eyebrow">WELCOME TO EVERYTIME</span>
+          <span class="eyebrow">WELCOME TO ASTERISK</span>
           <h2>처음 만났네요.</h2>
           <p>메인 화면에서 부를 이름을 입력해주세요.</p>
           <label>이름<input id="name-input" maxlength="12" autocomplete="name" placeholder="이름 입력" /></label>
