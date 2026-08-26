@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>asterisk</title>
-    <meta name="description" content="시간표, 방과후, 급식, 공지까지 한곳에서 확인하는 asterisk" />
+    <meta name="description" content="시간표, 방과후, 급식, 공지까지 한곳에서 확인하는 충곽 생활 포털 asterisk" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
     <meta property="og:site_name" content="asterisk" />
@@ -15,8 +15,6 @@
     />
     <meta property="og:image" content="./asterisk-logo.png" />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="750" />
-    <meta property="og:image:height" content="423" />
     <meta property="og:image:alt" content="asterisk 로고" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="asterisk" />
@@ -32,121 +30,40 @@
       href="https://fonts.googleapis.com/css2?family=Asta+Sans:wght@300;400;500;600;700;800&display=swap"
     />
     <link rel="stylesheet" href="./styles.css" />
-    <style>
-      :root {
-        --asterisk-black: #000000;
-        --asterisk-white: #f6f7f0;
-        --asterisk-red: #ad1d1d;
-        --i: var(--asterisk-black);
-        --p: var(--asterisk-white);
-        --s: var(--asterisk-white);
-        --r: var(--asterisk-red);
-      }
-
-      html,
-      body,
-      button,
-      input,
-      select,
-      textarea {
-        font-family: "Asta Sans", sans-serif !important;
-      }
-
-      html,
-      body {
-        color: var(--asterisk-black);
-        background-color: var(--asterisk-white);
-      }
-
-      body {
-        background-image:
-          linear-gradient(rgba(0, 0, 0, 0.045) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0, 0, 0, 0.045) 1px, transparent 1px);
-      }
-
-      header {
-        border-top-color: var(--asterisk-black);
-        background: rgba(246, 247, 240, 0.96);
-      }
-
-      .asterisk-brand {
-        min-width: 154px;
-        padding: 0;
-      }
-
-      .asterisk-logo {
-        display: block;
-        width: 148px;
-        height: auto;
-        object-fit: contain;
-        mix-blend-mode: multiply;
-      }
-
-      nav button:hover,
-      nav button.active,
-      nav a:hover {
-        color: var(--asterisk-red);
-      }
-
-      .panel,
-      .title,
-      .postlist,
-      .dash-card,
-      .now-card,
-      .routine-board,
-      .welcome form {
-        background-color: rgba(246, 247, 240, 0.96);
-      }
-
-      footer {
-        color: var(--asterisk-black);
-        background: var(--asterisk-white);
-      }
-
-      @media (max-width: 640px) {
-        .asterisk-brand {
-          min-width: 112px;
-        }
-
-        .asterisk-logo {
-          width: 112px;
-        }
-      }
-    </style>
     <!-- 브라우저 파비콘 -->
     <link
       rel="icon"
-      type="image/svg"
+      type="image/png"
       sizes="32x32"
-      href="./favicon.svg"
+      href="./favicon.png"
     />
     
     <link
       rel="shortcut icon"
-      type="image/svg"
-      href="./favicon.svg"
+      type="image/png"
+      href="./favicon.png"
     />
     
     <!-- iPhone·iPad 홈 화면 아이콘 -->
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href="./favicon.svg"
+      href="./favicon.png"
     />
     
     <!-- Android·Chrome 홈 화면 및 미리보기 -->
     <link
       rel="icon"
-      type="image/svg"
+      type="image/png"
       sizes="192x192"
-      href="./favicon.svg"
+      href="./favicon.png"
     />
     
     <link
       rel="icon"
-      type="image/svg"
+      type="image/png"
       sizes="512x512"
-      href="./favicon.svg"
+      href="./favicon.png"
     />
     
     <!-- 브라우저 테마 색상 -->
@@ -181,12 +98,14 @@
     <div class="shell">
       <header>
         <div class="head">
-          <button
-            class="brand asterisk-brand"
-            onclick="show('메인')"
-            aria-label="asterisk 메인으로 이동"
-          >
-            <strong class="asterisk-wordmark">asterisk*</strong>
+          <button class="brand asterisk-brand" onclick="show('메인')" aria-label="asterisk 메인으로 이동">
+            <img
+              class="asterisk-logo"
+              src="./Concept.svg"
+              alt="asterisk"
+              decoding="async"
+              fetchpriority="high"
+            />
           </button>
           <nav>
             <button data-tab="메인" onclick="show('메인')">메인</button
@@ -1340,3 +1259,4 @@
     </script>
   </body>
 </html>
+
