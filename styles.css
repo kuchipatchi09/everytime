@@ -1,12 +1,12 @@
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+@import url("https://fonts.googleapis.com/css2?family=Asta+Sans:wght@300;400;500;600;700;800&display=swap");
 :root {
   --r: #ad1d1d;
-  --rr: #ed2b2b;
-  --i: #181818;
+  --rr: #ad1d1d;
+  --i: #000000;
   --m: #777;
   --l: #ddd;
-  --p: #f2f1ed;
-  --s: #fff;
+  --p: #f6f7f0;
+  --s: #f6f7f0;
   --sh: 0 1px 0 #fff inset, 0 2px 0 #d2d0ca, 0 14px 30px #40352b0d;
 }
 * {
@@ -17,7 +17,7 @@ body {
   background: var(--p);
   color: var(--i);
   font-family:
-    Pretendard,
+    "Asta Sans",
     -apple-system,
     sans-serif;
   word-break: keep-all;
@@ -218,8 +218,8 @@ main {
 .eyebrow {
   color: var(--r);
   font:
-    700 11px ui-monospace,
-    monospace;
+    700 11px ui-"Asta Sans", sans-serif,
+    "Asta Sans", sans-serif;
   letter-spacing: 0.12em;
 }
 .scroll {
@@ -278,7 +278,7 @@ tr:last-child > * {
   border: 1px solid #555;
   border-radius: 7px;
   color: #aaa;
-  font: 700 11px monospace;
+  font: 700 11px "Asta Sans", sans-serif;
 }
 .featuregrid {
   grid-template-columns: 2fr 1fr;
@@ -593,13 +593,13 @@ footer {
 
 /* ===== PDF-DS FINAL: angular, technical, grid-based ===== */
 :root {
-  --r: #b51f24;
-  --rr: #d9232e;
-  --i: #17191d;
+  --r: #ad1d1d;
+  --rr: #ad1d1d;
+  --i: #000000;
   --m: #74777f;
   --l: #cfd1d4;
-  --p: #f5f5f2;
-  --s: rgba(255, 255, 255, 0.94);
+  --p: #f6f7f0;
+  --s: rgba(246, 247, 240, 0.96);
   --sh: 0 1px 0 #ffffff inset, 0 2px 0 rgba(24, 26, 29, 0.08);
 }
 body {
@@ -620,7 +620,7 @@ header {
 }
 .brand strong {
   font-family:
-    Pretendard,
+    "Asta Sans",
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
@@ -631,7 +631,7 @@ header {
 }
 .brand em {
   font-family:
-    Pretendard,
+    "Asta Sans",
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
@@ -642,7 +642,7 @@ header {
 .eyebrow,
 .title p,
 footer {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: "Asta Sans", sans-serif;
 }
 .logo {
   transform: scale(0.78);
@@ -742,8 +742,8 @@ main {
   background: var(--r);
   color: white;
   font:
-    800 23px ui-monospace,
-    monospace;
+    800 23px ui-"Asta Sans", sans-serif,
+    "Asta Sans", sans-serif;
   box-shadow: 0 4px 0 #771014;
 }
 .board-brand h2 {
@@ -909,7 +909,7 @@ main {
 .dash-head { display:flex; align-items:flex-start; justify-content:space-between; }
 .today-lines { margin-top:14px; }
 .today-line { display:grid; grid-template-columns:28px 48px minmax(0,1fr); align-items:center; gap:10px; margin:0; padding:12px 8px; border-top:1px solid var(--l); }
-.today-line>span,.today-line time { color:var(--m); font:800 11px ui-monospace,monospace; }
+.today-line>span,.today-line time { color:var(--m); font:800 11px "Asta Sans",sans-serif; }
 .today-line b { font-size:13px; }
 .today-line.current { background:#f8e7e7; color:var(--r); }
 .welcome { position:fixed; inset:0; z-index:100; display:grid; place-items:center; padding:20px; background:#151515bb; backdrop-filter:blur(12px); }
@@ -932,6 +932,238 @@ main {
 .routine-tabs button.active{background:var(--r);color:#fff}
 .routine-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--l);border-left:1px solid var(--l)}
 .routine-rows>div{display:grid;grid-template-columns:130px minmax(0,1fr);gap:16px;padding:15px 18px;border-right:1px solid var(--l);border-bottom:1px solid var(--l)}
-.routine-rows time{color:var(--m);font:700 12px ui-monospace,monospace}
+.routine-rows time{color:var(--m);font:700 12px "Asta Sans",sans-serif}
 .routine-rows strong{font-size:14px}
 @media(max-width:700px){.routine-board{padding:20px}.routine-board-head{align-items:stretch;flex-direction:column}.routine-tabs{width:100%}.routine-tabs button{flex:1;min-width:0}.routine-rows{grid-template-columns:1fr}.routine-rows>div{grid-template-columns:115px minmax(0,1fr)}}
+
+/* ===== ASTERISK BRAND SYSTEM ===== */
+:root {
+  --black: #000000;
+  --white: #f6f7f0;
+  --red: #ad1d1d;
+  --red-dark: #821414;
+  --red-soft: #f0dddd;
+  --r: var(--red);
+  --rr: var(--red);
+  --i: var(--black);
+  --m: #5f615c;
+  --l: rgba(0, 0, 0, 0.18);
+  --p: var(--white);
+  --s: rgba(246, 247, 240, 0.96);
+  --sh:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 2px 0 rgba(0, 0, 0, 0.1),
+    0 14px 30px rgba(0, 0, 0, 0.045);
+}
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "Asta Sans", sans-serif !important;
+}
+
+body {
+  color: var(--black);
+  background-color: var(--white);
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.045) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+header {
+  border-top: 6px solid var(--black);
+  border-bottom-color: rgba(0, 0, 0, 0.25);
+  background: rgba(246, 247, 240, 0.96);
+}
+
+.head {
+  max-width: 1320px;
+}
+
+.brand.asterisk-brand {
+  min-width: 154px;
+  padding: 0;
+}
+
+.asterisk-logo {
+  display: block;
+  width: 148px;
+  height: auto;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+nav button,
+nav a {
+  color: var(--black);
+}
+
+nav button::after,
+nav a::after {
+  background: var(--red);
+}
+
+nav button:hover,
+nav button.active,
+nav a:hover {
+  color: var(--red);
+}
+
+main {
+  max-width: 1220px;
+}
+
+.title {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-left: 5px solid var(--black);
+  background: rgba(246, 247, 240, 0.9);
+}
+
+.panel,
+.picker label,
+.postlist,
+.dash-card,
+.now-card,
+.routine-board,
+.board-filters,
+.editor input,
+.editor textarea,
+.editor-select,
+.welcome form {
+  color: var(--black);
+  background-color: rgba(246, 247, 240, 0.96);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.panel,
+.postlist,
+.dash-card,
+.now-card,
+.routine-board,
+.welcome form {
+  border-radius: 2px;
+  box-shadow: var(--sh);
+}
+
+.now-card {
+  border-top: 5px solid var(--black);
+}
+
+.todaycard,
+.toast {
+  color: var(--white);
+  background: var(--black);
+}
+
+.todaycard .eyebrow,
+.eyebrow,
+.post-index,
+.dash-link {
+  color: var(--red);
+}
+
+.todaycard .eyebrow {
+  color: #e35a5a;
+}
+
+.todaylist div {
+  border-bottom-color: rgba(246, 247, 240, 0.18);
+}
+
+.todaylist span {
+  color: var(--white);
+  border-color: rgba(246, 247, 240, 0.35);
+}
+
+.primary,
+.welcome form > button,
+.board-filters button.active,
+.routine-tabs button.active {
+  color: var(--white);
+  background: var(--red);
+  border-color: var(--red);
+  box-shadow: 0 3px 0 var(--red-dark);
+}
+
+.primary:hover,
+.welcome form > button:hover {
+  background: var(--red-dark);
+}
+
+.primary:active,
+.welcome form > button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--red-dark);
+}
+
+.secondary,
+.back,
+.segments,
+.picker,
+.note,
+.board-head {
+  color: var(--black);
+  background: #e8e9e2;
+}
+
+.segments button.active {
+  color: var(--red);
+  background: var(--white);
+}
+
+.tag,
+.notice-card > button span,
+.today-line.current,
+.today {
+  color: var(--red);
+  background: var(--red-soft);
+}
+
+.mealday.current {
+  border-color: var(--red);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--red) !important;
+  outline: 2px solid rgba(173, 29, 29, 0.16);
+  outline-offset: 1px;
+}
+
+.board-symbol {
+  color: var(--white);
+  background: var(--black);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+}
+
+.post-table-head,
+.post-row:hover {
+  background: #ecece6;
+}
+
+footer {
+  color: var(--black);
+  background: var(--white);
+  border-top-color: rgba(0, 0, 0, 0.2);
+}
+
+::selection {
+  color: var(--white);
+  background: var(--red);
+}
+
+@media (max-width: 640px) {
+  .brand.asterisk-brand {
+    min-width: 112px;
+  }
+
+  .asterisk-logo {
+    width: 112px;
+  }
+}
+
