@@ -1202,3 +1202,34 @@ footer {
     font-size: 34px;
   }
 }
+
+header .brand.asterisk-brand {
+  width: 200px;
+  min-width: 200px;
+  height: 100%;
+  overflow: hidden;
+}
+
+header .brand.asterisk-brand .asterisk-logo {
+  display: block;
+  width: 190px !important;
+  height: 82px !important;
+  max-width: 190px !important;
+  max-height: 82px !important;
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (max-width: 640px) {
+  header .brand.asterisk-brand {
+    width: 140px;
+    min-width: 140px;
+  }
+
+  header .brand.asterisk-brand .asterisk-logo {
+    width: 132px !important;
+    height: 52px !important;
+    max-width: 132px !important;
+    max-height: 52px !important;
+  }
+}
