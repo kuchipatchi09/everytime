@@ -1,14 +1,18 @@
+interface Env {
+  // 환경변수 바인딩이 필요하다면 여기에 정의
+}
+
 const YAHOO_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
-async function getYahooCrumbAndCookies() {
+async function getYahooCrumbAndCookies(): Promise<{ crumb: string; cookies: string }> {
   const initRes = await fetch("https://fc.yahoo.com/", {
     headers: { "User-Agent": YAHOO_UA },
     redirect: "manual"
   });
 
-  let cookieParts = [];
-  if (typeof initRes.headers.getAll === "function") {
-    cookieParts = initRes.headers.getAll("set-cookie").map(c => c.split(";")[0]);
+  let cookieParts: string[] = [];
+  if (typeof initRes.headers.getSetCookie === "function") {
+    cookieParts = initRes.headers.getSetCookie().map(c => c.split(";")[0]);
   } else {
     const raw = initRes.headers.get("set-cookie");
     if (raw) cookieParts = raw.split(",").map(c => c.split(";")[0].trim());
@@ -24,7 +28,7 @@ async function getYahooCrumbAndCookies() {
   return { crumb, cookies: cookieStr };
 }
 
-async function fetchYahooChart(yfCode) {
+async function fetchYahooChart(yfCode: string): Promise<any> {
   const { crumb, cookies } = await getYahooCrumbAndCookies();
 
   const url = `https://query2.finance.yahoo.com/v8/finance/chart/${yfCode}?region=US&lang=en-US&includePrePost=false&interval=1m&useYfid=true&range=1d&crumb=${encodeURIComponent(crumb)}`;
@@ -41,7 +45,7 @@ async function fetchYahooChart(yfCode) {
   return await res.json();
 }
 
-function codeToYahooSymbol(code) {
+function codeToYahooSymbol(code: string): string {
   if (code === "KOSPI") return "^KS11";
   if (code === "KOSDAQ") return "^KQ11";
   if (code === "NAS@IXIC" || code === ".IXIC" || code === "NASDAQ") return "^IXIC";
@@ -50,7 +54,7 @@ function codeToYahooSymbol(code) {
   return code;
 }
 
-function parseChartResult(raw) {
+function parseChartResult(raw: any) {
   const result = raw?.chart?.result?.[0];
   if (!result || !result.timestamp) throw new Error("분봉 데이터가 없습니다.");
 
@@ -58,55 +62,49 @@ function parseChartResult(raw) {
   const timestamps = result.timestamp;
   const closePrices = result.indicators.quote[0].close;
 
-  const rows = timestamps.map((ts, i) => {
+  const rows = timestamps.map((ts: number, i: number) => {
     const date = new Date(ts * 1000);
     const kstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
     const hh = String(kstDate.getUTCHours()).padStart(2, "0");
     const mm = String(kstDate.getUTCMinutes()).padStart(2, "0");
     const ss = String(kstDate.getUTCSeconds()).padStart(2, "0");
     return { datetime: `${hh}${mm}${ss}`, value: closePrices[i] };
-  }).filter(r => r.value !== null && !isNaN(r.value));
+  }).filter((r: any) => r.value !== null && !isNaN(r.value));
 
   return { rows: rows.slice(-30), prevClose };
 }
 
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
+export const onRequest = async (context: any) => {
+  const url = new URL(context.request.url);
+  const code = url.searchParams.get("code");
 
-    if (url.pathname.startsWith("/api/naver-market")) {
-      if (request.method === "OPTIONS") {
-        return new Response(null, {
-          status: 204,
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
-            "Access-Control-Max-Age": "86400"
-          }
-        });
-      }
+  if (!code) {
+    return jsonResponse({ error: "code 쿼리파라미터가 필요합니다." }, 400);
+  }
 
-      const code = url.searchParams.get("code");
-      if (!code) {
-        return jsonResponse({ error: "code 쿼리파라미터가 필요합니다." }, 400);
-      }
-
-      try {
-        const yfCode = codeToYahooSymbol(code);
-        const raw = await fetchYahooChart(yfCode);
-        const data = parseChartResult(raw);
-        return jsonResponse(data, 200);
-      } catch (err) {
-        return jsonResponse({ error: err.message }, 500);
-      }
-    }
-
-    return env.ASSETS ? env.ASSETS.fetch(request) : fetch(request);
+  try {
+    const yfCode = codeToYahooSymbol(code);
+    const raw = await fetchYahooChart(yfCode);
+    const data = parseChartResult(raw);
+    return jsonResponse(data, 200);
+  } catch (err: any) {
+    return jsonResponse({ error: err.message }, 500);
   }
 };
 
-function jsonResponse(obj, status) {
+export const onRequestOptions = async () => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Max-Age": "86400"
+    }
+  });
+};
+
+function jsonResponse(obj: any, status: number) {
   return new Response(JSON.stringify(obj), {
     status,
     headers: {
