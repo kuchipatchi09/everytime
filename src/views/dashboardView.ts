@@ -147,7 +147,11 @@ export async function renderDashboard(
         <div class="market-section-head">
           <div>
             <span class="eyebrow-plain">asterisk* Finance Info</span>
-            <h3>글로벌 금융 시장 지표</h3>
+            <h3>
+              <a href="https://finance.knoblab.xyz/" target="_blank" rel="noopener noreferrer" class="market-heading-link">
+                글로벌 금융 시장 지표 <sup>↗</sup>
+              </a>
+            </h3>
           </div>
           <div>
             <button class="market-refresh-btn" id="market-refresh-btn">새로고침</button>
