@@ -1,3 +1,77 @@
+const YAHOO_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+
+async function getYahooCrumbAndCookies() {
+  // 1) fc.yahoo.com에 요청해서 쿠키 획득
+  const initRes = await fetch("https://fc.yahoo.com/", {
+    headers: { "User-Agent": YAHOO_UA },
+    redirect: "manual"
+  });
+
+  let cookieParts = [];
+  if (typeof initRes.headers.getAll === "function") {
+    cookieParts = initRes.headers.getAll("set-cookie").map(c => c.split(";")[0]);
+  } else {
+    const raw = initRes.headers.get("set-cookie");
+    if (raw) cookieParts = raw.split(",").map(c => c.split(";")[0].trim());
+  }
+  const cookieStr = cookieParts.join("; ");
+
+  // 2) 쿠키로 crumb 토큰 획득
+  const crumbRes = await fetch("https://query2.finance.yahoo.com/v1/test/getcrumb", {
+    headers: { "User-Agent": YAHOO_UA, "Cookie": cookieStr }
+  });
+  if (!crumbRes.ok) throw new Error(`Crumb 획득 실패 (${crumbRes.status})`);
+  const crumb = await crumbRes.text();
+
+  return { crumb, cookies: cookieStr };
+}
+
+async function fetchYahooChart(yfCode) {
+  const { crumb, cookies } = await getYahooCrumbAndCookies();
+
+  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${yfCode}?region=US&lang=en-US&includePrePost=false&interval=1m&useYfid=true&range=1d&crumb=${encodeURIComponent(crumb)}`;
+
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": YAHOO_UA,
+      "Cookie": cookies,
+      "Accept": "application/json"
+    }
+  });
+
+  if (!res.ok) throw new Error(`Yahoo Finance 응답 오류 (${res.status})`);
+  return await res.json();
+}
+
+function codeToYahooSymbol(code) {
+  if (code === "KOSPI") return "^KS11";
+  if (code === "KOSDAQ") return "^KQ11";
+  if (code === "NAS@IXIC" || code === ".IXIC" || code === "NASDAQ") return "^IXIC";
+  if (code === "FX_USDKRW") return "KRW=X";
+  if (code === "SP500" || code === "S&P500") return "^GSPC";
+  return code;
+}
+
+function parseChartResult(raw) {
+  const result = raw?.chart?.result?.[0];
+  if (!result || !result.timestamp) throw new Error("분봉 데이터가 없습니다.");
+
+  const prevClose = result.meta.chartPreviousClose || result.meta.previousClose;
+  const timestamps = result.timestamp;
+  const closePrices = result.indicators.quote[0].close;
+
+  const rows = timestamps.map((ts, i) => {
+    const date = new Date(ts * 1000);
+    const kstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+    const hh = String(kstDate.getUTCHours()).padStart(2, "0");
+    const mm = String(kstDate.getUTCMinutes()).padStart(2, "0");
+    const ss = String(kstDate.getUTCSeconds()).padStart(2, "0");
+    return { datetime: `${hh}${mm}${ss}`, value: closePrices[i] };
+  }).filter(r => r.value !== null && !isNaN(r.value));
+
+  return { rows: rows.slice(-30), prevClose };
+}
+
 export async function onRequest(context) {
   const url = new URL(context.request.url);
   const code = url.searchParams.get("code");
@@ -7,51 +81,10 @@ export async function onRequest(context) {
   }
 
   try {
-    let yfCode = "";
-    if (code === "KOSPI") yfCode = "^KS11";
-    else if (code === "KOSDAQ") yfCode = "^KQ11";
-    else if (code === "NAS@IXIC" || code === ".IXIC" || code === "NASDAQ") yfCode = "^IXIC";
-    else if (code === "FX_USDKRW") yfCode = "KRW=X";
-    else if (code === "SP500" || code === "S&P500") yfCode = "^GSPC";
-    else yfCode = code;
-
-    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${yfCode}?region=US&lang=en-US&includePrePost=false&interval=1m&useYfid=true&range=1d`;
-    
-    const res = await fetch(targetUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-        "Accept": "application/json"
-      }
-    });
-    
-    if (!res.ok) throw new Error(`야후 파이낸스 응답 오류 (status ${res.status})`);
-    
-    const raw = await res.json();
-    const result = raw?.chart?.result?.[0];
-    if (!result || !result.timestamp) throw new Error("분봉 데이터가 없습니다.");
-
-    const prevClose = result.meta.chartPreviousClose || result.meta.previousClose;
-    const timestamps = result.timestamp;
-    const closePrices = result.indicators.quote[0].close;
-
-    const rows = timestamps.map((ts, i) => {
-      const date = new Date(ts * 1000);
-      const kstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
-      
-      const hh = String(kstDate.getUTCHours()).padStart(2, "0");
-      const mm = String(kstDate.getUTCMinutes()).padStart(2, "0");
-      const ss = String(kstDate.getUTCSeconds()).padStart(2, "0");
-      
-      return {
-        datetime: `${hh}${mm}${ss}`,
-        value: closePrices[i]
-      };
-    }).filter(r => r.value !== null && !isNaN(r.value));
-
-    const last30Mins = rows.slice(-30);
-
-    return jsonResponse({ rows: last30Mins, prevClose }, 200);
-
+    const yfCode = codeToYahooSymbol(code);
+    const raw = await fetchYahooChart(yfCode);
+    const data = parseChartResult(raw);
+    return jsonResponse(data, 200);
   } catch (err) {
     return jsonResponse({ error: err.message }, 500);
   }
