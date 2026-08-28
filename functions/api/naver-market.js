@@ -57,9 +57,27 @@ export async function onRequest(context) {
   }
 }
 
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Max-Age": "86400"
+    }
+  });
+}
+
 function jsonResponse(obj, status) {
   return new Response(JSON.stringify(obj), {
     status,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" }
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
   });
 }
