@@ -15,7 +15,7 @@ export async function renderTicker(): Promise<void> {
   for (const item of TICKER_ITEMS) {
     try {
       const json = await fetchMarketData(item.code);
-      if (json.rows && json.rows.length > 0) {
+      if (!json.error && json.rows && json.rows.length > 0) {
         const latest = json.rows[json.rows.length - 1];
         const prevClose = json.prevClose;
 

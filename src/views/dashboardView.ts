@@ -283,8 +283,8 @@ async function loadSingleMarketCard(item: TickerConfigItem): Promise<void> {
 
   try {
     const json = await fetchMarketData(item.code);
-    if (!json.rows || json.rows.length === 0) {
-      rateValEl.textContent = "데이터 없음";
+    if (json.error || !json.rows || json.rows.length === 0) {
+      rateValEl.textContent = json.error || "데이터 없음";
       if (rateDiffEl) rateDiffEl.textContent = "";
       return;
     }

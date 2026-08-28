@@ -1,3 +1,14 @@
+const NAVER_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Referer": "https://m.stock.naver.com/",
+  "Accept": "application/json, text/plain, */*",
+  "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7"
+};
+
+function naverFetch(url) {
+  return fetch(url, { headers: NAVER_HEADERS });
+}
+
 export async function onRequest(context) {
   const url = new URL(context.request.url);
   const code = url.searchParams.get("code") || "KOSPI";
@@ -26,8 +37,8 @@ async function getMarketData(code) {
   // 1. KOSPI
   if (code === "KOSPI") {
     const [basicRes, priceRes] = await Promise.all([
-      fetch("https://m.stock.naver.com/api/index/KOSPI/basic"),
-      fetch("https://m.stock.naver.com/api/index/KOSPI/price?pageSize=30&page=1")
+      naverFetch("https://m.stock.naver.com/api/index/KOSPI/basic"),
+      naverFetch("https://m.stock.naver.com/api/index/KOSPI/price?pageSize=30&page=1")
     ]);
     const basic = await basicRes.json();
     const prices = await priceRes.json();
@@ -61,8 +72,8 @@ async function getMarketData(code) {
   // 2. NASDAQ (.IXIC / NAS@IXIC)
   if (code === "NAS@IXIC" || code === ".IXIC" || code === "NASDAQ") {
     const [basicRes, priceRes] = await Promise.all([
-      fetch("https://api.stock.naver.com/index/.IXIC/basic"),
-      fetch("https://api.stock.naver.com/index/.IXIC/price?pageSize=30&page=1")
+      naverFetch("https://api.stock.naver.com/index/.IXIC/basic"),
+      naverFetch("https://api.stock.naver.com/index/.IXIC/price?pageSize=30&page=1")
     ]);
     const basic = await basicRes.json();
     const prices = await priceRes.json();
@@ -93,7 +104,7 @@ async function getMarketData(code) {
 
   // 3. USD/KRW (FX_USDKRW)
   if (code === "FX_USDKRW") {
-    const priceRes = await fetch("https://api.stock.naver.com/marketindex/exchange/FX_USDKRW/prices?pageSize=30&page=1");
+    const priceRes = await naverFetch("https://api.stock.naver.com/marketindex/exchange/FX_USDKRW/prices?pageSize=30&page=1");
     const prices = await priceRes.json();
     const latest = prices[0];
 
