@@ -1,0 +1,146 @@
+/* ==========================================================================
+   NYSE Style Market Ticker Bar (Wall Street Electronic Board)
+   ========================================================================== */
+
+.ticker-wrap {
+  position: relative;
+  z-index: 90;
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-black);
+  color: var(--color-paper);
+  border-bottom: 1px solid var(--color-graphite);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+
+.ticker-wrap.hidden {
+  display: none;
+}
+
+/* 고정 LIVE 라벨 뱃지 */
+.ticker-badge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 100%;
+  background: var(--color-carbon);
+  border-right: 1px solid var(--color-graphite);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-paper);
+  z-index: 2;
+}
+
+.ticker-live-dot {
+  width: 6px;
+  height: 6px;
+  background: #00E676;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px #00E676;
+  animation: live-blink 1.5s infinite ease-in-out;
+}
+
+@keyframes live-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* 롤링 콘텐츠 */
+.ticker-content {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  animation: ticker-scroll 35s linear infinite;
+}
+
+.ticker-wrap:hover .ticker-content {
+  animation-play-state: paused;
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 3rem;
+  font-size: 12px;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ticker-symbol {
+  font-weight: 800;
+  color: var(--color-paper);
+  padding: 1px 5px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.ticker-name {
+  color: var(--color-telemetry);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.ticker-val {
+  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 13px;
+  margin-left: 2px;
+}
+
+.ticker-val small {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-telemetry);
+  margin-left: 2px;
+}
+
+.ticker-diff {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 2px;
+}
+
+.ticker-diff.diff-up {
+  color: #FF5252;
+  background: rgba(255, 82, 82, 0.15);
+  border: 1px solid rgba(255, 82, 82, 0.3);
+}
+
+.ticker-diff.diff-down {
+  color: #448AFF;
+  background: rgba(68, 138, 255, 0.15);
+  border: 1px solid rgba(68, 138, 255, 0.3);
+}
+
+.ticker-diff.diff-even {
+  color: var(--color-telemetry);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (max-width: 768px) {
+  .ticker-badge {
+    padding: 0 8px;
+    font-size: 10px;
+  }
+  .ticker-item {
+    padding-right: 2rem;
+    font-size: 11px;
+  }
+}
