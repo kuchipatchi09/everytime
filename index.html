@@ -78,6 +78,8 @@
             ><button data-tab="브랜드">브랜드</button
             ><a href="https://community.qpi.digital/" target="_blank" rel="noopener noreferrer">커뮤니티 <sup>↗</sup></a
             ><a href="https://www.cnshstudy.kro.kr/" target="_blank" rel="noopener noreferrer">예약 <sup>↗</sup></a>
+            <div class="nav-divider"></div>
+            <div id="nav-auth-container" class="nav-auth-container"></div>
           </nav>
           <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="메뉴 열기">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -107,7 +109,10 @@
           </div>
 
           <div class="drawer-body">
-            <div class="drawer-section-label">PAGES</div>
+            <div class="drawer-section-label">ACCOUNT</div>
+            <div id="drawer-auth-container" class="drawer-auth-container"></div>
+
+            <div class="drawer-section-label" style="margin-top: 20px;">PAGES</div>
             <nav class="drawer-nav">
               <button class="drawer-nav-item" data-tab="메인">
                 <span class="drawer-idx">01</span>
@@ -207,6 +212,56 @@
           <button type="submit">시작하기</button>
           <small>입력한 정보는 이 기기에만 저장됩니다.</small>
         </form>
+      </div>
+
+      <!-- 이름 변경 모달 -->
+      <div id="name-modal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+        <div class="modal-card">
+          <div class="modal-header">
+            <span class="eyebrow">NAME SETTINGS</span>
+            <button type="button" class="modal-close-btn" id="name-modal-close" aria-label="닫기">✕</button>
+          </div>
+          <h2>이름 변경</h2>
+          <p>메인 화면과 서비스에서 나를 부를 이름을 설정합니다.</p>
+          <form id="name-change-form">
+            <label>새 이름
+              <input id="edit-name-input" maxlength="12" autocomplete="name" placeholder="이름 입력 (최대 12자)" required />
+            </label>
+            <div class="modal-actions">
+              <button type="button" class="btn-cancel" id="name-modal-cancel">취소</button>
+              <button type="submit" class="btn-submit">저장하기</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 사용자 프로필 / 계정 모달 -->
+      <div id="profile-modal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+        <div class="modal-card">
+          <div class="modal-header">
+            <span class="eyebrow">KNOBLAB ACCOUNT</span>
+            <button type="button" class="modal-close-btn" id="profile-modal-close" aria-label="닫기">✕</button>
+          </div>
+          <h2>내 계정 정보</h2>
+          <div class="profile-info-box">
+            <div class="profile-row">
+              <span class="profile-label">호칭</span>
+              <strong class="profile-val" id="profile-display-name">-</strong>
+            </div>
+            <div class="profile-row">
+              <span class="profile-label">이메일</span>
+              <span class="profile-val" id="profile-display-email">-</span>
+            </div>
+            <div class="profile-row">
+              <span class="profile-label">UID</span>
+              <span class="profile-val uid" id="profile-display-uid">-</span>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="profile-btn-change-name">이름 변경</button>
+            <button type="button" class="btn-danger" id="profile-btn-logout">로그아웃</button>
+          </div>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

@@ -1,7 +1,9 @@
 import "./styles/styles.css";
 
-import { $ } from "./utils/dom";
+import { $, showToast } from "./utils/dom";
+import { esc } from "./utils/escape";
 import { getSavedClass, getSavedName, setSavedClass, setSavedName } from "./utils/storage";
+import { getAuthUser, loginWithKnoblab, logout, onAuthStateChange } from "./utils/auth";
 import { renderDashboard } from "./views/dashboardView";
 import { renderTimetable } from "./views/timetableView";
 import { renderAfterschool } from "./views/afterschoolView";
@@ -23,7 +25,16 @@ export function switchTab(tab: TabName, updateUrl = true): void {
   
   if (tab === "메인") {
     const savedName = getSavedName() || "학생";
-    pageTitle.textContent = `${savedName}님, 오늘도 반가워요.`;
+    pageTitle.innerHTML = `
+      <span class="welcome-name-wrap">${esc(savedName)}님, 오늘도 반가워요.</span>
+      <button type="button" class="title-name-edit-btn" id="title-name-edit-btn" aria-label="이름 변경" title="이름 변경">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+      </button>
+    `;
+    $("#title-name-edit-btn")?.addEventListener("click", () => openNameChangeModal());
   } else if (tab === "브랜드") {
     pageTitle.textContent = "브랜드 스토리";
   } else {
@@ -100,10 +111,18 @@ function initWelcomeModal(): void {
   const nameInput = $<HTMLInputElement>("#name-input");
   const welcomeForm = welcomeModal.querySelector("form");
 
+  const authUser = getAuthUser();
   const savedName = getSavedName();
+
   if (!savedName) {
-    welcomeModal.classList.remove("hidden");
-    setTimeout(() => nameInput.focus(), 0);
+    if (authUser?.email) {
+      const emailPrefix = authUser.email.split("@")[0];
+      nameInput.value = emailPrefix;
+      setSavedName(emailPrefix);
+    } else {
+      welcomeModal.classList.remove("hidden");
+      setTimeout(() => nameInput.focus(), 0);
+    }
   }
 
   welcomeForm?.addEventListener("submit", (e) => {
@@ -112,8 +131,191 @@ function initWelcomeModal(): void {
     if (!value) return;
     setSavedName(value);
     welcomeModal.classList.add("hidden");
+    updateAuthUI();
     switchTab("메인");
   });
+}
+
+export function openNameChangeModal(): void {
+  const modal = $("#name-modal");
+  const input = $<HTMLInputElement>("#edit-name-input");
+  const current = getSavedName() || "";
+  input.value = current;
+  modal.classList.remove("hidden");
+  setTimeout(() => {
+    input.focus();
+    input.select();
+  }, 50);
+}
+
+export function closeNameChangeModal(): void {
+  const modal = $("#name-modal");
+  modal.classList.add("hidden");
+}
+
+function initNameChangeModal(): void {
+  const modal = $("#name-modal");
+  const form = $<HTMLFormElement>("#name-change-form");
+  const closeBtn = $("#name-modal-close");
+  const cancelBtn = $("#name-modal-cancel");
+  const input = $<HTMLInputElement>("#edit-name-input");
+
+  closeBtn?.addEventListener("click", closeNameChangeModal);
+  cancelBtn?.addEventListener("click", closeNameChangeModal);
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) closeNameChangeModal();
+  });
+
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const newName = input.value.trim();
+    if (!newName) return;
+    setSavedName(newName);
+    closeNameChangeModal();
+    showToast(`이름이 '${newName}'(으)로 변경되었습니다.`);
+    updateAuthUI();
+    if (currentTab === "메인") {
+      switchTab("메인", false);
+    }
+  });
+}
+
+export function openProfileModal(): void {
+  const modal = $("#profile-modal");
+  const user = getAuthUser();
+  const savedName = getSavedName() || "학생";
+
+  const displayNameEl = $("#profile-display-name");
+  const displayEmailEl = $("#profile-display-email");
+  const displayUidEl = $("#profile-display-uid");
+
+  if (displayNameEl) displayNameEl.textContent = savedName;
+  if (displayEmailEl) displayEmailEl.textContent = user?.email || "이메일 정보 없음";
+  if (displayUidEl) displayUidEl.textContent = user?.uid || "-";
+
+  modal.classList.remove("hidden");
+}
+
+export function closeProfileModal(): void {
+  const modal = $("#profile-modal");
+  modal.classList.add("hidden");
+}
+
+function initProfileModal(): void {
+  const modal = $("#profile-modal");
+  const closeBtn = $("#profile-modal-close");
+  const changeNameBtn = $("#profile-btn-change-name");
+  const logoutBtn = $("#profile-btn-logout");
+
+  closeBtn?.addEventListener("click", closeProfileModal);
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) closeProfileModal();
+  });
+
+  changeNameBtn?.addEventListener("click", () => {
+    closeProfileModal();
+    openNameChangeModal();
+  });
+
+  logoutBtn?.addEventListener("click", () => {
+    closeProfileModal();
+    handleLogout();
+  });
+}
+
+export function updateAuthUI(): void {
+  const user = getAuthUser();
+  const savedName = getSavedName() || "학생";
+  const navContainer = document.getElementById("nav-auth-container");
+  const drawerContainer = document.getElementById("drawer-auth-container");
+
+  // 데스크탑 네비게이션
+  if (navContainer) {
+    if (user) {
+      navContainer.innerHTML = `
+        <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="계정 정보 (${esc(user.email || user.uid)})">
+          <span class="btn-nav-profile-dot"></span>
+          <span>${esc(savedName)}</span>
+        </button>
+      `;
+      $("#btn-nav-profile")?.addEventListener("click", () => openProfileModal());
+    } else {
+      navContainer.innerHTML = `
+        <button type="button" class="btn-nav-name-edit" id="btn-nav-name-edit" title="이름 변경">
+          <span>${esc(savedName)}</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+        </button>
+        <button type="button" class="btn-nav-login" id="btn-nav-login" title="Knoblab 계정으로 로그인">
+          <span>로그인</span>
+        </button>
+      `;
+      $("#btn-nav-name-edit")?.addEventListener("click", () => openNameChangeModal());
+      $("#btn-nav-login")?.addEventListener("click", () => loginWithKnoblab());
+    }
+  }
+
+  // 모바일 드로어
+  if (drawerContainer) {
+    if (user) {
+      drawerContainer.innerHTML = `
+        <div class="drawer-auth-user-info">
+          <div class="user-name">
+            <span class="btn-nav-profile-dot"></span>
+            <strong>${esc(savedName)}</strong>
+          </div>
+          <div class="user-email">${esc(user.email || user.uid)}</div>
+        </div>
+        <div class="drawer-auth-actions">
+          <button type="button" class="btn-drawer-secondary" id="drawer-btn-change-name">이름 변경</button>
+          <button type="button" class="btn-drawer-secondary" id="drawer-btn-logout">로그아웃</button>
+        </div>
+      `;
+      $("#drawer-btn-change-name")?.addEventListener("click", () => {
+        closeMobileDrawer();
+        openNameChangeModal();
+      });
+      $("#drawer-btn-logout")?.addEventListener("click", () => {
+        closeMobileDrawer();
+        handleLogout();
+      });
+    } else {
+      drawerContainer.innerHTML = `
+        <div class="drawer-auth-user-info">
+          <div class="user-name">${esc(savedName)}님 (게스트)</div>
+          <div class="user-email">Knoblab 계정으로 로그인해 서비스를 연동하세요.</div>
+        </div>
+        <div class="drawer-auth-actions">
+          <button type="button" class="btn-drawer-secondary" id="drawer-btn-change-name">이름 변경</button>
+          <button type="button" class="btn-drawer-primary" id="drawer-btn-login">Knoblab 로그인</button>
+        </div>
+      `;
+      $("#drawer-btn-change-name")?.addEventListener("click", () => {
+        closeMobileDrawer();
+        openNameChangeModal();
+      });
+      $("#drawer-btn-login")?.addEventListener("click", () => {
+        loginWithKnoblab();
+      });
+    }
+  }
+}
+
+function handleLogout(): void {
+  logout();
+  showToast("로그아웃되었습니다.");
+  updateAuthUI();
+  if (currentTab === "메인") {
+    switchTab("메인", false);
+  }
+}
+
+export function closeMobileDrawer(): void {
+  const mobileDrawer = $("#mobile-drawer");
+  mobileDrawer?.classList.add("hidden");
+  document.body.style.overflow = "";
 }
 
 function initNavigation(): void {
@@ -150,18 +352,17 @@ function initNavigation(): void {
     document.body.style.overflow = "hidden";
   };
 
-  const closeMobileDrawer = () => {
-    mobileDrawer?.classList.add("hidden");
-    document.body.style.overflow = "";
-  };
-
   mobileToggleBtn?.addEventListener("click", openMobileDrawer);
   closeBtn?.addEventListener("click", closeMobileDrawer);
   backdrop?.addEventListener("click", closeMobileDrawer);
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !mobileDrawer?.classList.contains("hidden")) {
-      closeMobileDrawer();
+    if (e.key === "Escape") {
+      if (!mobileDrawer?.classList.contains("hidden")) {
+        closeMobileDrawer();
+      }
+      closeNameChangeModal();
+      closeProfileModal();
     }
   });
 
@@ -212,6 +413,15 @@ document.addEventListener("DOMContentLoaded", () => {
   initDateDisplay();
   initClassPicker();
   initWelcomeModal();
+  initNameChangeModal();
+  initProfileModal();
+  updateAuthUI();
+  onAuthStateChange(() => {
+    updateAuthUI();
+    if (currentTab === "메인") {
+      switchTab("메인", false);
+    }
+  });
   initNavigation();
   handleUrlRoute();
 });

@@ -1914,3 +1914,351 @@ footer {
   color: var(--color-telemetry);
   text-align: center;
 }
+
+/* ==========================================================================
+   Auth & User Profile & Modals
+   ========================================================================== */
+
+.nav-divider {
+  width: 1px;
+  height: 16px;
+  background-color: var(--color-silver);
+  margin: 0 4px;
+}
+
+.nav-auth-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-nav-login {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 11px;
+  background: var(--color-black);
+  color: var(--color-paper);
+  border: var(--border-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: -0.01em;
+}
+
+.btn-nav-login:hover {
+  background: var(--color-carbon);
+  transform: translateY(-1px);
+}
+
+.btn-nav-profile {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  background: var(--color-vellum);
+  border: var(--border-main);
+  color: var(--color-black);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-nav-profile:hover {
+  background: #dedcd4;
+}
+
+.btn-nav-profile-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #2e7d32;
+  display: inline-block;
+}
+
+.btn-nav-name-edit {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px dashed var(--color-graphite);
+  color: var(--color-black);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-nav-name-edit:hover {
+  border-style: solid;
+  border-color: var(--color-black);
+  background: var(--color-vellum);
+}
+
+/* Mobile Drawer Auth Box */
+.drawer-auth-container {
+  padding: 12px;
+  background: var(--color-vellum);
+  border: var(--border-main);
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drawer-auth-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.drawer-auth-user-info .user-name {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.drawer-auth-user-info .user-email {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-graphite);
+  word-break: break-all;
+}
+
+.drawer-auth-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.drawer-auth-actions button {
+  flex: 1;
+  padding: 7px 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  border: var(--border-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.drawer-auth-actions .btn-drawer-primary {
+  background: var(--color-black);
+  color: var(--color-paper);
+}
+
+.drawer-auth-actions .btn-drawer-primary:hover {
+  background: var(--color-carbon);
+}
+
+.drawer-auth-actions .btn-drawer-secondary {
+  background: var(--color-paper);
+  color: var(--color-black);
+}
+
+.drawer-auth-actions .btn-drawer-secondary:hover {
+  background: #dedcd4;
+}
+
+/* Title Greeting Name Edit Button */
+.title-name-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--color-silver);
+  color: var(--color-graphite);
+  width: 26px;
+  height: 26px;
+  border-radius: 2px;
+  cursor: pointer;
+  vertical-align: middle;
+  margin-left: 8px;
+  transition: all 0.15s ease;
+}
+
+.title-name-edit-btn:hover {
+  border-color: var(--color-black);
+  color: var(--color-black);
+  background: var(--color-vellum);
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-card {
+  background: var(--color-paper);
+  border: var(--border-main);
+  padding: 24px 20px;
+  max-width: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-graphite);
+  padding: 4px 6px;
+}
+
+.modal-close-btn:hover {
+  color: var(--color-black);
+}
+
+.modal-card h2 {
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.modal-card p {
+  font-size: 12.5px;
+  color: var(--color-graphite);
+  line-height: 1.45;
+}
+
+.modal-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.modal-card input {
+  border: var(--border-main);
+  padding: 9px 12px;
+  font-size: 13.5px;
+  outline: none;
+  background: var(--color-white);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.modal-actions button {
+  padding: 9px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: var(--border-main);
+  transition: all 0.15s ease;
+}
+
+.btn-submit {
+  background: var(--color-black);
+  color: var(--color-paper);
+}
+
+.btn-submit:hover {
+  background: var(--color-carbon);
+}
+
+.btn-cancel, .btn-secondary {
+  background: var(--color-paper);
+  color: var(--color-black);
+}
+
+.btn-cancel:hover, .btn-secondary:hover {
+  background: var(--color-vellum);
+}
+
+.btn-danger {
+  background: #FFF0EE;
+  border-color: var(--up-red);
+  color: var(--up-red);
+}
+
+.btn-danger:hover {
+  background: var(--up-red);
+  color: #FFFFFF;
+}
+
+.profile-info-box {
+  background: var(--color-vellum);
+  border: var(--border-main);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.profile-label {
+  font-family: var(--font-mono);
+  color: var(--color-graphite);
+  font-size: 11px;
+}
+
+.profile-val {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--color-black);
+  word-break: break-all;
+}
+
+.profile-val.uid {
+  font-size: 10.5px;
+  color: var(--color-graphite);
+}
+
