@@ -34,6 +34,8 @@
     <!-- 전광판 전용 CSS -->
     <style>
       .ticker-wrap {
+        position: relative;
+        z-index: 100;
         width: 100%;
         overflow: hidden;
         background: #F7F6F2;
@@ -171,12 +173,12 @@
             ><a href="https://www.cnshstudy.kro.kr/">예약 <sup>↗</sup></a>
           </nav>
         </div>
-      </header>
 
-      <!-- 시장 지표 전광판 영역 -->
-      <div class="ticker-wrap hidden" id="stock-ticker">
-        <div class="ticker-content" id="ticker-content"></div>
-      </div>
+        <!-- 시장 지표 전광판 영역 (헤더 내부 배치) -->
+        <div class="ticker-wrap hidden" id="stock-ticker">
+          <div class="ticker-content" id="ticker-content"></div>
+        </div>
+      </header>
 
       <main>
         <div class="title">
@@ -1006,7 +1008,6 @@
         }
         
         if (html) {
-          // 부드러운 무한 스크롤을 위해 콘텐츠를 반복 복제하여 삽입
           tickerContent.innerHTML = html + html + html + html;
           tickerWrap.classList.remove("hidden");
         }
