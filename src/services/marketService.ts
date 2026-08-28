@@ -1,37 +1,7 @@
 import { MarketResponse, MarketRow } from "../types/market";
 
-const FALLBACK_DATA: Record<string, { value: number; prevClose: number; unit: string }> = {
-  KOSPI: { value: 2685.20, prevClose: 2672.40, unit: "pt" },
-  "NAS@IXIC": { value: 17730.40, prevClose: 17810.10, unit: "pt" },
-  NASDAQ: { value: 17730.40, prevClose: 17810.10, unit: "pt" },
-  FX_USDKRW: { value: 1378.50, prevClose: 1382.10, unit: "원" }
-};
-
-function generateMockFallback(code: string): MarketResponse {
-  const base = FALLBACK_DATA[code] || { value: 1000, prevClose: 990, unit: "pt" };
-  const rows: MarketRow[] = [];
-  const now = new Date();
-
-  for (let i = 29; i >= 0; i--) {
-    const t = new Date(now.getTime() - i * 60 * 1000);
-    const hh = String(t.getHours()).padStart(2, "0");
-    const mm = String(t.getMinutes()).padStart(2, "0");
-    const ss = String(t.getSeconds()).padStart(2, "0");
-    const randomVariation = (Math.sin(i / 3) * 0.002 + (Math.random() - 0.5) * 0.001) * base.value;
-    rows.push({
-      datetime: `${hh}${mm}${ss}`,
-      value: Number((base.value + randomVariation).toFixed(2))
-    });
-  }
-
-  return {
-    rows,
-    prevClose: base.prevClose
-  };
-}
-
 export async function fetchMarketData(code: string): Promise<MarketResponse> {
-  // 1. Cloudflare Pages Function / Vite dev server 엔드포인트 호출
+  // 1. Cloudflare Pages Functions / Workers / Vite dev server 엔드포인트 호출
   try {
     const res = await fetch(`/api/naver-market?code=${encodeURIComponent(code)}`);
     const contentType = res.headers.get("content-type") || "";
@@ -42,10 +12,40 @@ export async function fetchMarketData(code: string): Promise<MarketResponse> {
         return data;
       }
     }
-  } catch {
-    // 프록시 호출 실패 시 아래 Fallback으로 이동
+  } catch (err) {
+    console.warn(`Local API fetch failed for ${code}:`, err);
   }
 
-  // 2. CORS 제약 없이 항상 안정적으로 차트를 보여주는 Graceful Fallback
-  return generateMockFallback(code);
+  // 2. 서버리스 프록시 연결 전 임시 오프라인 안전 기준 데이터
+  const fallbackValues: Record<string, { val: number; diff: number; history: number[] }> = {
+    KOSPI: {
+      val: 6788.88,
+      diff: -123.49,
+      history: [6696.96, 6742.74, 6808.21, 6912.37, 6788.88]
+    },
+    "NAS@IXIC": {
+      val: 26424.84,
+      diff: -116.51,
+      history: [25980.19, 26151.30, 26130.20, 26541.35, 26424.84]
+    },
+    NASDAQ: {
+      val: 26424.84,
+      diff: -116.51,
+      history: [25980.19, 26151.30, 26130.20, 26541.35, 26424.84]
+    },
+    FX_USDKRW: {
+      val: 1379.70,
+      diff: -2.30,
+      history: [1384.00, 1383.50, 1386.00, 1382.00, 1379.70]
+    }
+  };
+
+  const item = fallbackValues[code] || fallbackValues["KOSPI"];
+  const prevClose = item.val - item.diff;
+  const rows: MarketRow[] = item.history.map((price, idx) => ({
+    datetime: `D-${item.history.length - idx}`,
+    value: price
+  }));
+
+  return { rows, prevClose };
 }
