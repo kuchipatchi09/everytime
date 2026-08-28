@@ -30,6 +30,55 @@
       href="https://fonts.googleapis.com/css2?family=Asta+Sans:wght@300;400;500;600;700;800&display=swap"
     />
     <link rel="stylesheet" href="./styles.css" />
+    
+    <!-- 전광판 전용 CSS -->
+    <style>
+      .ticker-wrap {
+        width: 100%;
+        overflow: hidden;
+        background: #F7F6F2;
+        color: #2B2B2E;
+        border-bottom: 1px solid #2B2B2E;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+      }
+      .ticker-wrap.hidden {
+        display: none;
+      }
+      .ticker-content {
+        display: flex;
+        width: max-content;
+        animation: ticker-scroll 25s linear infinite;
+      }
+      .ticker-content:hover {
+        animation-play-state: paused;
+      }
+      .ticker-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding-right: 3rem;
+        font-family: 'Asta Sans', -apple-system, sans-serif;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .ticker-item span:first-child {
+        font-weight: 700;
+        opacity: 0.8;
+      }
+      .ticker-item .diff-up { color: #E03020; }
+      .ticker-item .diff-down { color: #0066CC; }
+      .ticker-item .diff-even { color: #556042; }
+      
+      @keyframes ticker-scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+    </style>
+
     <!-- SVG 파비콘 -->
     <link
       rel="icon"
@@ -123,6 +172,12 @@
           </nav>
         </div>
       </header>
+
+      <!-- 시장 지표 전광판 영역 -->
+      <div class="ticker-wrap hidden" id="stock-ticker">
+        <div class="ticker-content" id="ticker-content"></div>
+      </div>
+
       <main>
         <div class="title">
           <div>
@@ -904,6 +959,59 @@
             '<span class="eyebrow">LATEST NOTICE</span><h3>최신 공지</h3><p>공지를 불러오지 못했습니다.</p>';
         }
       }
+
+      // 전광판 데이터 로드
+      async function loadTicker() {
+        const TICKER_ITEMS = [
+          { name: "코스피", code: "KOSPI" },
+          { name: "코스닥", code: "KOSDAQ" },
+          { name: "나스닥", code: "NAS@IXIC" },
+          { name: "원/달러", code: "FX_USDKRW" }
+        ];
+        const tickerWrap = document.getElementById("stock-ticker");
+        const tickerContent = document.getElementById("ticker-content");
+        let html = "";
+
+        for (const item of TICKER_ITEMS) {
+          try {
+            const res = await fetch(`/api/naver-market?code=${item.code}`);
+            const json = await res.json();
+            if (json.rows && json.rows.length > 0) {
+              const latest = json.rows[json.rows.length - 1];
+              const prevClose = json.prevClose;
+              const val = latest.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              
+              let diffStr = "";
+              let diffClass = "diff-even";
+              if (prevClose) {
+                const diff = latest.value - prevClose;
+                const pct = Math.abs((diff / prevClose) * 100).toFixed(2);
+                const absDiff = Math.abs(diff).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
+                if (diff > 0) {
+                  diffStr = `▲ ${absDiff} (+${pct}%)`;
+                  diffClass = "diff-up";
+                } else if (diff < 0) {
+                  diffStr = `▼ ${absDiff} (-${pct}%)`;
+                  diffClass = "diff-down";
+                } else {
+                  diffStr = `- 0.00 (0.00%)`;
+                }
+              }
+              html += `<span class="ticker-item"><span>${item.name}</span> <span>${val}</span> <span class="${diffClass}">${diffStr}</span></span>`;
+            }
+          } catch (e) {
+            console.error("Ticker load error:", e);
+          }
+        }
+        
+        if (html) {
+          // 부드러운 무한 스크롤을 위해 콘텐츠를 반복 복제하여 삽입
+          tickerContent.innerHTML = html + html + html + html;
+          tickerWrap.classList.remove("hidden");
+        }
+      }
+
       function saveName(event) {
         event.preventDefault();
         const value = $("#name-input").value.trim();
@@ -1273,6 +1381,9 @@
           setTimeout(() => $("#name-input").focus(), 0);
         }
         show("메인");
+        
+        // 전광판 초기화 호출
+        loadTicker();
       });
     </script>
   </body>
