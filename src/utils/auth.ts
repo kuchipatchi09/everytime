@@ -49,10 +49,12 @@ export function getAuthUser(): KnoblabUser | null {
 
 /**
  * Knoblab 통합 로그인 페이지(https://login.knoblab.xyz/)로 이동하여 로그인을 요청합니다.
+ * @param redirectUrl 인증 완료 후 돌아올 URL (기본값: 현재 페이지 URL)
+ * @param serviceName 로그인 페이지 제목에 표시할 서비스명 (기본값: "asterisk")
  */
-export function loginWithKnoblab(redirectUrl?: string): void {
+export function loginWithKnoblab(redirectUrl?: string, serviceName: string = "asterisk"): void {
   const targetUrl = redirectUrl || window.location.href;
-  const loginEndpoint = `https://login.knoblab.xyz/?redirect=${encodeURIComponent(targetUrl)}`;
+  const loginEndpoint = `https://login.knoblab.xyz/?service=${encodeURIComponent(serviceName)}&redirect=${encodeURIComponent(targetUrl)}`;
   window.location.href = loginEndpoint;
 }
 
