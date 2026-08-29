@@ -3,7 +3,7 @@ import "./styles/styles.css";
 import { $, showToast } from "./utils/dom";
 import { esc } from "./utils/escape";
 import { getSavedClass, getSavedName, setSavedClass, setSavedName } from "./utils/storage";
-import { getAuthUser, loginWithKnoblab, logout, onAuthStateChange } from "./utils/auth";
+import { checkAuth, getAuthUser, loginWithKnoblab, logout, onAuthStateChange } from "./utils/auth";
 import { renderDashboard } from "./views/dashboardView";
 import { renderTimetable } from "./views/timetableView";
 import { renderAfterschool } from "./views/afterschoolView";
@@ -303,8 +303,8 @@ export function updateAuthUI(): void {
   }
 }
 
-function handleLogout(): void {
-  logout();
+async function handleLogout(): Promise<void> {
+  await logout();
   showToast("로그아웃되었습니다.");
   updateAuthUI();
   if (currentTab === "메인") {
@@ -416,12 +416,19 @@ document.addEventListener("DOMContentLoaded", () => {
   initNameChangeModal();
   initProfileModal();
   updateAuthUI();
-  onAuthStateChange(() => {
+  onAuthStateChange((user) => {
+    if (!getSavedName() && user?.email) {
+      const emailPrefix = user.email.split("@")[0];
+      setSavedName(emailPrefix);
+      const welcomeModal = $("#welcome");
+      welcomeModal?.classList.add("hidden");
+    }
     updateAuthUI();
     if (currentTab === "메인") {
       switchTab("메인", false);
     }
   });
+  checkAuth();
   initNavigation();
   handleUrlRoute();
 });

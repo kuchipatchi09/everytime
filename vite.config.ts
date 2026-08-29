@@ -2,6 +2,114 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 
+function parseCookies(cookieStr: string | undefined): Record<string, string> {
+  const cookies: Record<string, string> = {};
+  if (!cookieStr) return cookies;
+  for (const pair of cookieStr.split(";")) {
+    const [key, ...rest] = pair.trim().split("=");
+    if (key) cookies[key.trim()] = rest.join("=");
+  }
+  return cookies;
+}
+
+function authDevMiddleware(req: any, res: any, next: any) {
+  const url = req.url ? new URL(req.url, `http://${req.headers.host}`) : null;
+  if (!url) return next();
+
+  if (url.pathname === "/api/auth-callback") {
+    if (req.method === "POST") {
+      let body = "";
+      req.on("data", (chunk: any) => { body += chunk; });
+      req.on("end", () => {
+        let token = "";
+        let uid = "";
+        let email = "";
+
+        const contentType = req.headers["content-type"] || "";
+        if (contentType.includes("application/x-www-form-urlencoded")) {
+          const params = new URLSearchParams(body);
+          token = params.get("token") || "";
+          uid = params.get("uid") || "";
+          email = params.get("email") || "";
+        } else if (contentType.includes("multipart/form-data")) {
+          const boundaryMatch = contentType.match(/boundary=(.+)$/);
+          const boundary = boundaryMatch ? boundaryMatch[1].trim() : "";
+          if (boundary) {
+            const parts = body.split(`--${boundary}`);
+            for (const part of parts) {
+              const nameMatch = part.match(/name="([^"]+)"/);
+              if (nameMatch) {
+                const name = nameMatch[1];
+                const content = part.split("\r\n\r\n")[1]?.split("\r\n--")[0]?.trim() || "";
+                if (name === "token") token = content;
+                if (name === "uid") uid = content;
+                if (name === "email") email = content;
+              }
+            }
+          }
+        }
+
+        if (token || uid) {
+          const cookieOpts = "Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax";
+          res.setHeader("Set-Cookie", [
+            `session_token=${encodeURIComponent(token)}; ${cookieOpts}`,
+            `session_uid=${encodeURIComponent(uid)}; ${cookieOpts}`,
+            `session_email=${encodeURIComponent(email)}; ${cookieOpts}`,
+          ]);
+        }
+
+        res.statusCode = 302;
+        res.setHeader("Location", "/");
+        res.end();
+      });
+      return;
+    } else {
+      res.statusCode = 302;
+      res.setHeader("Location", "/");
+      res.end();
+      return;
+    }
+  }
+
+  if (url.pathname === "/api/me") {
+    const cookies = parseCookies(req.headers.cookie);
+    const token = cookies["session_token"];
+    const uid = cookies["session_uid"];
+    const email = cookies["session_email"];
+
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Cache-Control", "no-store");
+
+    if (uid || token) {
+      res.statusCode = 200;
+      res.end(JSON.stringify({
+        authenticated: true,
+        uid: decodeURIComponent(uid || ""),
+        email: decodeURIComponent(email || ""),
+      }));
+    } else {
+      res.statusCode = 401;
+      res.end(JSON.stringify({ authenticated: false }));
+    }
+    return;
+  }
+
+  if (url.pathname === "/api/logout") {
+    const clearOpts = "Path=/; Max-Age=0; HttpOnly; SameSite=Lax";
+    res.setHeader("Set-Cookie", [
+      `session_token=; ${clearOpts}`,
+      `session_uid=; ${clearOpts}`,
+      `session_email=; ${clearOpts}`,
+    ]);
+    res.setHeader("Content-Type", "application/json");
+    res.statusCode = 200;
+    res.end(JSON.stringify({ success: true }));
+    return;
+  }
+
+  next();
+}
+
 function marketProxyMiddleware(req: any, res: any, next: any) {
   if (req.url?.startsWith("/api/naver-market")) {
     (async () => {
@@ -71,6 +179,15 @@ function marketProxyMiddleware(req: any, res: any, next: any) {
 export default defineConfig({
   plugins: [
     react(),
+    {
+      name: "auth-dev-proxy",
+      configureServer(server) {
+        server.middlewares.use(authDevMiddleware);
+      },
+      configurePreviewServer(server) {
+        server.middlewares.use(authDevMiddleware);
+      }
+    },
     {
       name: "naver-market-proxy",
       configureServer(server) {
