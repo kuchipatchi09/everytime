@@ -10,10 +10,11 @@ import { renderAfterschool } from "./views/afterschoolView";
 import { renderMeals, setMealCode } from "./views/mealView";
 import { renderBoard, renderNoticeDetail } from "./views/noticeView";
 import { renderBrand } from "./views/brandView";
+import { renderTimer } from "./views/timerView";
 import { ClassNumber, GradeNumber } from "./types/timetable";
 import { MealCode } from "./types/meal";
 
-export type TabName = "메인" | "시간표" | "방과후" | "급식" | "공지" | "브랜드";
+export type TabName = "메인" | "시간표" | "방과후" | "급식" | "공지" | "타이머" | "브랜드";
 
 let currentTab: TabName = "메인";
 
@@ -37,6 +38,8 @@ export function switchTab(tab: TabName, updateUrl = true): void {
     $("#title-name-edit-btn")?.addEventListener("click", () => openNameChangeModal());
   } else if (tab === "브랜드") {
     pageTitle.textContent = "브랜드 스토리";
+  } else if (tab === "타이머") {
+    pageTitle.textContent = "자습 타이머";
   } else {
     pageTitle.textContent = tab;
   }
@@ -46,7 +49,7 @@ export function switchTab(tab: TabName, updateUrl = true): void {
     titleContainer.style.display = tab === "브랜드" ? "none" : "flex";
   }
   if (pickerEl) {
-    pickerEl.style.display = (tab === "브랜드" || tab === "공지") ? "none" : "flex";
+    pickerEl.style.display = (tab === "브랜드" || tab === "공지" || tab === "타이머") ? "none" : "flex";
   }
 
   // 데스크탑 네비게이션 및 모바일 드로어 탭 활성화 상태 동기화
@@ -57,6 +60,8 @@ export function switchTab(tab: TabName, updateUrl = true): void {
   if (updateUrl) {
     if (tab === "브랜드") {
       history.pushState(null, "", "#brand");
+    } else if (tab === "타이머") {
+      history.pushState(null, "", "#timer");
     } else if (tab === "메인") {
       history.pushState(null, "", window.location.pathname);
     } else {
@@ -81,6 +86,8 @@ export function renderActiveView(): void {
     renderMeals();
   } else if (currentTab === "공지") {
     renderBoard();
+  } else if (currentTab === "타이머") {
+    renderTimer();
   } else if (currentTab === "브랜드") {
     renderBrand(() => switchTab("메인"));
   }
@@ -383,9 +390,11 @@ function handleUrlRoute(): void {
 
   if (hash === "brand" || path.endsWith("/brand") || path.endsWith("/brand.html")) {
     switchTab("브랜드", false);
+  } else if (hash === "timer" || hash === "타이머") {
+    switchTab("타이머", false);
   } else if (hash) {
     const decoded = decodeURIComponent(hash) as TabName;
-    if (["메인", "시간표", "방과후", "급식", "공지", "브랜드"].includes(decoded)) {
+    if (["메인", "시간표", "방과후", "급식", "공지", "타이머", "브랜드"].includes(decoded)) {
       switchTab(decoded, false);
       return;
     }
