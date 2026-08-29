@@ -757,10 +757,9 @@ button.back:hover {
   .dash-card {
     padding: 22px;
   }
-  .weather-card { grid-column: span 3; }
-  .meal-card { grid-column: span 3; }
-  .timer-card { grid-column: span 3; }
-  .notice-card { grid-column: span 3; }
+  .weather-card { grid-column: span 4; }
+  .meal-card { grid-column: span 4; }
+  .notice-card { grid-column: span 4; }
   .today-schedule { grid-column: span 12; }
 }
 
@@ -2261,22 +2260,6 @@ footer {
 .profile-val.uid {
   font-size: 10.5px;
   color: var(--color-graphite);
-}
-
-/* ==========================================================================
-   Dashboard Timer Widget
-   ========================================================================== */
-
-.dash-timer-main {
-  margin: 8px 0 12px;
-}
-
-.dash-timer-main strong {
-  font-size: 1.85rem;
-  font-weight: 300;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  font-family: var(--font-mono);
 }
 
 /* ==========================================================================

@@ -12,7 +12,6 @@ import { esc } from "../utils/escape";
 import { formatDateKey, toMinutes } from "../utils/time";
 import { $ } from "../utils/dom";
 import { getSavedClass } from "../utils/storage";
-import { getTodayFocusSeconds, formatTimeFormatted } from "../utils/timerStorage";
 import { DayOfWeek } from "../types/timetable";
 import { TickerConfigItem } from "../types/market";
 
@@ -119,16 +118,6 @@ export async function renderDashboard(
         <button class="dash-link" id="dash-meal-btn">주간 급식 보기 →</button>
       </article>
 
-      <article class="dash-card timer-card" id="dash-timer-card">
-        <span class="eyebrow">FOCUS TIMER</span>
-        <div class="dash-timer-main">
-          <strong>${formatTimeFormatted(getTodayFocusSeconds())}</strong>
-        </div>
-        <h3>오늘의 자습 시간</h3>
-        <p>집중 세션을 시작하고 순공 시간을 기록하세요.</p>
-        <button class="dash-link" id="dash-timer-btn">자습 타이머 열기 →</button>
-      </article>
-
       <article class="dash-card notice-card" id="latest-notice">
         <span class="eyebrow">LATEST NOTICE</span><h3>최신 공지</h3>
         <p>공지를 불러오는 중입니다.</p>
@@ -217,7 +206,6 @@ export async function renderDashboard(
     </section>`;
 
   $("#dash-meal-btn")?.addEventListener("click", () => onNavigateTab("급식"));
-  $("#dash-timer-btn")?.addEventListener("click", () => onNavigateTab("타이머"));
   $("#dash-timetable-btn")?.addEventListener("click", () => onNavigateTab("시간표"));
   $("#market-refresh-btn")?.addEventListener("click", () => handleMarketManualRefresh());
 
