@@ -11,15 +11,9 @@ import { fetchMarketData } from "../services/marketService";
 import { esc } from "../utils/escape";
 import { formatDateKey, toMinutes } from "../utils/time";
 import { $ } from "../utils/dom";
-import { getSavedClass } from "../utils/storage";
+import { getSavedClass, getSavedTickers } from "../utils/storage";
 import { DayOfWeek } from "../types/timetable";
 import { TickerConfigItem } from "../types/market";
-
-const DASH_MARKET_ITEMS: TickerConfigItem[] = [
-  { name: "코스피", symbol: "KOSPI", code: "KOSPI", unit: "pt" },
-  { name: "나스닥", symbol: "NASDAQ", code: "NAS@IXIC", unit: "pt" },
-  { name: "원/달러 환율", symbol: "USD/KRW", code: "FX_USDKRW", unit: "원" }
-];
 
 let marketCharts: Record<string, Chart> = {};
 const TIMEOUT_SEC = 30; // 30초 쿨다운
@@ -30,6 +24,15 @@ export async function renderDashboard(
   onNavigateTab: (tab: string) => void,
   onOpenNoticeDetail: (index: number) => void
 ): Promise<void> {
+  // 이전 차트 정리
+  Object.values(marketCharts).forEach((chart) => {
+    try {
+      chart.destroy();
+    } catch {}
+  });
+  marketCharts = {};
+
+  const marketItems = getSavedTickers();
   const now = new Date();
   const { g, c } = getSavedClass();
   const dayIndex = now.getDay() - 1;
@@ -142,7 +145,7 @@ export async function renderDashboard(
         </div>
       </article>
 
-      <!-- 오늘 시간표 아래 3개 금융 지표 카드 섹션 -->
+      <!-- 관심 금융 지표 카드 섹션 (최대 3개) -->
       <section class="dash-market-section">
         <div class="market-section-head">
           <div>
@@ -158,51 +161,66 @@ export async function renderDashboard(
           </div>
         </div>
 
-        <!-- 모바일 전용 1개씩 보기 세그먼트 탭 -->
-        <div class="market-mobile-tabs">
-          ${DASH_MARKET_ITEMS.map(
-            (item, idx) => `
-            <button class="market-mob-tab ${idx === 0 ? "active" : ""}" data-target="market-card-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">
-              ${item.symbol}
-            </button>
-          `
-          ).join("")}
-        </div>
+        ${
+          marketItems.length === 0
+            ? `
+          <div class="market-empty-box">
+            <p>설정된 관심 금융 지표가 없습니다.</p>
+            <small>우측 상단 프로필을 눌러 원하는 종목/티커를 추가해보세요.</small>
+          </div>
+        `
+            : `
+          <!-- 모바일 전용 1개씩 보기 세그먼트 탭 -->
+          <div class="market-mobile-tabs">
+            ${marketItems
+              .map(
+                (item, idx) => `
+              <button class="market-mob-tab ${idx === 0 ? "active" : ""}" data-target="market-card-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">
+                ${item.symbol}
+              </button>
+            `
+              )
+              .join("")}
+          </div>
 
-        <div class="market-cards-grid">
-          ${DASH_MARKET_ITEMS.map(
-            (item, idx) => `
-            <article class="market-card ${idx === 0 ? "mob-active" : ""}" id="market-card-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">
-              <div>
-                <div class="market-card-header">
-                  <div class="market-title-wrap">
-                    <span class="market-series-name">${item.symbol}</span>
-                    <h4 class="market-card-title">${item.name}</h4>
+          <div class="market-cards-grid" style="grid-template-columns: repeat(${marketItems.length}, minmax(0, 1fr));">
+            ${marketItems
+              .map(
+                (item, idx) => `
+              <article class="market-card ${idx === 0 ? "mob-active" : ""}" id="market-card-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">
+                <div>
+                  <div class="market-card-header">
+                    <div class="market-title-wrap">
+                      <span class="market-series-name">${item.symbol}</span>
+                      <h4 class="market-card-title">${item.name}</h4>
+                    </div>
+                    <span class="market-status-badge status-loading" id="market-status-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">확인 중</span>
                   </div>
-                  <span class="market-status-badge status-loading" id="market-status-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">확인 중</span>
-                </div>
 
-                <div class="market-rate-box">
-                  <span class="market-current-rate" id="rate-val-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">로딩 중...</span>
-                  <div class="market-diff-box">
-                    <span class="market-diff-rate" id="rate-diff-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}"></span>
-                    <span class="market-date-label" id="rate-date-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}"></span>
+                  <div class="market-rate-box">
+                    <span class="market-current-rate" id="rate-val-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">로딩 중...</span>
+                    <div class="market-diff-box">
+                      <span class="market-diff-rate" id="rate-diff-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}"></span>
+                      <span class="market-date-label" id="rate-date-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}"></span>
+                    </div>
+                  </div>
+
+                  <div class="market-chart-container">
+                    <canvas id="chart-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}"></canvas>
                   </div>
                 </div>
 
-                <div class="market-chart-container">
-                  <canvas id="chart-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}"></canvas>
+                <div class="market-card-footer">
+                  <span id="rate-fetch-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">LAST FETCH -</span>
+                  <span>Intraday 1M</span>
                 </div>
-              </div>
-
-              <div class="market-card-footer">
-                <span id="rate-fetch-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">LAST FETCH -</span>
-                <span>Intraday 1M</span>
-              </div>
-            </article>
-          `
-          ).join("")}
-        </div>
+              </article>
+            `
+              )
+              .join("")}
+          </div>
+        `
+        }
       </section>
     </section>`;
 
@@ -227,18 +245,22 @@ export async function renderDashboard(
   loadDashboardNotices(onNavigateTab, onOpenNoticeDetail);
 
   // 최초 로드 및 30초 쿨다운 시작
-  loadAllMarketCards();
-  startMarketCooldown();
+  if (marketItems.length > 0) {
+    loadAllMarketCards(marketItems);
+    startMarketCooldown();
+  }
 }
 
 async function handleMarketManualRefresh(): Promise<void> {
+  const marketItems = getSavedTickers();
+  if (marketItems.length === 0) return;
   if (remainingSeconds > 0) return;
   const btn = document.getElementById("market-refresh-btn") as HTMLButtonElement | null;
   if (btn) {
     btn.disabled = true;
     btn.textContent = "불러오는 중...";
   }
-  await loadAllMarketCards();
+  await loadAllMarketCards(marketItems);
   startMarketCooldown();
 }
 
@@ -270,8 +292,8 @@ function startMarketCooldown(): void {
   }, 1000);
 }
 
-async function loadAllMarketCards(): Promise<void> {
-  for (const item of DASH_MARKET_ITEMS) {
+async function loadAllMarketCards(items: TickerConfigItem[]): Promise<void> {
+  for (const item of items) {
     loadSingleMarketCard(item);
   }
 }

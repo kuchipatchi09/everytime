@@ -20,3 +20,12 @@ export interface TickerConfigItem {
   unit: string;
   symbol: string;
 }
+
+export interface TickerSearchResult {
+  code: string;
+  symbol: string;
+  name: string;
+  exchDisp?: string;
+  quoteType?: string;
+  unit: string;
+}

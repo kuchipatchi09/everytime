@@ -211,6 +211,71 @@ function marketProxyMiddleware(req: any, res: any, next: any) {
   next();
 }
 
+function tickerSearchMiddleware(req: any, res: any, next: any) {
+  if (req.url?.startsWith("/api/ticker-search")) {
+    (async () => {
+      try {
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const q = url.searchParams.get("q")?.trim() || "";
+
+        if (!q) {
+          res.setHeader("Content-Type", "application/json");
+          res.setHeader("Cache-Control", "no-store");
+          res.end(JSON.stringify([]));
+          return;
+        }
+
+        const targetUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=10&newsCount=0&enableFuzzyQuery=true`;
+
+        const response = await fetch(targetUrl, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+            "Accept": "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Yahoo Search status ${response.status}`);
+        }
+
+        const raw = await response.json();
+        const quotes = Array.isArray(raw?.quotes) ? raw.quotes : [];
+
+        const results = quotes
+          .filter((item: any) => item.symbol)
+          .map((item: any) => {
+            const symbol = item.symbol;
+            let unit = "$";
+            if (symbol.startsWith("^") || item.quoteType === "INDEX") unit = "pt";
+            else if (symbol.endsWith(".KS") || symbol.endsWith(".KQ") || item.exchDisp === "KSC" || item.exchDisp === "KOE") unit = "원";
+            else if (symbol === "KRW=X" || symbol.includes("KRW")) unit = "원";
+            else if (symbol.endsWith("=X")) unit = "";
+            else if (item.quoteType === "CRYPTOCURRENCY") unit = "$";
+
+            return {
+              code: symbol,
+              symbol: symbol,
+              name: item.shortname || item.longname || item.symbol,
+              exchDisp: item.exchDisp || item.exchange || "",
+              quoteType: item.quoteType || "",
+              unit: unit
+            };
+          });
+
+        res.setHeader("Content-Type", "application/json");
+        res.setHeader("Cache-Control", "no-store");
+        res.end(JSON.stringify(results));
+      } catch (err: any) {
+        res.setHeader("Content-Type", "application/json");
+        res.statusCode = 500;
+        res.end(JSON.stringify({ error: err.message || "Failed to search ticker" }));
+      }
+    })();
+    return;
+  }
+  next();
+}
+
 export default defineConfig({
   plugins: [
     react(),
@@ -227,9 +292,11 @@ export default defineConfig({
       name: "naver-market-proxy",
       configureServer(server) {
         server.middlewares.use(marketProxyMiddleware);
+        server.middlewares.use(tickerSearchMiddleware);
       },
       configurePreviewServer(server) {
         server.middlewares.use(marketProxyMiddleware);
+        server.middlewares.use(tickerSearchMiddleware);
       }
     }
   ],

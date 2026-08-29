@@ -2,8 +2,18 @@ import "./styles/styles.css";
 
 import { $, showToast } from "./utils/dom";
 import { esc } from "./utils/escape";
-import { getSavedClass, getSavedName, setSavedClass, setSavedName } from "./utils/storage";
+import {
+  getSavedClass,
+  getSavedName,
+  getSavedTickers,
+  resetSavedTickers,
+  setSavedClass,
+  setSavedName,
+  setSavedTickers,
+} from "./utils/storage";
 import { checkAuth, getAuthUser, loginWithKnoblab, logout, onAuthStateChange } from "./utils/auth";
+import { searchTickers } from "./services/marketService";
+import { TickerConfigItem } from "./types/market";
 import { renderDashboard } from "./views/dashboardView";
 import { renderTimetable } from "./views/timetableView";
 import { renderAfterschool } from "./views/afterschoolView";
@@ -208,6 +218,17 @@ export function openProfileModal(): void {
   if (displayEmailEl) displayEmailEl.textContent = user?.email || "이메일 정보 없음";
   if (displayUidEl) displayUidEl.textContent = user?.uid || "-";
 
+  renderProfileTickers();
+
+  // 검색 결과 초기화
+  const searchInput = $<HTMLInputElement>("#profile-ticker-search-input");
+  const resultsEl = $("#profile-ticker-search-results");
+  if (searchInput) searchInput.value = "";
+  if (resultsEl) {
+    resultsEl.innerHTML = "";
+    resultsEl.classList.add("hidden");
+  }
+
   modal.classList.remove("hidden");
 }
 
@@ -216,11 +237,100 @@ export function closeProfileModal(): void {
   modal.classList.add("hidden");
 }
 
+function renderProfileTickers(): void {
+  const listEl = $("#profile-ticker-current-list");
+  const countEl = $("#profile-ticker-count");
+  if (!listEl) return;
+
+  const tickers = getSavedTickers();
+  if (countEl) countEl.textContent = `(${tickers.length}/3)`;
+
+  if (tickers.length === 0) {
+    listEl.innerHTML = `
+      <div class="profile-ticker-empty">
+        등록된 관심 지표가 없습니다. 아래에서 검색하여 추가해보세요.
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = tickers
+    .map(
+      (item, idx) => `
+      <div class="profile-ticker-item">
+        <div class="profile-ticker-item-info">
+          <span class="profile-ticker-item-sym">${esc(item.symbol)}</span>
+          <span class="profile-ticker-item-name" title="${esc(item.name)}">${esc(item.name)}</span>
+          <span class="profile-ticker-item-unit">(${esc(item.unit || "pt")})</span>
+        </div>
+        <button type="button" class="btn-ticker-remove" data-index="${idx}" aria-label="${esc(item.name)} 삭제">✕</button>
+      </div>
+    `
+    )
+    .join("");
+
+  listEl.querySelectorAll<HTMLButtonElement>(".btn-ticker-remove").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.index);
+      const current = getSavedTickers();
+      const removed = current[idx];
+      current.splice(idx, 1);
+      setSavedTickers(current);
+      renderProfileTickers();
+      showToast(`'${removed?.name || "지표"}'(이)가 삭제되었습니다.`);
+      if (currentTab === "메인") {
+        renderDashboard(
+          (t) => switchTab(t as TabName),
+          (idx) => renderNoticeDetail(idx)
+        );
+      }
+    });
+  });
+}
+
+function handleAddCustomTicker(ticker: TickerConfigItem): void {
+  const current = getSavedTickers();
+  if (current.length >= 3) {
+    showToast("관심 금융 지표는 최대 3개까지만 등록할 수 있습니다.");
+    return;
+  }
+
+  if (current.some((t) => t.code === ticker.code || t.symbol === ticker.symbol)) {
+    showToast("이미 등록된 지표입니다.");
+    return;
+  }
+
+  const updated = [...current, ticker];
+  setSavedTickers(updated);
+  renderProfileTickers();
+
+  // 검색창 및 결과 닫기
+  const searchInput = $<HTMLInputElement>("#profile-ticker-search-input");
+  const resultsEl = $("#profile-ticker-search-results");
+  if (searchInput) searchInput.value = "";
+  if (resultsEl) {
+    resultsEl.innerHTML = "";
+    resultsEl.classList.add("hidden");
+  }
+
+  showToast(`'${ticker.name}' 지표가 추가되었습니다.`);
+  if (currentTab === "메인") {
+    renderDashboard(
+      (t) => switchTab(t as TabName),
+      (idx) => renderNoticeDetail(idx)
+    );
+  }
+}
+
 function initProfileModal(): void {
   const modal = $("#profile-modal");
   const closeBtn = $("#profile-modal-close");
   const changeNameBtn = $("#profile-btn-change-name");
   const logoutBtn = $("#profile-btn-logout");
+  const resetBtn = $("#profile-btn-reset-tickers");
+  const searchInput = $<HTMLInputElement>("#profile-ticker-search-input");
+  const searchBtn = $("#profile-btn-search-ticker");
+  const resultsEl = $("#profile-ticker-search-results");
 
   closeBtn?.addEventListener("click", closeProfileModal);
   modal?.addEventListener("click", (e) => {
@@ -236,7 +346,104 @@ function initProfileModal(): void {
     closeProfileModal();
     handleLogout();
   });
+
+  resetBtn?.addEventListener("click", () => {
+    resetSavedTickers();
+    renderProfileTickers();
+    showToast("금융 지표가 기본값(코스피, 나스닥, 원/달러)으로 복원되었습니다.");
+    if (currentTab === "메인") {
+      renderDashboard(
+        (t) => switchTab(t as TabName),
+        (idx) => renderNoticeDetail(idx)
+      );
+    }
+  });
+
+  // 추천 티커 칩 클릭 이벤트
+  document.querySelectorAll<HTMLButtonElement>(".preset-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const name = chip.dataset.name || "";
+      const code = chip.dataset.code || "";
+      const symbol = chip.dataset.symbol || "";
+      const unit = chip.dataset.unit || "pt";
+      if (code && name) {
+        handleAddCustomTicker({ name, code, symbol, unit });
+      }
+    });
+  });
+
+  // 티커 검색 실행 함수
+  const executeSearch = async () => {
+    const q = searchInput?.value.trim() || "";
+    if (!q) {
+      if (resultsEl) {
+        resultsEl.innerHTML = "";
+        resultsEl.classList.add("hidden");
+      }
+      return;
+    }
+
+    if (resultsEl) {
+      resultsEl.classList.remove("hidden");
+      resultsEl.innerHTML = `<div class="ticker-search-status">검색 중...</div>`;
+    }
+
+    try {
+      const list = await searchTickers(q);
+      if (!resultsEl) return;
+
+      if (list.length === 0) {
+        resultsEl.innerHTML = `<div class="ticker-search-status">검색 결과가 없습니다.</div>`;
+        return;
+      }
+
+      resultsEl.innerHTML = list
+        .map(
+          (item, idx) => `
+        <div class="ticker-search-item" data-search-idx="${idx}">
+          <div class="ticker-search-item-left">
+            <div class="ticker-search-item-header">
+              <span class="ticker-search-sym">${esc(item.symbol)}</span>
+              ${item.exchDisp ? `<span class="ticker-search-exch">${esc(item.exchDisp)}</span>` : ""}
+            </div>
+            <span class="ticker-search-name">${esc(item.name)}</span>
+          </div>
+          <button type="button" class="btn-ticker-add">+ 추가</button>
+        </div>
+      `
+        )
+        .join("");
+
+      resultsEl.querySelectorAll<HTMLElement>(".ticker-search-item").forEach((itemEl) => {
+        itemEl.addEventListener("click", () => {
+          const idx = Number(itemEl.dataset.searchIdx);
+          const selected = list[idx];
+          if (selected) {
+            handleAddCustomTicker({
+              name: selected.name,
+              symbol: selected.symbol,
+              code: selected.code,
+              unit: selected.unit || "pt",
+            });
+          }
+        });
+      });
+    } catch (err) {
+      if (resultsEl) {
+        resultsEl.innerHTML = `<div class="ticker-search-status">검색 실패 (오류 발생)</div>`;
+      }
+    }
+  };
+
+  searchBtn?.addEventListener("click", executeSearch);
+  searchInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      executeSearch();
+    }
+  });
 }
+
 
 export function updateAuthUI(): void {
   const user = getAuthUser();

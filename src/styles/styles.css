@@ -1044,6 +1044,32 @@ button.back:hover {
   color: var(--color-paper);
 }
 
+.market-empty-box {
+  background: var(--color-paper);
+  border: 1px dashed var(--color-silver);
+  padding: 36px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.market-empty-box p {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.market-empty-box small {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--color-graphite);
+}
+
 .market-cards-grid {
   display: flex;
   flex-direction: column;
@@ -2409,6 +2435,327 @@ footer {
 .profile-val.uid {
   font-size: 10.5px;
   color: var(--color-graphite);
+}
+
+.profile-modal-card {
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.profile-section-divider {
+  height: 1px;
+  background: var(--color-silver);
+  margin: 4px 0;
+}
+
+.profile-ticker-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-ticker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.profile-ticker-header h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+}
+
+.profile-ticker-header small {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-graphite);
+  font-weight: normal;
+}
+
+.btn-ticker-reset {
+  background: transparent;
+  border: 1px solid var(--color-silver);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 3px 8px;
+  cursor: pointer;
+  color: var(--color-graphite);
+  transition: all 0.15s ease;
+}
+
+.btn-ticker-reset:hover {
+  border-color: var(--color-black);
+  color: var(--color-black);
+  background: var(--color-vellum);
+}
+
+.profile-ticker-desc {
+  font-size: 11.5px !important;
+  color: var(--color-graphite);
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* 현재 등록된 티커 목록 */
+.profile-ticker-current-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-ticker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-vellum);
+  border: var(--border-main);
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.profile-ticker-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.profile-ticker-item-sym {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--color-black);
+  color: var(--color-paper);
+  padding: 2px 6px;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.profile-ticker-item-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.profile-ticker-item-unit {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-graphite);
+  flex-shrink: 0;
+}
+
+.btn-ticker-remove {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-graphite);
+  font-size: 14px;
+  line-height: 1;
+  padding: 3px 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-ticker-remove:hover {
+  color: var(--up-red);
+  background: #FFF0EE;
+  border-color: var(--up-red);
+}
+
+.profile-ticker-empty {
+  padding: 14px 10px;
+  text-align: center;
+  background: var(--color-vellum);
+  border: 1px dashed var(--color-silver);
+  font-size: 11.5px;
+  color: var(--color-graphite);
+  font-family: var(--font-mono);
+}
+
+/* 티커 검색창 */
+.profile-ticker-search-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-ticker-search-input-wrap {
+  display: flex;
+  gap: 6px;
+}
+
+.profile-ticker-search-input-wrap input {
+  flex: 1;
+  border: var(--border-main);
+  padding: 7px 10px;
+  font-size: 12.5px;
+  outline: none;
+  background: var(--color-white);
+  font-family: inherit;
+}
+
+.profile-ticker-search-input-wrap input:focus {
+  border-color: var(--color-black);
+}
+
+.btn-ticker-search {
+  background: var(--color-black);
+  color: var(--color-paper);
+  border: var(--border-main);
+  padding: 7px 14px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.btn-ticker-search:hover {
+  background: var(--color-carbon);
+}
+
+/* 검색 결과 드롭다운 리스트 */
+.profile-ticker-search-results {
+  max-height: 180px;
+  overflow-y: auto;
+  background: var(--color-white);
+  border: var(--border-main);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.profile-ticker-search-results.hidden {
+  display: none;
+}
+
+.ticker-search-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-silver);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ticker-search-item:last-child {
+  border-bottom: none;
+}
+
+.ticker-search-item:hover {
+  background: var(--color-vellum);
+}
+
+.ticker-search-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.ticker-search-item-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ticker-search-sym {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 11.5px;
+  color: var(--color-black);
+}
+
+.ticker-search-exch {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--color-graphite);
+  padding: 1px 4px;
+  background: var(--color-vellum);
+  border: 1px solid var(--color-silver);
+}
+
+.ticker-search-name {
+  font-size: 11.5px;
+  color: var(--color-graphite);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.btn-ticker-add {
+  background: transparent;
+  border: 1px solid var(--color-black);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.btn-ticker-add:hover {
+  background: var(--color-black);
+  color: var(--color-paper);
+}
+
+.ticker-search-status {
+  padding: 12px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--color-graphite);
+  font-family: var(--font-mono);
+}
+
+/* 추천 티커 퀵 태그 */
+.profile-ticker-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.preset-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--color-graphite);
+}
+
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.preset-chip {
+  background: var(--color-vellum);
+  border: 1px solid var(--color-silver);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 7px;
+  cursor: pointer;
+  color: var(--color-graphite);
+  transition: all 0.15s ease;
+}
+
+.preset-chip:hover {
+  background: var(--color-black);
+  border-color: var(--color-black);
+  color: var(--color-paper);
 }
 
 /* ==========================================================================

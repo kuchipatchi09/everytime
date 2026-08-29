@@ -268,7 +268,7 @@
 
       <!-- 사용자 프로필 / 계정 모달 -->
       <div id="profile-modal" class="modal-overlay hidden" aria-modal="true" role="dialog">
-        <div class="modal-card">
+        <div class="modal-card profile-modal-card">
           <div class="modal-header">
             <span class="eyebrow">KNOBLAB ACCOUNT</span>
             <button type="button" class="modal-close-btn" id="profile-modal-close" aria-label="닫기">✕</button>
@@ -288,6 +288,61 @@
               <span class="profile-val uid" id="profile-display-uid">-</span>
             </div>
           </div>
+
+          <!-- 금융 티커 커스텀 설정 섹션 -->
+          <div class="profile-section-divider"></div>
+          <div class="profile-ticker-section">
+            <div class="profile-ticker-header">
+              <div>
+                <span class="eyebrow-plain">CUSTOM FINANCE TICKERS</span>
+                <h3>관심 금융 지표 <small id="profile-ticker-count">(3/3)</small></h3>
+              </div>
+              <button type="button" class="btn-ticker-reset" id="profile-btn-reset-tickers" title="기본값으로 복원">
+                기본값 복원
+              </button>
+            </div>
+            <p class="profile-ticker-desc">대시보드에 표시할 금융 지표를 최대 3개까지 설정할 수 있습니다.</p>
+
+            <!-- 현재 등록된 티커 목록 -->
+            <div class="profile-ticker-current-list" id="profile-ticker-current-list">
+              <!-- JS로 렌더링됨 -->
+            </div>
+
+            <!-- 티커 검색창 -->
+            <div class="profile-ticker-search-box">
+              <div class="profile-ticker-search-input-wrap">
+                <input
+                  type="text"
+                  id="profile-ticker-search-input"
+                  placeholder="티커 심볼 또는 종목명 검색 (예: NVDA, 삼성전자, AAPL)"
+                  autocomplete="off"
+                />
+                <button type="button" class="btn-ticker-search" id="profile-btn-search-ticker">검색</button>
+              </div>
+              <!-- 검색 결과 드롭다운 -->
+              <div class="profile-ticker-search-results hidden" id="profile-ticker-search-results">
+                <!-- JS로 렌더링됨 -->
+              </div>
+            </div>
+
+            <!-- 인기/추천 티커 퀵 태그 -->
+            <div class="profile-ticker-presets">
+              <span class="preset-label">추천:</span>
+              <div class="preset-chips" id="profile-ticker-preset-chips">
+                <button type="button" class="preset-chip" data-name="코스피" data-code="KOSPI" data-symbol="KOSPI" data-unit="pt">+ 코스피</button>
+                <button type="button" class="preset-chip" data-name="나스닥" data-code="NAS@IXIC" data-symbol="NASDAQ" data-unit="pt">+ 나스닥</button>
+                <button type="button" class="preset-chip" data-name="원/달러 환율" data-code="FX_USDKRW" data-symbol="USD/KRW" data-unit="원">+ 원/달러</button>
+                <button type="button" class="preset-chip" data-name="S&P 500" data-code="SP500" data-symbol="S&P500" data-unit="pt">+ S&P 500</button>
+                <button type="button" class="preset-chip" data-name="엔/원 환율" data-code="JPYKRW=X" data-symbol="JPY/KRW" data-unit="원">+ 엔/원</button>
+                <button type="button" class="preset-chip" data-name="비트코인" data-code="BTC-USD" data-symbol="BTC-USD" data-unit="$">+ 비트코인</button>
+                <button type="button" class="preset-chip" data-name="삼성전자" data-code="005930.KS" data-symbol="005930.KS" data-unit="원">+ 삼성전자</button>
+                <button type="button" class="preset-chip" data-name="엔비디아" data-code="NVDA" data-symbol="NVDA" data-unit="$">+ NVDA</button>
+                <button type="button" class="preset-chip" data-name="애플" data-code="AAPL" data-symbol="AAPL" data-unit="$">+ AAPL</button>
+                <button type="button" class="preset-chip" data-name="테슬라" data-code="TSLA" data-symbol="TSLA" data-unit="$">+ TSLA</button>
+              </div>
+            </div>
+          </div>
+
           <div class="modal-actions">
             <button type="button" class="btn-secondary" id="profile-btn-change-name">이름 변경</button>
             <button type="button" class="btn-danger" id="profile-btn-logout">로그아웃</button>
