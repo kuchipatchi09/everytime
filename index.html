@@ -260,151 +260,174 @@
             <button type="button" class="modal-close-btn" id="profile-modal-close" aria-label="닫기">✕</button>
           </div>
           <h2>환경설정</h2>
-          <p class="modal-subtitle" style="margin-bottom: 14px; font-size: 12px; color: var(--color-graphite);">
-            학생 기본 정보와 대시보드 주식 티커를 설정합니다.
-          </p>
+
+          <!-- 설정 탭 버튼 바 -->
+          <div class="settings-tab-bar" role="tablist">
+            <button type="button" class="settings-tab-btn active" data-settings-tab="student" role="tab" aria-selected="true">
+              내 정보
+            </button>
+            <button type="button" class="settings-tab-btn" data-settings-tab="stocks" role="tab" aria-selected="false">
+              관심 주식 (3개)
+            </button>
+          </div>
 
           <form id="profile-stock-form" class="profile-stock-form">
-            <!-- 1. 내 정보 설정 (이름, 학년, 반, 번호) -->
-            <div class="settings-section">
-              <div class="settings-section-header">
-                <span class="eyebrow-plain">STUDENT INFO</span>
-                <h3>내 정보 수정</h3>
-              </div>
-
-              <div class="field-group">
-                <label for="profile-name-input">호칭 / 이름</label>
-                <input
-                  type="text"
-                  id="profile-name-input"
-                  maxlength="12"
-                  placeholder="이름 입력 (예: 이재원)"
-                  required
-                />
-              </div>
-
-              <div class="profile-stock-grid-3">
-                <div class="field-group">
-                  <label for="profile-stock-grade">학년</label>
-                  <select id="profile-stock-grade" name="grade" required>
-                    <option value="1">1학년</option>
-                    <option value="2">2학년</option>
-                    <option value="3">3학년</option>
-                  </select>
+            <!-- 탭 1: 내 정보 설정 (이름, 학년, 반, 번호, 계정) -->
+            <div class="settings-tab-pane active" id="tab-pane-student">
+              <div class="settings-section">
+                <div class="settings-section-header">
+                  <span class="eyebrow-plain">STUDENT INFO</span>
+                  <h3>기본 학생 정보</h3>
                 </div>
+
                 <div class="field-group">
-                  <label for="profile-stock-class">반</label>
+                  <label for="profile-name-input">호칭 / 이름</label>
                   <input
-                    type="number"
-                    id="profile-stock-class"
-                    name="class_num"
-                    placeholder="반 (예: 2)"
-                    min="1"
-                    max="20"
+                    type="text"
+                    id="profile-name-input"
+                    maxlength="12"
+                    placeholder="이름 입력 (예: 이재원)"
                     required
                   />
                 </div>
-                <div class="field-group">
-                  <label for="profile-stock-num">번호</label>
-                  <input
-                    type="number"
-                    id="profile-stock-num"
-                    name="student_num"
-                    placeholder="번호 (예: 9)"
-                    min="1"
-                    max="50"
-                    required
-                  />
+
+                <div class="profile-stock-grid-3">
+                  <div class="field-group">
+                    <label for="profile-stock-grade">학년</label>
+                    <select id="profile-stock-grade" name="grade" required>
+                      <option value="1">1학년</option>
+                      <option value="2">2학년</option>
+                      <option value="3">3학년</option>
+                    </select>
+                  </div>
+                  <div class="field-group">
+                    <label for="profile-stock-class">반</label>
+                    <input
+                      type="number"
+                      id="profile-stock-class"
+                      name="class_num"
+                      placeholder="반 (예: 2)"
+                      min="1"
+                      max="20"
+                      required
+                    />
+                  </div>
+                  <div class="field-group">
+                    <label for="profile-stock-num">번호</label>
+                    <input
+                      type="number"
+                      id="profile-stock-num"
+                      name="student_num"
+                      placeholder="번호 (예: 9)"
+                      min="1"
+                      max="50"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="profile-section-divider"></div>
+
+              <!-- 연동 계정 정보 & 로그아웃 -->
+              <div class="profile-info-box">
+                <div class="profile-row">
+                  <span class="profile-label">연동 계정 (이메일)</span>
+                  <span class="profile-val" id="profile-display-email">-</span>
+                </div>
+                <div class="profile-row">
+                  <span class="profile-label">Knoblab UID</span>
+                  <span class="profile-val uid" id="profile-display-uid">-</span>
+                </div>
+                <div style="margin-top: 8px;">
+                  <button type="button" class="btn-danger btn-sm" id="profile-btn-logout" style="width: 100%;">로그아웃</button>
                 </div>
               </div>
             </div>
 
-            <div class="profile-section-divider"></div>
+            <!-- 탭 2: 관심 주식 & 대시보드 티커 설정 -->
+            <div class="settings-tab-pane" id="tab-pane-stocks">
+              <div class="settings-section">
+                <div class="profile-ticker-header">
+                  <div>
+                    <span class="eyebrow-plain">DASHBOARD STOCKS</span>
+                    <h3>메인 대시보드 주식 (3개)</h3>
+                  </div>
+                  <span class="profile-stock-status-badge" id="profile-stock-status-badge">
+                    서버 조회 중...
+                  </span>
+                </div>
+                <p class="profile-ticker-desc">
+                  각 입력창에 기업명(예: 삼성전자, Apple) 또는 티커를 입력하면 실시간으로 검색됩니다.
+                </p>
 
-            <!-- 2. 주식 & 대시보드 티커 설정 -->
-            <div class="settings-section">
-              <div class="profile-ticker-header">
-                <div>
-                  <span class="eyebrow-plain">DASHBOARD STOCKS</span>
-                  <h3>관심 주식 티커 설정 (3개)</h3>
-                </div>
-                <span class="profile-stock-status-badge" id="profile-stock-status-badge">
-                  서버 조회 중...
-                </span>
-              </div>
-              <p class="profile-ticker-desc">
-                메인 대시보드에 실시간으로 표시될 종목 티커 3개를 지정합니다.
-              </p>
+                <!-- 티커 1, 2, 3 각각의 인라인 검색 드롭다운 입력창 -->
+                <div class="ticker-inputs-stack">
+                  <!-- 티커 1 -->
+                  <div class="ticker-input-row">
+                    <label for="profile-stock-ticker-1">티커 1</label>
+                    <div class="ticker-input-relative">
+                      <input
+                        type="text"
+                        id="profile-stock-ticker-1"
+                        class="profile-ticker-input"
+                        placeholder="기업명 또는 티커 (예: AAPL, 삼성전자)"
+                        maxlength="25"
+                        autocomplete="off"
+                        required
+                      />
+                      <div class="ticker-search-dropdown hidden" id="ticker-dropdown-1"></div>
+                    </div>
+                  </div>
 
-              <!-- 티커 3개 입력 -->
-              <div class="profile-stock-grid-3" style="margin-top: 4px;">
-                <div class="field-group">
-                  <label for="profile-stock-ticker-1">티커 1</label>
-                  <input
-                    type="text"
-                    id="profile-stock-ticker-1"
-                    class="profile-ticker-input"
-                    placeholder="예: AAPL"
-                    maxlength="15"
-                    autocomplete="off"
-                    required
-                  />
-                </div>
-                <div class="field-group">
-                  <label for="profile-stock-ticker-2">티커 2</label>
-                  <input
-                    type="text"
-                    id="profile-stock-ticker-2"
-                    class="profile-ticker-input"
-                    placeholder="예: NVDA"
-                    maxlength="15"
-                    autocomplete="off"
-                    required
-                  />
-                </div>
-                <div class="field-group">
-                  <label for="profile-stock-ticker-3">티커 3</label>
-                  <input
-                    type="text"
-                    id="profile-stock-ticker-3"
-                    class="profile-ticker-input"
-                    placeholder="예: TSLA"
-                    maxlength="15"
-                    autocomplete="off"
-                    required
-                  />
-                </div>
-              </div>
+                  <!-- 티커 2 -->
+                  <div class="ticker-input-row">
+                    <label for="profile-stock-ticker-2">티커 2</label>
+                    <div class="ticker-input-relative">
+                      <input
+                        type="text"
+                        id="profile-stock-ticker-2"
+                        class="profile-ticker-input"
+                        placeholder="기업명 또는 티커 (예: NVDA, 현대차)"
+                        maxlength="25"
+                        autocomplete="off"
+                        required
+                      />
+                      <div class="ticker-search-dropdown hidden" id="ticker-dropdown-2"></div>
+                    </div>
+                  </div>
 
-              <!-- 종목 및 티커 실시간 검색 -->
-              <div class="profile-ticker-search-box" style="margin-top: 6px;">
-                <label for="profile-ticker-search-input" style="font-size: 11px; font-weight: 700; color: var(--color-graphite);">종목 / 티커 검색</label>
-                <div class="profile-ticker-search-input-wrap">
-                  <input
-                    type="text"
-                    id="profile-ticker-search-input"
-                    placeholder="기업명 또는 티커 검색 (예: 삼성전자, Apple, NVDA)"
-                    autocomplete="off"
-                  />
-                  <button type="button" class="btn-ticker-search" id="btn-ticker-search">
-                    검색
-                  </button>
+                  <!-- 티커 3 -->
+                  <div class="ticker-input-row">
+                    <label for="profile-stock-ticker-3">티커 3</label>
+                    <div class="ticker-input-relative">
+                      <input
+                        type="text"
+                        id="profile-stock-ticker-3"
+                        class="profile-ticker-input"
+                        placeholder="기업명 또는 티커 (예: TSLA, 카카오)"
+                        maxlength="25"
+                        autocomplete="off"
+                        required
+                      />
+                      <div class="ticker-search-dropdown hidden" id="ticker-dropdown-3"></div>
+                    </div>
+                  </div>
                 </div>
-                <div class="profile-ticker-search-results hidden" id="profile-ticker-search-results"></div>
-              </div>
 
-              <!-- 인기 추천 퀵 태그 -->
-              <div class="profile-ticker-presets">
-                <span class="preset-label">추천 퀵 입력:</span>
-                <div class="preset-chips" id="profile-stock-preset-chips">
-                  <button type="button" class="preset-chip" data-ticker="AAPL">AAPL</button>
-                  <button type="button" class="preset-chip" data-ticker="NVDA">NVDA</button>
-                  <button type="button" class="preset-chip" data-ticker="TSLA">TSLA</button>
-                  <button type="button" class="preset-chip" data-ticker="MSFT">MSFT</button>
-                  <button type="button" class="preset-chip" data-ticker="GOOGL">GOOGL</button>
-                  <button type="button" class="preset-chip" data-ticker="AMZN">AMZN</button>
-                  <button type="button" class="preset-chip" data-ticker="005930.KS">005930.KS</button>
-                  <button type="button" class="preset-chip" data-ticker="BTC-USD">BTC-USD</button>
+                <!-- 인기 추천 퀵 태그 -->
+                <div class="profile-ticker-presets">
+                  <span class="preset-label">추천 퀵 입력:</span>
+                  <div class="preset-chips" id="profile-stock-preset-chips">
+                    <button type="button" class="preset-chip" data-ticker="AAPL">AAPL</button>
+                    <button type="button" class="preset-chip" data-ticker="NVDA">NVDA</button>
+                    <button type="button" class="preset-chip" data-ticker="TSLA">TSLA</button>
+                    <button type="button" class="preset-chip" data-ticker="MSFT">MSFT</button>
+                    <button type="button" class="preset-chip" data-ticker="GOOGL">GOOGL</button>
+                    <button type="button" class="preset-chip" data-ticker="AMZN">AMZN</button>
+                    <button type="button" class="preset-chip" data-ticker="005930.KS">005930.KS</button>
+                    <button type="button" class="preset-chip" data-ticker="BTC-USD">BTC-USD</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -414,25 +437,8 @@
               <span>설정 저장하기</span>
             </button>
           </form>
-
-          <div class="profile-section-divider"></div>
-
-          <!-- 3. 연동 계정 정보 & 로그아웃 -->
-          <div class="profile-info-box" style="margin-top: 4px;">
-            <div class="profile-row">
-              <span class="profile-label">연동 계정 (이메일)</span>
-              <span class="profile-val" id="profile-display-email">-</span>
-            </div>
-            <div class="profile-row">
-              <span class="profile-label">Knoblab UID</span>
-              <span class="profile-val uid" id="profile-display-uid">-</span>
-            </div>
-          </div>
-
-          <div class="modal-actions" style="margin-top: 10px;">
-            <button type="button" class="btn-danger" id="profile-btn-logout" style="width: 100%;">로그아웃</button>
-          </div>
         </div>
+      </div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

@@ -427,7 +427,6 @@ function initProfileModal(): void {
   const ticker1Input = $<HTMLInputElement>("#profile-stock-ticker-1");
   const ticker2Input = $<HTMLInputElement>("#profile-stock-ticker-2");
   const ticker3Input = $<HTMLInputElement>("#profile-stock-ticker-3");
-  const tickerInputs = [ticker1Input, ticker2Input, ticker3Input];
 
   closeBtn?.addEventListener("click", closeProfileModal);
   modal?.addEventListener("click", (e) => {
@@ -444,142 +443,146 @@ function initProfileModal(): void {
     }
   });
 
-  // 티커 입력 시 실시간 대문자 변환
-  tickerInputs.forEach((input) => {
-    if (!input) return;
+  // 1. 설정 탭 전환 (내 정보 <-> 관심 주식)
+  const tabBtns = document.querySelectorAll<HTMLButtonElement>(".settings-tab-btn");
+  const tabPanes = document.querySelectorAll<HTMLElement>(".settings-tab-pane");
+
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetTab = btn.dataset.settingsTab;
+      tabBtns.forEach((b) => {
+        const isTarget = b === btn;
+        b.classList.toggle("active", isTarget);
+        b.setAttribute("aria-selected", isTarget ? "true" : "false");
+      });
+      tabPanes.forEach((pane) => {
+        pane.classList.toggle("active", pane.id === `tab-pane-${targetTab}`);
+      });
+    });
+  });
+
+  // 2. 입력창마다 인라인 자동완성 검색 드롭다운 연결
+  const tickerSlots = [
+    {
+      input: ticker1Input,
+      dropdown: $<HTMLElement>("#ticker-dropdown-1"),
+    },
+    {
+      input: ticker2Input,
+      dropdown: $<HTMLElement>("#ticker-dropdown-2"),
+    },
+    {
+      input: ticker3Input,
+      dropdown: $<HTMLElement>("#ticker-dropdown-3"),
+    },
+  ];
+
+  const activeDebounceTimers = new Map<HTMLInputElement, any>();
+
+  const closeAllDropdowns = () => {
+    tickerSlots.forEach(({ dropdown }) => {
+      dropdown?.classList.add("hidden");
+    });
+  };
+
+  tickerSlots.forEach(({ input, dropdown }) => {
+    if (!input || !dropdown) return;
+
+    const performSearchForSlot = async () => {
+      const q = input.value.trim();
+      if (!q) {
+        dropdown.innerHTML = "";
+        dropdown.classList.add("hidden");
+        return;
+      }
+
+      dropdown.classList.remove("hidden");
+      dropdown.innerHTML = `<div class="ticker-search-status">검색 중...</div>`;
+
+      try {
+        const results = await searchTickers(q);
+        if (input.value.trim() !== q) return; // 중간에 입력이 바뀌었으면 무시
+
+        if (!results || results.length === 0) {
+          dropdown.innerHTML = `<div class="ticker-search-status">검색 결과 없음 ('${esc(q)}' 직접 사용)</div>`;
+          return;
+        }
+
+        dropdown.innerHTML = results
+          .slice(0, 6)
+          .map(
+            (item) => `
+          <div class="ticker-search-item" data-symbol="${esc(item.symbol)}" data-name="${esc(item.name)}">
+            <div class="ticker-search-item-left">
+              <div class="ticker-search-item-header">
+                <span class="ticker-search-sym">${esc(item.symbol)}</span>
+                ${item.exchDisp ? `<span class="ticker-search-exch">${esc(item.exchDisp)}</span>` : ""}
+              </div>
+              <span class="ticker-search-name">${esc(item.name)}</span>
+            </div>
+            <button type="button" class="btn-ticker-add">+ 선택</button>
+          </div>
+        `
+          )
+          .join("");
+
+        dropdown.querySelectorAll<HTMLElement>(".ticker-search-item").forEach((itemEl) => {
+          itemEl.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const sym = itemEl.dataset.symbol;
+            const name = itemEl.dataset.name;
+            if (sym) {
+              input.value = sym.toUpperCase();
+              dropdown.classList.add("hidden");
+              showToast(`'${sym}' (${name || ""}) 선택됨`);
+            }
+          });
+        });
+      } catch (err) {
+        dropdown.innerHTML = `<div class="ticker-search-status">검색 중 오류 발생</div>`;
+      }
+    };
+
     input.addEventListener("input", () => {
-      const start = input.selectionStart;
-      const end = input.selectionEnd;
-      input.value = input.value.toUpperCase().replace(/\s+/g, "");
-      if (start !== null && end !== null) {
-        input.setSelectionRange(start, end);
+      clearTimeout(activeDebounceTimers.get(input));
+      const val = input.value.trim();
+      if (val.length >= 1) {
+        const timer = setTimeout(performSearchForSlot, 300);
+        activeDebounceTimers.set(input, timer);
+      } else {
+        dropdown.innerHTML = "";
+        dropdown.classList.add("hidden");
+      }
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        dropdown.classList.add("hidden");
       }
     });
   });
 
-  // 종목 / 티커 실시간 검색
-  const searchInput = $<HTMLInputElement>("#profile-ticker-search-input");
-  const searchBtn = $<HTMLButtonElement>("#btn-ticker-search");
-  const searchResultsEl = $("#profile-ticker-search-results");
-
-  let searchDebounceTimer: any = null;
-
-  const performSearch = async () => {
-    const q = searchInput?.value.trim() || "";
-    if (!q) {
-      if (searchResultsEl) {
-        searchResultsEl.innerHTML = "";
-        searchResultsEl.classList.add("hidden");
-      }
-      return;
-    }
-
-    if (searchResultsEl) {
-      searchResultsEl.classList.remove("hidden");
-      searchResultsEl.innerHTML = `<div class="ticker-search-status">검색 중...</div>`;
-    }
-
-    try {
-      const results = await searchTickers(q);
-      if (!searchResultsEl) return;
-
-      if (!results || results.length === 0) {
-        searchResultsEl.innerHTML = `<div class="ticker-search-status">검색 결과가 없습니다.</div>`;
-        return;
-      }
-
-      searchResultsEl.innerHTML = results
-        .map(
-          (item) => `
-        <div class="ticker-search-item" data-symbol="${esc(item.symbol)}" data-name="${esc(item.name)}">
-          <div class="ticker-search-item-left">
-            <div class="ticker-search-item-header">
-              <span class="ticker-search-sym">${esc(item.symbol)}</span>
-              ${item.exchDisp ? `<span class="ticker-search-exch">${esc(item.exchDisp)}</span>` : ""}
-            </div>
-            <span class="ticker-search-name">${esc(item.name)}</span>
-          </div>
-          <button type="button" class="btn-ticker-add">+ 선택</button>
-        </div>
-      `
-        )
-        .join("");
-
-      // 검색 결과 항목 클릭 시 티커 인풋에 추가
-      searchResultsEl.querySelectorAll<HTMLElement>(".ticker-search-item").forEach((itemEl) => {
-        itemEl.addEventListener("click", () => {
-          const sym = itemEl.dataset.symbol;
-          const name = itemEl.dataset.name;
-          if (!sym) return;
-
-          const empty = tickerInputs.find((inp) => inp && !inp.value.trim());
-          if (empty) {
-            empty.value = sym;
-          } else if (ticker1Input) {
-            ticker1Input.value = sym;
-          }
-
-          searchResultsEl.classList.add("hidden");
-          if (searchInput) searchInput.value = "";
-          showToast(`티커 '${sym}'(${name || ""})이(가) 선택되었습니다.`);
-        });
-      });
-    } catch (err) {
-      if (searchResultsEl) {
-        searchResultsEl.innerHTML = `<div class="ticker-search-status">검색 중 오류가 발생했습니다.</div>`;
-      }
-    }
-  };
-
-  searchBtn?.addEventListener("click", (e) => {
-    e.preventDefault();
-    performSearch();
-  });
-
-  searchInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      performSearch();
-    }
-  });
-
-  searchInput?.addEventListener("input", () => {
-    clearTimeout(searchDebounceTimer);
-    const val = searchInput.value.trim();
-    if (val.length >= 2) {
-      searchDebounceTimer = setTimeout(performSearch, 350);
-    } else if (!val) {
-      if (searchResultsEl) {
-        searchResultsEl.innerHTML = "";
-        searchResultsEl.classList.add("hidden");
-      }
-    }
-  });
-
-  // 검색창 바깥 클릭 시 결과 닫기
+  // 바깥 영역 클릭 시 모든 드롭다운 닫기
   document.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
-    if (
-      !target.closest(".profile-ticker-search-box") &&
-      searchResultsEl &&
-      !searchResultsEl.classList.contains("hidden")
-    ) {
-      searchResultsEl.classList.add("hidden");
+    if (!target.closest(".ticker-input-relative")) {
+      closeAllDropdowns();
     }
   });
 
-  // 추천 칩 클릭 시 자동 입력
+  // 추천 칩 클릭 시 빈 입력창에 채우기
   document.querySelectorAll<HTMLButtonElement>("#profile-stock-preset-chips .preset-chip").forEach((chip) => {
     chip.addEventListener("click", () => {
       const ticker = chip.dataset.ticker;
       if (!ticker) return;
 
-      const empty = tickerInputs.find((inp) => inp && !inp.value.trim());
-      if (empty) {
-        empty.value = ticker;
-      } else if (ticker1Input) {
-        ticker1Input.value = ticker;
+      const emptySlot = tickerSlots.find((s) => s.input && !s.input.value.trim());
+      if (emptySlot && emptySlot.input) {
+        emptySlot.input.value = ticker;
+      } else if (tickerSlots[0]?.input) {
+        tickerSlots[0].input.value = ticker;
       }
+      closeAllDropdowns();
     });
   });
 
