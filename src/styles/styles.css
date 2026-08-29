@@ -2525,6 +2525,108 @@ footer {
   margin: 0;
 }
 
+/* 프로필 내 학생 주식 티커 폼 스타일 */
+.profile-stock-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-stock-status-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--color-graphite);
+  padding: 2px 6px;
+  background: var(--color-vellum);
+  border: 1px solid var(--color-silver);
+  border-radius: 2px;
+}
+
+.profile-stock-status-badge.status-ok {
+  color: #007E33;
+  background: rgba(0, 200, 83, 0.1);
+  border-color: rgba(0, 200, 83, 0.3);
+  font-weight: 600;
+}
+
+.profile-stock-status-badge.status-loading {
+  color: var(--color-black);
+}
+
+.profile-stock-status-badge.status-error {
+  color: var(--up-red);
+  background: #FFF0EE;
+  border-color: var(--up-red);
+}
+
+.profile-stock-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.profile-stock-grid-3 .field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-stock-grid-3 label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-graphite);
+}
+
+.profile-stock-grid-3 input,
+.profile-stock-grid-3 select {
+  border: var(--border-main);
+  background: var(--color-white);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  outline: none;
+  width: 100%;
+}
+
+.profile-stock-grid-3 input:focus,
+.profile-stock-grid-3 select:focus {
+  border-color: var(--color-black);
+  box-shadow: inset 0 0 0 1px var(--color-black);
+}
+
+.profile-ticker-input {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700 !important;
+}
+
+.btn-profile-stock-submit {
+  background: var(--color-black);
+  color: var(--color-paper);
+  border: var(--border-main);
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.btn-profile-stock-submit:hover:not(:disabled) {
+  background: var(--color-carbon);
+}
+
+.btn-profile-stock-submit:disabled {
+  background: var(--color-silver);
+  border-color: var(--color-silver);
+  color: var(--color-graphite);
+  cursor: not-allowed;
+}
+
 /* 현재 등록된 티커 목록 */
 .profile-ticker-current-list {
   display: flex;

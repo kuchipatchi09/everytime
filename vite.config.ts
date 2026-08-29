@@ -305,7 +305,6 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, "index.html"),
         brand: resolve(__dirname, "brand.html"),
-        stock: resolve(__dirname, "stock.html"),
       },
     },
   },
