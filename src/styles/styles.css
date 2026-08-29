@@ -16,6 +16,8 @@
 
   --up-red: #E03020;
   --down-blue: #0066CC;
+  --color-knoblab: #556042;
+  --color-knoblab-hover: #444E35;
 
   --font-sans: 'Asta Sans', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Asta Sans', 'Pretendard', monospace;
@@ -1898,9 +1900,9 @@ footer {
 }
 
 .btn-welcome-knoblab {
-  background: var(--color-black);
-  color: var(--color-paper);
-  border: var(--border-main);
+  background: var(--color-knoblab);
+  color: var(--color-white);
+  border: 1px solid var(--color-knoblab);
   padding: 12px 14px;
   font-family: var(--font-mono);
   font-size: 13px;
@@ -1914,7 +1916,8 @@ footer {
 }
 
 .btn-welcome-knoblab:hover {
-  background: var(--color-carbon);
+  background: var(--color-knoblab-hover);
+  border-color: var(--color-knoblab-hover);
   transform: translateY(-1px);
 }
 
@@ -2025,9 +2028,9 @@ footer {
   font-size: 12px;
   font-weight: 600;
   padding: 5px 11px;
-  background: var(--color-black);
-  color: var(--color-paper);
-  border: var(--border-main);
+  background: var(--color-knoblab);
+  color: var(--color-white);
+  border: 1px solid var(--color-knoblab);
   cursor: pointer;
   transition: all 0.15s ease;
   display: inline-flex;
@@ -2037,7 +2040,8 @@ footer {
 }
 
 .btn-nav-login:hover {
-  background: var(--color-carbon);
+  background: var(--color-knoblab-hover);
+  border-color: var(--color-knoblab-hover);
   transform: translateY(-1px);
 }
 
@@ -2140,12 +2144,14 @@ footer {
 }
 
 .drawer-auth-actions .btn-drawer-primary {
-  background: var(--color-black);
-  color: var(--color-paper);
+  background: var(--color-knoblab);
+  color: var(--color-white);
+  border-color: var(--color-knoblab);
 }
 
 .drawer-auth-actions .btn-drawer-primary:hover {
-  background: var(--color-carbon);
+  background: var(--color-knoblab-hover);
+  border-color: var(--color-knoblab-hover);
 }
 
 .drawer-auth-actions .btn-drawer-secondary {
