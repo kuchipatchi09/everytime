@@ -84,6 +84,7 @@ function authDevMiddleware(req: any, res: any, next: any) {
       res.statusCode = 200;
       res.end(JSON.stringify({
         authenticated: true,
+        token: decodeURIComponent(token || ""),
         uid: decodeURIComponent(uid || ""),
         email: decodeURIComponent(email || ""),
       }));

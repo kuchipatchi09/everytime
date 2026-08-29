@@ -31,6 +31,7 @@ export const onRequestGet = async (context: { request: Request; env: Env }) => {
   return new Response(
     JSON.stringify({
       authenticated: true,
+      token: decodeURIComponent(token || ""),
       uid: decodeURIComponent(uid || ""),
       email: decodeURIComponent(email || ""),
     }),
