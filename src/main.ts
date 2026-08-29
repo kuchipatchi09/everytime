@@ -213,10 +213,21 @@ export function openProfileModal(): void {
   const displayNameEl = $("#profile-display-name");
   const displayEmailEl = $("#profile-display-email");
   const displayUidEl = $("#profile-display-uid");
+  const logoutBtn = $("#profile-btn-logout");
 
   if (displayNameEl) displayNameEl.textContent = savedName;
-  if (displayEmailEl) displayEmailEl.textContent = user?.email || "이메일 정보 없음";
-  if (displayUidEl) displayUidEl.textContent = user?.uid || "-";
+  if (displayEmailEl) displayEmailEl.textContent = user?.email || "게스트 모드 (미연동)";
+  if (displayUidEl) displayUidEl.textContent = user?.uid || "Local Guest";
+
+  if (logoutBtn) {
+    if (user) {
+      logoutBtn.textContent = "로그아웃";
+      logoutBtn.className = "btn-danger";
+    } else {
+      logoutBtn.textContent = "Knoblab 로그인";
+      logoutBtn.className = "btn-submit";
+    }
+  }
 
   renderProfileTickers();
 
@@ -343,8 +354,13 @@ function initProfileModal(): void {
   });
 
   logoutBtn?.addEventListener("click", () => {
+    const user = getAuthUser();
     closeProfileModal();
-    handleLogout();
+    if (user) {
+      handleLogout();
+    } else {
+      loginWithKnoblab();
+    }
   });
 
   resetBtn?.addEventListener("click", () => {
@@ -483,40 +499,51 @@ export function updateAuthUI(): void {
   if (drawerContainer) {
     if (user) {
       drawerContainer.innerHTML = `
-        <div class="drawer-auth-user-info">
-          <div class="user-name">
-            <span class="btn-nav-profile-dot"></span>
-            <strong>${esc(savedName)}</strong>
+        <div class="drawer-auth-user-card" id="drawer-user-card" role="button" tabindex="0" title="내 프로필 및 티커 설정">
+          <div class="drawer-auth-user-info">
+            <div class="user-name">
+              <span class="btn-nav-profile-dot"></span>
+              <strong>${esc(savedName)}</strong>
+            </div>
+            <div class="user-email">${esc(user.email || user.uid)}</div>
           </div>
-          <div class="user-email">${esc(user.email || user.uid)}</div>
+          <span class="drawer-profile-arrow">설정 →</span>
         </div>
         <div class="drawer-auth-actions">
-          <button type="button" class="btn-drawer-secondary" id="drawer-btn-change-name">이름 변경</button>
-          <button type="button" class="btn-drawer-secondary" id="drawer-btn-logout">로그아웃</button>
+          <button type="button" class="btn-drawer-primary" id="drawer-btn-profile">
+            내 프로필 & 티커 설정
+          </button>
         </div>
       `;
-      $("#drawer-btn-change-name")?.addEventListener("click", () => {
+      $("#drawer-user-card")?.addEventListener("click", () => {
         closeMobileDrawer();
-        openNameChangeModal();
+        openProfileModal();
       });
-      $("#drawer-btn-logout")?.addEventListener("click", () => {
+      $("#drawer-btn-profile")?.addEventListener("click", () => {
         closeMobileDrawer();
-        handleLogout();
+        openProfileModal();
       });
     } else {
       drawerContainer.innerHTML = `
-        <div class="drawer-auth-user-info">
-          <div class="user-name">${esc(savedName)}님 (게스트)</div>
-          <div class="user-email">Knoblab 계정으로 로그인해 서비스를 연동하세요.</div>
+        <div class="drawer-auth-user-card" id="drawer-user-card" role="button" tabindex="0" title="프로필 및 티커 설정">
+          <div class="drawer-auth-user-info">
+            <div class="user-name">${esc(savedName)}님 (게스트)</div>
+            <div class="user-email">프로필 및 티커를 자유롭게 설정하세요.</div>
+          </div>
+          <span class="drawer-profile-arrow">설정 →</span>
         </div>
         <div class="drawer-auth-actions">
-          <button type="button" class="btn-drawer-secondary" id="drawer-btn-change-name">이름 변경</button>
-          <button type="button" class="btn-drawer-primary" id="drawer-btn-login">Knoblab 로그인</button>
+          <button type="button" class="btn-drawer-secondary" id="drawer-btn-profile">프로필 & 티커 설정</button>
+          <button type="button" class="btn-drawer-primary" id="drawer-btn-login">로그인</button>
         </div>
       `;
-      $("#drawer-btn-change-name")?.addEventListener("click", () => {
+      $("#drawer-user-card")?.addEventListener("click", () => {
         closeMobileDrawer();
-        openNameChangeModal();
+        openProfileModal();
+      });
+      $("#drawer-btn-profile")?.addEventListener("click", () => {
+        closeMobileDrawer();
+        openProfileModal();
       });
       $("#drawer-btn-login")?.addEventListener("click", () => {
         loginWithKnoblab();

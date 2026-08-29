@@ -2182,18 +2182,32 @@ footer {
   margin-bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+}
+
+.drawer-auth-user-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 4px 2px;
+  transition: opacity 0.15s ease;
+}
+
+.drawer-auth-user-card:hover {
+  opacity: 0.8;
 }
 
 .drawer-auth-user-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  overflow: hidden;
 }
 
 .drawer-auth-user-info .user-name {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -2206,33 +2220,45 @@ footer {
   word-break: break-all;
 }
 
+.drawer-profile-arrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-graphite);
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
 .drawer-auth-actions {
   display: flex;
   gap: 6px;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .drawer-auth-actions button {
   flex: 1;
-  padding: 7px 8px;
+  padding: 8px 10px;
   font-family: var(--font-mono);
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 700;
   border: var(--border-main);
   cursor: pointer;
   transition: all 0.15s ease;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .drawer-auth-actions .btn-drawer-primary {
-  background: var(--color-knoblab);
-  color: var(--color-white);
-  border-color: var(--color-knoblab);
+  background: var(--color-black);
+  color: var(--color-paper);
+  border-color: var(--color-black);
 }
 
 .drawer-auth-actions .btn-drawer-primary:hover {
-  background: var(--color-knoblab-hover);
-  border-color: var(--color-knoblab-hover);
+  background: var(--color-carbon);
 }
 
 .drawer-auth-actions .btn-drawer-secondary {
