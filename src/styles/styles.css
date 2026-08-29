@@ -1115,6 +1115,61 @@ button.back:hover {
   margin-top: 2px;
 }
 
+.market-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 3px 8px;
+  border-radius: 2px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.market-status-badge.status-open {
+  background: rgba(0, 200, 83, 0.12);
+  color: #007E33;
+  border: 1px solid rgba(0, 200, 83, 0.35);
+}
+
+.market-status-badge.status-open .market-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00C853;
+  display: inline-block;
+  box-shadow: 0 0 5px #00C853;
+  animation: live-blink 1.5s infinite ease-in-out;
+}
+
+.market-status-badge.status-closed {
+  background: var(--color-vellum);
+  color: var(--color-graphite);
+  border: 1px solid var(--color-silver);
+}
+
+.market-status-badge.status-pre,
+.market-status-badge.status-post {
+  background: rgba(255, 149, 0, 0.12);
+  color: #B26A00;
+  border: 1px solid rgba(255, 149, 0, 0.35);
+}
+
+.market-status-badge.status-halted {
+  background: rgba(255, 59, 48, 0.12);
+  color: var(--up-red);
+  border: 1px solid rgba(255, 59, 48, 0.35);
+}
+
+.market-status-badge.status-loading {
+  background: transparent;
+  color: var(--color-telemetry);
+  border: 1px solid var(--color-silver);
+}
+
 .market-rate-box {
   display: flex;
   align-items: baseline;

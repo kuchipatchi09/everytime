@@ -3,9 +3,14 @@ export interface MarketRow {
   value: number;
 }
 
+export type MarketState = "OPEN" | "CLOSED" | "PRE" | "POST";
+
 export interface MarketResponse {
   rows?: MarketRow[];
   prevClose?: number;
+  marketState?: MarketState;
+  marketStatusText?: string;
+  tradingPeriod?: any;
   error?: string;
 }
 

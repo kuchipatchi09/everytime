@@ -179,6 +179,7 @@ export async function renderDashboard(
                     <span class="market-series-name">${item.symbol}</span>
                     <h4 class="market-card-title">${item.name}</h4>
                   </div>
+                  <span class="market-status-badge status-loading" id="market-status-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">확인 중</span>
                 </div>
 
                 <div class="market-rate-box">
@@ -281,6 +282,7 @@ async function loadSingleMarketCard(item: TickerConfigItem): Promise<void> {
   const rateDiffEl = document.getElementById(`rate-diff-${safeId}`);
   const rateDateEl = document.getElementById(`rate-date-${safeId}`);
   const rateFetchEl = document.getElementById(`rate-fetch-${safeId}`);
+  const statusEl = document.getElementById(`market-status-${safeId}`);
   const canvas = document.getElementById(`chart-${safeId}`) as HTMLCanvasElement | null;
 
   if (!rateValEl || !canvas) return;
@@ -290,6 +292,10 @@ async function loadSingleMarketCard(item: TickerConfigItem): Promise<void> {
     if (json.error || !json.rows || json.rows.length === 0) {
       rateValEl.textContent = json.error || "데이터 없음";
       if (rateDiffEl) rateDiffEl.textContent = "";
+      if (statusEl) {
+        statusEl.className = "market-status-badge status-halted";
+        statusEl.textContent = "거래 중단";
+      }
       return;
     }
 
@@ -332,11 +338,24 @@ async function loadSingleMarketCard(item: TickerConfigItem): Promise<void> {
       rateDiffEl.className = `market-diff-rate ${className}`;
     }
 
-    // 3. 시간 레이블 및 갱신 시간
+    // 3. 시장 상태 배지 표시 (장중 / 장 종료 / 프리마켓 / 거래 중단 등)
+    if (statusEl) {
+      const state = json.marketState || "CLOSED";
+      const text = json.marketStatusText || (state === "OPEN" ? "장중" : "장 종료");
+      statusEl.className = `market-status-badge status-${state.toLowerCase()}`;
+      if (state === "OPEN") {
+        statusEl.innerHTML = `<span class="market-status-dot"></span>${text}`;
+      } else {
+        statusEl.textContent = text;
+      }
+    }
+
+    // 4. 시간 레이블 및 갱신 시간
     if (rateDateEl && latest.datetime) {
       const dt = latest.datetime;
       const timeStr = dt.length >= 4 ? `${dt.slice(0, 2)}:${dt.slice(2, 4)}` : dt;
-      rateDateEl.textContent = `(${timeStr} 기준)`;
+      const isClosed = json.marketState === "CLOSED";
+      rateDateEl.textContent = isClosed ? `(${timeStr} 마감)` : `(${timeStr} 기준)`;
     }
 
     if (rateFetchEl) {
@@ -344,7 +363,7 @@ async function loadSingleMarketCard(item: TickerConfigItem): Promise<void> {
       rateFetchEl.textContent = `FETCH ${fetchTime}`;
     }
 
-    // 4. 차트 렌더링
+    // 5. 차트 렌더링
     const labels = rows.map((r) => {
       const t = r.datetime;
       return t.length >= 4 ? `${t.slice(0, 2)}:${t.slice(2, 4)}` : t;
@@ -355,6 +374,10 @@ async function loadSingleMarketCard(item: TickerConfigItem): Promise<void> {
   } catch (err) {
     console.warn(`Failed to load market card for ${item.name}:`, err);
     if (rateValEl) rateValEl.textContent = "조회 실패";
+    if (statusEl) {
+      statusEl.className = "market-status-badge status-halted";
+      statusEl.textContent = "거래 중단";
+    }
   }
 }
 

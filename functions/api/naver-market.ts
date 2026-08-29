@@ -58,9 +58,10 @@ function parseChartResult(raw: any) {
   const result = raw?.chart?.result?.[0];
   if (!result || !result.timestamp) throw new Error("분봉 데이터가 없습니다.");
 
-  const prevClose = result.meta.chartPreviousClose || result.meta.previousClose;
+  const meta = result.meta || {};
+  const prevClose = meta.chartPreviousClose || meta.previousClose;
   const timestamps = result.timestamp;
-  const closePrices = result.indicators.quote[0].close;
+  const closePrices = result.indicators?.quote?.[0]?.close || [];
 
   const rows = timestamps.map((ts: number, i: number) => {
     const date = new Date(ts * 1000);
@@ -71,7 +72,41 @@ function parseChartResult(raw: any) {
     return { datetime: `${hh}${mm}${ss}`, value: closePrices[i] };
   }).filter((r: any) => r.value !== null && !isNaN(r.value));
 
-  return { rows: rows.slice(-30), prevClose };
+  const nowSec = Math.floor(Date.now() / 1000);
+  const ctp = meta.currentTradingPeriod;
+  let marketState: "OPEN" | "CLOSED" | "PRE" | "POST" = "CLOSED";
+  let marketStatusText = "장 종료";
+
+  if (ctp) {
+    const reg = ctp.regular;
+    const pre = ctp.pre;
+    const post = ctp.post;
+
+    if (reg && nowSec >= reg.start && nowSec < reg.end) {
+      marketState = "OPEN";
+      marketStatusText = "장중";
+    } else if (post && post.start !== post.end && nowSec >= post.start && nowSec < post.end) {
+      marketState = "POST";
+      marketStatusText = "애프터마켓";
+    } else if (pre && pre.start !== pre.end && nowSec >= pre.start && nowSec < pre.end) {
+      marketState = "PRE";
+      marketStatusText = "프리마켓";
+    } else if (reg && nowSec < reg.start) {
+      marketState = "CLOSED";
+      marketStatusText = "장 시작 전";
+    } else {
+      marketState = "CLOSED";
+      marketStatusText = "장 종료";
+    }
+  }
+
+  return {
+    rows: rows.slice(-30),
+    prevClose,
+    marketState,
+    marketStatusText,
+    tradingPeriod: ctp
+  };
 }
 
 export const onRequest = async (context: any) => {

@@ -144,9 +144,10 @@ function marketProxyMiddleware(req: any, res: any, next: any) {
           throw new Error("No intraday chart data available");
         }
 
-        const prevClose = result.meta.chartPreviousClose || result.meta.previousClose;
+        const meta = result.meta || {};
+        const prevClose = meta.chartPreviousClose || meta.previousClose;
         const timestamps = result.timestamp;
-        const closePrices = result.indicators.quote[0].close;
+        const closePrices = result.indicators?.quote?.[0]?.close || [];
 
         const rows = timestamps.map((ts: number, i: number) => {
           const date = new Date(ts * 1000);
@@ -160,11 +161,45 @@ function marketProxyMiddleware(req: any, res: any, next: any) {
           };
         }).filter((r: { value: number | null }) => r.value !== null && !isNaN(r.value));
 
+        const nowSec = Math.floor(Date.now() / 1000);
+        const ctp = meta.currentTradingPeriod;
+        let marketState: "OPEN" | "CLOSED" | "PRE" | "POST" = "CLOSED";
+        let marketStatusText = "장 종료";
+
+        if (ctp) {
+          const reg = ctp.regular;
+          const pre = ctp.pre;
+          const post = ctp.post;
+
+          if (reg && nowSec >= reg.start && nowSec < reg.end) {
+            marketState = "OPEN";
+            marketStatusText = "장중";
+          } else if (post && post.start !== post.end && nowSec >= post.start && nowSec < post.end) {
+            marketState = "POST";
+            marketStatusText = "애프터마켓";
+          } else if (pre && pre.start !== pre.end && nowSec >= pre.start && nowSec < pre.end) {
+            marketState = "PRE";
+            marketStatusText = "프리마켓";
+          } else if (reg && nowSec < reg.start) {
+            marketState = "CLOSED";
+            marketStatusText = "장 시작 전";
+          } else {
+            marketState = "CLOSED";
+            marketStatusText = "장 종료";
+          }
+        }
+
         const last30Mins = rows.slice(-30);
 
         res.setHeader("Content-Type", "application/json");
         res.setHeader("Cache-Control", "no-store");
-        res.end(JSON.stringify({ rows: last30Mins, prevClose }));
+        res.end(JSON.stringify({
+          rows: last30Mins,
+          prevClose,
+          marketState,
+          marketStatusText,
+          tradingPeriod: ctp
+        }));
       } catch (err: any) {
         res.setHeader("Content-Type", "application/json");
         res.statusCode = 500;

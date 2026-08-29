@@ -129,6 +129,36 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+.ticker-status {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 2px;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-telemetry);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ticker-status.open {
+  color: #00E676;
+  background: rgba(0, 230, 118, 0.15);
+  border-color: rgba(0, 230, 118, 0.35);
+}
+
+.ticker-status.closed {
+  color: #A0A0A5;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.ticker-status.pre,
+.ticker-status.post {
+  color: #FFB74D;
+  background: rgba(255, 183, 77, 0.15);
+  border-color: rgba(255, 183, 77, 0.35);
+}
+
 @keyframes ticker-scroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }

@@ -48,12 +48,19 @@ export async function renderTicker(): Promise<void> {
           }
         }
 
+        let statusBadge = "";
+        if (json.marketStatusText) {
+          const stateClass = (json.marketState || "closed").toLowerCase();
+          statusBadge = `<span class="ticker-status ${stateClass}">${json.marketStatusText}</span>`;
+        }
+
         itemHtmlList.push(`
           <div class="ticker-item">
             <span class="ticker-symbol">${item.symbol}</span>
             <span class="ticker-name">${item.name}</span>
             <span class="ticker-val">${val}<small>${item.unit}</small></span>
             ${diffStr ? `<span class="ticker-diff ${diffClass}">${diffStr}</span>` : ""}
+            ${statusBadge}
           </div>
         `);
       }
