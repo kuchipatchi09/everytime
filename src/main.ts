@@ -420,7 +420,6 @@ async function loadProfileStockData(): Promise<void> {
 function initProfileModal(): void {
   const modal = $("#profile-modal");
   const closeBtn = $("#profile-modal-close");
-  const changeNameBtn = $("#profile-btn-change-name");
   const logoutBtn = $("#profile-btn-logout");
   const form = $<HTMLFormElement>("#profile-stock-form");
   const submitBtn = $<HTMLButtonElement>("#btn-profile-stock-submit");
@@ -433,11 +432,6 @@ function initProfileModal(): void {
   closeBtn?.addEventListener("click", closeProfileModal);
   modal?.addEventListener("click", (e) => {
     if (e.target === modal) closeProfileModal();
-  });
-
-  changeNameBtn?.addEventListener("click", () => {
-    closeProfileModal();
-    openNameChangeModal();
   });
 
   logoutBtn?.addEventListener("click", () => {
