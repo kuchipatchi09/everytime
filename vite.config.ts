@@ -116,15 +116,19 @@ function marketProxyMiddleware(req: any, res: any, next: any) {
     (async () => {
       try {
         const url = new URL(req.url, `http://${req.headers.host}`);
-        const code = url.searchParams.get("code") || "KOSPI";
+        const rawCode = url.searchParams.get("code") || "KOSPI";
+        const code = decodeURIComponent(rawCode).trim();
+        const c = code.toUpperCase();
 
-        let yfCode = "";
-        if (code === "KOSPI") yfCode = "^KS11";
-        else if (code === "KOSDAQ") yfCode = "^KQ11";
-        else if (code === "NAS@IXIC" || code === ".IXIC" || code === "NASDAQ") yfCode = "^IXIC";
-        else if (code === "FX_USDKRW") yfCode = "KRW=X";
-        else if (code === "SP500" || code === "S&P500") yfCode = "^GSPC";
-        else yfCode = code;
+        let yfCode = code;
+        if (c === "KOSPI" || c === "코스피") yfCode = "^KS11";
+        else if (c === "KOSDAQ" || c === "코스닥") yfCode = "^KQ11";
+        else if (c === "NAS@IXIC" || c === ".IXIC" || c === "NASDAQ" || c === "나스닥") yfCode = "^IXIC";
+        else if (c === "FX_USDKRW" || c === "USD/KRW" || c === "USD-KRW" || c === "USDKRW" || c === "원/달러" || c === "원/달러 환율") yfCode = "KRW=X";
+        else if (c === "JPY/KRW" || c === "JPY-KRW" || c === "JPYKRW" || c === "엔/원" || c === "엔/원 환율") yfCode = "JPYKRW=X";
+        else if (c === "EUR/KRW" || c === "EUR-KRW" || c === "EURKRW" || c === "유로/원") yfCode = "EURKRW=X";
+        else if (c === "SP500" || c === "S&P500" || c === "S&P 500" || c === "^GSPC") yfCode = "^GSPC";
+        else if (c.includes("/") && (c.endsWith("USD") || c.endsWith("KRW"))) yfCode = c.replace("/", "-");
 
         const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${yfCode}?region=US&lang=en-US&includePrePost=false&interval=1m&useYfid=true&range=1d`;
 

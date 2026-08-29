@@ -276,15 +276,7 @@ async function loadProfileStockData(): Promise<void> {
   }
 
   try {
-    const token = user.token;
-    if (!token) {
-      if (statusBadge) {
-        statusBadge.textContent = "인증 토큰 갱신 필요 (재로그인)";
-        statusBadge.className = "profile-stock-status-badge status-error";
-      }
-      return;
-    }
-    const data = await fetchMyStock(token);
+    const data = await fetchMyStock();
 
     if (data) {
       if (gradeSelect && data.grade) gradeSelect.value = String(data.grade);
@@ -319,7 +311,9 @@ async function loadProfileStockData(): Promise<void> {
   } catch (err: any) {
     console.warn("서버 주식 데이터 조회 실패:", err);
     if (statusBadge) {
-      statusBadge.textContent = "조회 실패";
+      statusBadge.textContent = err.message?.includes("로그인")
+        ? "로그인 필요"
+        : "조회 실패";
       statusBadge.className = "profile-stock-status-badge status-error";
     }
   }
@@ -429,7 +423,7 @@ function initProfileModal(): void {
       submitBtn.textContent = "서버 저장 중...";
     }
 
-    if (!user || !user.token) {
+    if (!user) {
       showToast("로컬에 티커가 저장되었습니다. Knoblab 로그인 시 서버에도 영구 저장됩니다.");
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -445,7 +439,7 @@ function initProfileModal(): void {
     }
 
     try {
-      await submitStudentStock(user.token, payload);
+      await submitStudentStock(payload);
 
       showToast("주식 티커 3개와 학생 정보가 서버에 성공적으로 저장되었습니다!");
 

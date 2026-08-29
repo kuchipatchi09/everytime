@@ -45,12 +45,19 @@ async function fetchYahooChart(yfCode: string): Promise<any> {
   return await res.json();
 }
 
-function codeToYahooSymbol(code: string): string {
-  if (code === "KOSPI") return "^KS11";
-  if (code === "KOSDAQ") return "^KQ11";
-  if (code === "NAS@IXIC" || code === ".IXIC" || code === "NASDAQ") return "^IXIC";
-  if (code === "FX_USDKRW") return "KRW=X";
-  if (code === "SP500" || code === "S&P500") return "^GSPC";
+function codeToYahooSymbol(rawCode: string): string {
+  const code = decodeURIComponent(rawCode || "").trim();
+  const c = code.toUpperCase();
+  if (c === "KOSPI" || c === "코스피") return "^KS11";
+  if (c === "KOSDAQ" || c === "코스닥") return "^KQ11";
+  if (c === "NAS@IXIC" || c === ".IXIC" || c === "NASDAQ" || c === "나스닥") return "^IXIC";
+  if (c === "FX_USDKRW" || c === "USD/KRW" || c === "USD-KRW" || c === "USDKRW" || c === "원/달러" || c === "원/달러 환율") return "KRW=X";
+  if (c === "JPY/KRW" || c === "JPY-KRW" || c === "JPYKRW" || c === "엔/원" || c === "엔/원 환율") return "JPYKRW=X";
+  if (c === "EUR/KRW" || c === "EUR-KRW" || c === "EURKRW" || c === "유로/원") return "EURKRW=X";
+  if (c === "SP500" || c === "S&P500" || c === "S&P 500" || c === "^GSPC") return "^GSPC";
+  if (c.includes("/") && (c.endsWith("USD") || c.endsWith("KRW"))) {
+    return c.replace("/", "-");
+  }
   return code;
 }
 

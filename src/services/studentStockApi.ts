@@ -1,4 +1,5 @@
 import { MyStockResponse, StudentStockSubmission } from "../types/studentStock";
+import { getFreshIdToken } from "./firebaseAuth";
 
 const STORAGE_KEY_API_BASE_URL = "student_stock_api_base_url";
 export const DEFAULT_API_BASE_URL = "https://student-stock-api.wodnjs.workers.dev";
@@ -17,18 +18,35 @@ export function setApiBaseUrl(url: string): void {
 
 /**
  * 기존 저장된 내 주식 티커 및 학생 정보 조회 (GET /my-stock)
+ * 항상 최신 Firebase ID Token을 가져와 헤더에 포함합니다.
  */
-export async function fetchMyStock(idToken: string): Promise<MyStockResponse | null> {
+export async function fetchMyStock(explicitToken?: string): Promise<MyStockResponse | null> {
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}/my-stock`;
 
-  const res = await fetch(url, {
+  const token = explicitToken || (await getFreshIdToken());
+
+  let res = await fetch(url, {
     method: "GET",
     headers: {
-      "Authorization": `Bearer ${idToken}`,
+      "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"
     }
   });
+
+  // 토큰 만료 401 발생 시 1회 강제 갱신 후 재시도
+  if (res.status === 401) {
+    try {
+      const freshToken = await getFreshIdToken();
+      res = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${freshToken}`,
+          "Content-Type": "application/json"
+        }
+      });
+    } catch {}
+  }
 
   if (res.status === 404) {
     // 아직 제출한 적이 없는 경우
@@ -46,22 +64,40 @@ export async function fetchMyStock(idToken: string): Promise<MyStockResponse | n
 
 /**
  * 학생 정보 및 주식 티커 3개 저장 및 수정 (POST /submit)
+ * 항상 최신 Firebase ID Token을 가져와 헤더에 포함합니다.
  */
 export async function submitStudentStock(
-  idToken: string,
-  data: StudentStockSubmission
+  data: StudentStockSubmission,
+  explicitToken?: string
 ): Promise<{ success: boolean; message?: string }> {
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}/submit`;
 
-  const res = await fetch(url, {
+  const token = explicitToken || (await getFreshIdToken());
+
+  let res = await fetch(url, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${idToken}`,
+      "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify(data)
   });
+
+  // 토큰 만료 401 발생 시 1회 강제 갱신 후 재시도
+  if (res.status === 401) {
+    try {
+      const freshToken = await getFreshIdToken();
+      res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${freshToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+    } catch {}
+  }
 
   if (!res.ok) {
     const errorText = await res.text().catch(() => "");
@@ -71,3 +107,4 @@ export async function submitStudentStock(
   const result = await res.json().catch(() => ({ success: true }));
   return result;
 }
+
