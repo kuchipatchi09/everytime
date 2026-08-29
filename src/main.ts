@@ -30,20 +30,20 @@ export function switchTab(tab: TabName, updateUrl = true): void {
   currentTab = tab;
   const pageTitle = $("#page-title");
   const titleContainer = document.querySelector<HTMLElement>(".title");
-  const pickerEl = document.querySelector<HTMLElement>(".picker");
+  const topClassBadge = document.querySelector<HTMLElement>("#top-class-badge");
   
   if (tab === "메인") {
     const savedName = getSavedName() || "학생";
     pageTitle.innerHTML = `
       <span class="welcome-name-wrap">${esc(savedName)}님, 오늘도 반가워요.</span>
-      <button type="button" class="title-name-edit-btn" id="title-name-edit-btn" aria-label="이름 변경" title="이름 변경">
+      <button type="button" class="title-name-edit-btn" id="title-name-edit-btn" aria-label="환경설정" title="환경설정 열기">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
         </svg>
       </button>
     `;
-    $("#title-name-edit-btn")?.addEventListener("click", () => openNameChangeModal());
+    $("#title-name-edit-btn")?.addEventListener("click", () => openProfileModal());
   } else if (tab === "브랜드") {
     pageTitle.textContent = "브랜드 스토리";
   } else if (tab === "타이머") {
@@ -52,12 +52,12 @@ export function switchTab(tab: TabName, updateUrl = true): void {
     pageTitle.textContent = tab;
   }
 
-  // 브랜드 탭일 때와 일반 탭일 때의 상단 타이틀 및 피커 표시 제어
+  // 브랜드 탭일 때와 일반 탭일 때의 상단 타이틀 및 학년/반 배지 표시 제어
   if (titleContainer) {
     titleContainer.style.display = tab === "브랜드" ? "none" : "flex";
   }
-  if (pickerEl) {
-    pickerEl.style.display = (tab === "브랜드" || tab === "공지" || tab === "타이머") ? "none" : "flex";
+  if (topClassBadge) {
+    topClassBadge.style.display = (tab === "브랜드" || tab === "공지" || tab === "타이머") ? "none" : "flex";
   }
 
   // 데스크탑 네비게이션 및 모바일 드로어 탭 활성화 상태 동기화
@@ -101,24 +101,26 @@ export function renderActiveView(): void {
   }
 }
 
-function initClassPicker(): void {
-  const gradeSelect = $<HTMLSelectElement>("#grade");
-  const classSelect = $<HTMLSelectElement>("#class");
+export function updateTopClassBadge(): void {
+  const badgeText = $("#top-class-text");
   const saved = getSavedClass();
+  if (badgeText) {
+    badgeText.textContent = `${saved.g}학년 ${saved.c}반`;
+  }
+}
 
-  gradeSelect.value = saved.g;
-  classSelect.value = saved.c;
-
-  const handleClassChange = () => {
-    setSavedClass({
-      g: gradeSelect.value as GradeNumber,
-      c: classSelect.value as ClassNumber,
-    });
-    renderActiveView();
-  };
-
-  gradeSelect.addEventListener("change", handleClassChange);
-  classSelect.addEventListener("change", handleClassChange);
+function initTopClassBadge(): void {
+  updateTopClassBadge();
+  const badge = $("#top-class-badge");
+  badge?.addEventListener("click", () => {
+    openProfileModal();
+  });
+  badge?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openProfileModal();
+    }
+  });
 }
 
 function initWelcomeModal(): void {
@@ -207,6 +209,7 @@ import {
   fetchMyStock,
   submitStudentStock,
 } from "./services/studentStockApi";
+import { searchTickers } from "./services/marketService";
 import { StudentStockSubmission } from "./types/studentStock";
 
 export function openProfileModal(): void {
@@ -214,12 +217,12 @@ export function openProfileModal(): void {
   const user = getAuthUser();
   const savedName = getSavedName() || "학생";
 
-  const displayNameEl = $("#profile-display-name");
+  const nameInput = $<HTMLInputElement>("#profile-name-input");
   const displayEmailEl = $("#profile-display-email");
   const displayUidEl = $("#profile-display-uid");
   const logoutBtn = $("#profile-btn-logout");
 
-  if (displayNameEl) displayNameEl.textContent = savedName;
+  if (nameInput) nameInput.value = savedName;
   if (displayEmailEl) displayEmailEl.textContent = user?.email || "게스트 모드 (미연동)";
   if (displayUidEl) displayUidEl.textContent = user?.uid || "Local Guest";
 
@@ -238,20 +241,108 @@ export function openProfileModal(): void {
   modal.classList.remove("hidden");
 }
 
+const STORAGE_KEY_PENDING_STOCK = "pending_student_stock_submission";
+
+export function getPendingStockSubmission(): StudentStockSubmission | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_PENDING_STOCK);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setPendingStockSubmission(data: StudentStockSubmission | null): void {
+  if (data) {
+    localStorage.setItem(STORAGE_KEY_PENDING_STOCK, JSON.stringify(data));
+  } else {
+    localStorage.removeItem(STORAGE_KEY_PENDING_STOCK);
+  }
+}
+
 export function closeProfileModal(): void {
   const modal = $("#profile-modal");
   modal.classList.add("hidden");
 }
 
+/**
+ * 서버에서 내 학년/반/번호 및 주식 티커 데이터를 조회하여 로컬 스토리지와 UI(상단 바 포함)에 동기화합니다.
+ * 대기 중이던 미반영 설정(Pending submission)이 있으면 먼저 서버로 전송합니다.
+ */
+export async function syncUserDataFromServer(): Promise<void> {
+  const user = getAuthUser();
+  if (!user) return;
+
+  // 1. 대기 중이던 저장 요청이 있으면 서버에 먼저 전송하여 자동 적용
+  const pending = getPendingStockSubmission();
+  if (pending) {
+    try {
+      await submitStudentStock(pending);
+      setPendingStockSubmission(null);
+      showToast("✓ 로그인 완료: 저장 대기 중이던 설정이 서버에 성공적으로 동기화되었습니다!");
+    } catch (err: any) {
+      console.warn("대기 중인 설정 동기화 실패:", err);
+    }
+  }
+
+  // 2. 서버의 최신 정보로 UI 동기화
+  try {
+    const data = await fetchMyStock();
+    if (!data) return;
+
+    if (data.grade && data.class_num) {
+      const g = String(data.grade) as GradeNumber;
+      const c = String(data.class_num) as ClassNumber;
+      setSavedClass({ g, c });
+
+      // 상단 바 학년/반 텍스트 배지 동기화
+      updateTopClassBadge();
+
+      // 프로필 모달 입력창 동기화
+      const profileGrade = $<HTMLSelectElement>("#profile-stock-grade");
+      const profileClass = $<HTMLInputElement>("#profile-stock-class");
+      const profileNum = $<HTMLInputElement>("#profile-stock-num");
+      if (profileGrade) profileGrade.value = g;
+      if (profileClass) profileClass.value = c;
+      if (profileNum && data.student_num) profileNum.value = String(data.student_num);
+    }
+
+    // 주식 티커 동기화
+    const syncedTickers: TickerConfigItem[] = [
+      { name: data.ticker_1, symbol: data.ticker_1, code: data.ticker_1, unit: "pt" },
+      { name: data.ticker_2, symbol: data.ticker_2, code: data.ticker_2, unit: "pt" },
+      { name: data.ticker_3, symbol: data.ticker_3, code: data.ticker_3, unit: "pt" },
+    ].filter((t) => t.code);
+    if (syncedTickers.length > 0) {
+      setSavedTickers(syncedTickers);
+    }
+
+    const ticker1Input = $<HTMLInputElement>("#profile-stock-ticker-1");
+    const ticker2Input = $<HTMLInputElement>("#profile-stock-ticker-2");
+    const ticker3Input = $<HTMLInputElement>("#profile-stock-ticker-3");
+    if (ticker1Input && data.ticker_1) ticker1Input.value = data.ticker_1.toUpperCase();
+    if (ticker2Input && data.ticker_2) ticker2Input.value = data.ticker_2.toUpperCase();
+    if (ticker3Input && data.ticker_3) ticker3Input.value = data.ticker_3.toUpperCase();
+
+    renderActiveView();
+  } catch (err: any) {
+    console.warn("서버 데이터 동기화 실패:", err);
+  }
+}
+
 async function loadProfileStockData(): Promise<void> {
   const user = getAuthUser();
   const statusBadge = $("#profile-stock-status-badge");
+  const nameInput = $<HTMLInputElement>("#profile-name-input");
   const gradeSelect = $<HTMLSelectElement>("#profile-stock-grade");
   const classInput = $<HTMLInputElement>("#profile-stock-class");
   const numInput = $<HTMLInputElement>("#profile-stock-num");
   const ticker1Input = $<HTMLInputElement>("#profile-stock-ticker-1");
   const ticker2Input = $<HTMLInputElement>("#profile-stock-ticker-2");
   const ticker3Input = $<HTMLInputElement>("#profile-stock-ticker-3");
+
+  const savedName = getSavedName() || "학생";
+  if (nameInput && !nameInput.value) nameInput.value = savedName;
 
   const localClass = getSavedClass();
   if (gradeSelect) gradeSelect.value = localClass.g;
@@ -286,6 +377,14 @@ async function loadProfileStockData(): Promise<void> {
       if (ticker2Input && data.ticker_2) ticker2Input.value = data.ticker_2.toUpperCase();
       if (ticker3Input && data.ticker_3) ticker3Input.value = data.ticker_3.toUpperCase();
 
+      // 상단 바 및 로컬 스토리지도 즉시 동기화
+      if (data.grade && data.class_num) {
+        const g = String(data.grade) as GradeNumber;
+        const c = String(data.class_num) as ClassNumber;
+        setSavedClass({ g, c });
+        updateTopClassBadge();
+      }
+
       if (statusBadge) {
         statusBadge.textContent = data.updated_at
           ? `✓ 서버 로드 완료 (${new Date(data.updated_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })})`
@@ -298,10 +397,11 @@ async function loadProfileStockData(): Promise<void> {
         { name: data.ticker_1, symbol: data.ticker_1, code: data.ticker_1, unit: "pt" },
         { name: data.ticker_2, symbol: data.ticker_2, code: data.ticker_2, unit: "pt" },
         { name: data.ticker_3, symbol: data.ticker_3, code: data.ticker_3, unit: "pt" },
-      ].filter(t => t.code);
+      ].filter((t) => t.code);
       if (syncedTickers.length > 0) {
         setSavedTickers(syncedTickers);
       }
+      renderActiveView();
     } else {
       if (statusBadge) {
         statusBadge.textContent = "기존 제출 데이터 없음 (신규)";
@@ -311,9 +411,7 @@ async function loadProfileStockData(): Promise<void> {
   } catch (err: any) {
     console.warn("서버 주식 데이터 조회 실패:", err);
     if (statusBadge) {
-      statusBadge.textContent = err.message?.includes("로그인")
-        ? "로그인 필요"
-        : "조회 실패";
+      statusBadge.textContent = "조회 실패";
       statusBadge.className = "profile-stock-status-badge status-error";
     }
   }
@@ -365,6 +463,117 @@ function initProfileModal(): void {
     });
   });
 
+  // 종목 / 티커 실시간 검색
+  const searchInput = $<HTMLInputElement>("#profile-ticker-search-input");
+  const searchBtn = $<HTMLButtonElement>("#btn-ticker-search");
+  const searchResultsEl = $("#profile-ticker-search-results");
+
+  let searchDebounceTimer: any = null;
+
+  const performSearch = async () => {
+    const q = searchInput?.value.trim() || "";
+    if (!q) {
+      if (searchResultsEl) {
+        searchResultsEl.innerHTML = "";
+        searchResultsEl.classList.add("hidden");
+      }
+      return;
+    }
+
+    if (searchResultsEl) {
+      searchResultsEl.classList.remove("hidden");
+      searchResultsEl.innerHTML = `<div class="ticker-search-status">검색 중...</div>`;
+    }
+
+    try {
+      const results = await searchTickers(q);
+      if (!searchResultsEl) return;
+
+      if (!results || results.length === 0) {
+        searchResultsEl.innerHTML = `<div class="ticker-search-status">검색 결과가 없습니다.</div>`;
+        return;
+      }
+
+      searchResultsEl.innerHTML = results
+        .map(
+          (item) => `
+        <div class="ticker-search-item" data-symbol="${esc(item.symbol)}" data-name="${esc(item.name)}">
+          <div class="ticker-search-item-left">
+            <div class="ticker-search-item-header">
+              <span class="ticker-search-sym">${esc(item.symbol)}</span>
+              ${item.exchDisp ? `<span class="ticker-search-exch">${esc(item.exchDisp)}</span>` : ""}
+            </div>
+            <span class="ticker-search-name">${esc(item.name)}</span>
+          </div>
+          <button type="button" class="btn-ticker-add">+ 선택</button>
+        </div>
+      `
+        )
+        .join("");
+
+      // 검색 결과 항목 클릭 시 티커 인풋에 추가
+      searchResultsEl.querySelectorAll<HTMLElement>(".ticker-search-item").forEach((itemEl) => {
+        itemEl.addEventListener("click", () => {
+          const sym = itemEl.dataset.symbol;
+          const name = itemEl.dataset.name;
+          if (!sym) return;
+
+          const empty = tickerInputs.find((inp) => inp && !inp.value.trim());
+          if (empty) {
+            empty.value = sym;
+          } else if (ticker1Input) {
+            ticker1Input.value = sym;
+          }
+
+          searchResultsEl.classList.add("hidden");
+          if (searchInput) searchInput.value = "";
+          showToast(`티커 '${sym}'(${name || ""})이(가) 선택되었습니다.`);
+        });
+      });
+    } catch (err) {
+      if (searchResultsEl) {
+        searchResultsEl.innerHTML = `<div class="ticker-search-status">검색 중 오류가 발생했습니다.</div>`;
+      }
+    }
+  };
+
+  searchBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    performSearch();
+  });
+
+  searchInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      performSearch();
+    }
+  });
+
+  searchInput?.addEventListener("input", () => {
+    clearTimeout(searchDebounceTimer);
+    const val = searchInput.value.trim();
+    if (val.length >= 2) {
+      searchDebounceTimer = setTimeout(performSearch, 350);
+    } else if (!val) {
+      if (searchResultsEl) {
+        searchResultsEl.innerHTML = "";
+        searchResultsEl.classList.add("hidden");
+      }
+    }
+  });
+
+  // 검색창 바깥 클릭 시 결과 닫기
+  document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    if (
+      !target.closest(".profile-ticker-search-box") &&
+      searchResultsEl &&
+      !searchResultsEl.classList.contains("hidden")
+    ) {
+      searchResultsEl.classList.add("hidden");
+    }
+  });
+
   // 추천 칩 클릭 시 자동 입력
   document.querySelectorAll<HTMLButtonElement>("#profile-stock-preset-chips .preset-chip").forEach((chip) => {
     chip.addEventListener("click", () => {
@@ -381,14 +590,17 @@ function initProfileModal(): void {
   });
 
   // 폼 제출 핸들러 (POST /submit)
+  // 폼 제출 핸들러 (환경설정 통합 저장)
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const user = getAuthUser();
+    const nameInput = $<HTMLInputElement>("#profile-name-input");
     const gradeSelect = $<HTMLSelectElement>("#profile-stock-grade");
     const classInput = $<HTMLInputElement>("#profile-stock-class");
     const numInput = $<HTMLInputElement>("#profile-stock-num");
 
+    const nameVal = nameInput?.value.trim();
     const gradeVal = Number(gradeSelect?.value);
     const classVal = Number(classInput?.value);
     const numVal = Number(numInput?.value);
@@ -396,10 +608,32 @@ function initProfileModal(): void {
     const t2 = ticker2Input?.value.trim().toUpperCase() || "";
     const t3 = ticker3Input?.value.trim().toUpperCase() || "";
 
-    if (!gradeVal || !classVal || !numVal || !t1 || !t2 || !t3) {
-      showToast("학년, 반, 번호 및 티커 3개를 모두 입력해주세요.");
+    if (!nameVal || !gradeVal || !classVal || !numVal || !t1 || !t2 || !t3) {
+      showToast("이름, 학년, 반, 번호 및 티커 3개를 모두 입력해주세요.");
       return;
     }
+
+    // 1. 이름 저장
+    setSavedName(nameVal);
+
+    // 2. 학년/반 로컬 스토리지 및 상단 바 텍스트 배지 동기화
+    setSavedClass({
+      g: String(gradeVal) as GradeNumber,
+      c: String(classVal) as ClassNumber,
+    });
+    updateTopClassBadge();
+
+    // 3. 로컬 스토리지에 티커 동기화
+    const newTickers: TickerConfigItem[] = [
+      { name: t1, symbol: t1, code: t1, unit: "pt" },
+      { name: t2, symbol: t2, code: t2, unit: "pt" },
+      { name: t3, symbol: t3, code: t3, unit: "pt" },
+    ];
+    setSavedTickers(newTickers);
+
+    // 4. 화면 및 인증 UI 즉시 갱신
+    updateAuthUI();
+    renderActiveView();
 
     const payload: StudentStockSubmission = {
       grade: gradeVal,
@@ -410,30 +644,19 @@ function initProfileModal(): void {
       ticker_3: t3,
     };
 
-    // 로컬 스토리지에 티커 동기화
-    const newTickers: TickerConfigItem[] = [
-      { name: t1, symbol: t1, code: t1, unit: "pt" },
-      { name: t2, symbol: t2, code: t2, unit: "pt" },
-      { name: t3, symbol: t3, code: t3, unit: "pt" },
-    ];
-    setSavedTickers(newTickers);
+    // 토큰 만료 등으로 재로그인이 필요할 때 복귀 후 자동 반영되도록 대기 큐에 우선 저장
+    setPendingStockSubmission(payload);
 
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = "서버 저장 중...";
+      submitBtn.textContent = "저장 중...";
     }
 
     if (!user) {
-      showToast("로컬에 티커가 저장되었습니다. Knoblab 로그인 시 서버에도 영구 저장됩니다.");
+      showToast("설정이 로컬에 저장되었습니다. Knoblab 로그인 시 클라우드에도 영구 저장됩니다.");
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = "주식 티커 저장하기 (POST /submit)";
-      }
-      if (currentTab === "메인") {
-        renderDashboard(
-          (t) => switchTab(t as TabName),
-          (idx) => renderNoticeDetail(idx)
-        );
+        submitBtn.textContent = "설정 저장하기";
       }
       return;
     }
@@ -441,27 +664,37 @@ function initProfileModal(): void {
     try {
       await submitStudentStock(payload);
 
-      showToast("주식 티커 3개와 학생 정보가 서버에 성공적으로 저장되었습니다!");
+      // 서버 저장 성공 시 대기 큐 제거
+      setPendingStockSubmission(null);
+
+      showToast("환경설정(학생 정보 & 주식 티커)이 성공적으로 저장되었습니다!");
 
       const statusBadge = $("#profile-stock-status-badge");
       if (statusBadge) {
         statusBadge.textContent = `✓ 저장 완료 (${new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })})`;
         statusBadge.className = "profile-stock-status-badge status-ok";
       }
-
-      if (currentTab === "메인") {
-        renderDashboard(
-          (t) => switchTab(t as TabName),
-          (idx) => renderNoticeDetail(idx)
-        );
-      }
     } catch (err: any) {
-      console.error("서버 저장 실패:", err);
-      showToast(`저장 실패: ${err.message || "네트워크 오류"}`);
+      console.warn("서버 저장 실패:", err);
+      const isAuthError =
+        err.message?.includes("AUTH_EXPIRED") ||
+        err.message?.includes("401") ||
+        err.message?.includes("만료") ||
+        err.message?.includes("인증") ||
+        err.message?.includes("유효");
+
+      if (isAuthError) {
+        showToast("인증 세션 갱신을 위해 로그인 페이지로 이동합니다. (작성한 설정은 로그인 후 자동 저장됩니다)");
+        setTimeout(() => {
+          loginWithKnoblab();
+        }, 1200);
+      } else {
+        showToast(`서버 저장 실패 (${err.message || "네트워크 오류"}), 로컬에는 안전하게 저장되었습니다.`);
+      }
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = "주식 티커 저장하기 (POST /submit)";
+        submitBtn.textContent = "설정 저장하기";
       }
     }
   });
@@ -669,12 +902,12 @@ function initDateDisplay(): void {
 
 document.addEventListener("DOMContentLoaded", () => {
   initDateDisplay();
-  initClassPicker();
+  initTopClassBadge();
   initWelcomeModal();
   initNameChangeModal();
   initProfileModal();
   updateAuthUI();
-  onAuthStateChange((user) => {
+  onAuthStateChange(async (user) => {
     if (!getSavedName() && user?.email) {
       const emailPrefix = user.email.split("@")[0];
       setSavedName(emailPrefix);
@@ -682,6 +915,9 @@ document.addEventListener("DOMContentLoaded", () => {
       welcomeModal?.classList.add("hidden");
     }
     updateAuthUI();
+    if (user) {
+      await syncUserDataFromServer();
+    }
     if (currentTab === "메인") {
       switchTab("메인", false);
     }

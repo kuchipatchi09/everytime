@@ -34,18 +34,8 @@ export async function fetchMyStock(explicitToken?: string): Promise<MyStockRespo
     }
   });
 
-  // 토큰 만료 401 발생 시 1회 강제 갱신 후 재시도
   if (res.status === 401) {
-    try {
-      const freshToken = await getFreshIdToken();
-      res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${freshToken}`,
-          "Content-Type": "application/json"
-        }
-      });
-    } catch {}
+    throw new Error("AUTH_EXPIRED: 인증 세션이 만료되었습니다.");
   }
 
   if (res.status === 404) {
@@ -84,19 +74,8 @@ export async function submitStudentStock(
     body: JSON.stringify(data)
   });
 
-  // 토큰 만료 401 발생 시 1회 강제 갱신 후 재시도
   if (res.status === 401) {
-    try {
-      const freshToken = await getFreshIdToken();
-      res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${freshToken}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-      });
-    } catch {}
+    throw new Error("AUTH_EXPIRED: 인증 세션이 만료되었습니다.");
   }
 
   if (!res.ok) {

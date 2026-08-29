@@ -1,7 +1,6 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import { checkAuth, getAuthUser } from "../utils/auth";
-import { loginWithKnoblab } from "../utils/auth";
 
 export const FIREBASE_CONFIG = {
   apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || "",
@@ -67,8 +66,6 @@ export async function getFreshIdToken(): Promise<string> {
     return cachedUser.token;
   }
 
-  // 3. 모든 토큰 획득 실패 → SSO 재로그인으로 자동 리다이렉트
-  console.warn("유효한 토큰을 찾을 수 없어 SSO 재로그인을 시도합니다.");
-  loginWithKnoblab();
-  throw new Error("인증 토큰이 만료되었습니다. 재로그인 페이지로 이동합니다...");
+  // 3. 토큰 획득 실패
+  throw new Error("인증 토큰이 만료되었거나 유효하지 않습니다.");
 }

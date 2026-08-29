@@ -446,6 +446,29 @@ main {
   }
 }
 
+.top-class-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-vellum);
+  border: var(--border-main);
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-black);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.top-class-badge:hover {
+  background: var(--color-silver);
+  border-color: var(--color-black);
+}
+
 .picker {
   display: flex;
   gap: 6px;
@@ -2525,11 +2548,64 @@ footer {
   margin: 0;
 }
 
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-section-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.profile-stock-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.profile-stock-grid-2 .field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-stock-grid-2 label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-graphite);
+}
+
+.profile-stock-grid-2 input {
+  border: var(--border-main);
+  background: var(--color-white);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  outline: none;
+  width: 100%;
+}
+
+.profile-stock-grid-2 input:focus {
+  border-color: var(--color-black);
+  box-shadow: inset 0 0 0 1px var(--color-black);
+}
+
 /* 프로필 내 학생 주식 티커 폼 스타일 */
 .profile-stock-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .profile-stock-status-badge {
