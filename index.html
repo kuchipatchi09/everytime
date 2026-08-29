@@ -209,15 +209,40 @@
         </button>
       </footer>
       <div id="toast" class="toast hidden"></div>
+      <!-- 첫 접속 온보딩 모달 (Knoblab 로그인 / 게스트 모드) -->
       <div id="welcome" class="welcome hidden">
-        <form>
+        <div class="welcome-card">
           <span class="eyebrow">WELCOME TO ASTERISK</span>
-          <h2>처음 만났네요.</h2>
-          <p>메인 화면에서 부를 이름을 입력해주세요.</p>
-          <label>이름<input id="name-input" maxlength="12" autocomplete="name" placeholder="이름 입력" /></label>
-          <button type="submit">시작하기</button>
-          <small>입력한 정보는 이 기기에만 저장됩니다.</small>
-        </form>
+          <h2>시작하기</h2>
+          <p class="welcome-desc">원하시는 방법으로 시작하세요. Knoblab 계정으로 로그인하거나, 닉네임만 입력하고 게스트로 바로 이용할 수 있습니다.</p>
+
+          <!-- Knoblab SSO 로그인 섹션 -->
+          <div class="welcome-auth-section">
+            <button type="button" class="btn-welcome-knoblab" id="welcome-btn-knoblab">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+              </svg>
+              <span>Knoblab 통합 ID로 로그인</span>
+            </button>
+            <span class="welcome-subtext">Knoblab 서비스 간 계정 및 데이터 연동</span>
+          </div>
+
+          <div class="welcome-divider">
+            <span>또는 게스트 모드</span>
+          </div>
+
+          <!-- 게스트 모드 폼 -->
+          <form id="welcome-guest-form" class="welcome-guest-form">
+            <label for="name-input">
+              <span>게스트 닉네임</span>
+              <input id="name-input" maxlength="12" autocomplete="name" placeholder="닉네임 입력 (최대 12자)" required />
+            </label>
+            <button type="submit" class="btn-welcome-guest" id="welcome-btn-guest">게스트로 시작하기</button>
+            <small>입력한 닉네임은 이 기기에만 저장되며, 나중에도 언제든지 로그인할 수 있습니다.</small>
+          </form>
+        </div>
       </div>
 
       <!-- 이름 변경 모달 -->

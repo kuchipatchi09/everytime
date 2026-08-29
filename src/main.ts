@@ -116,7 +116,8 @@ function initClassPicker(): void {
 function initWelcomeModal(): void {
   const welcomeModal = $("#welcome");
   const nameInput = $<HTMLInputElement>("#name-input");
-  const welcomeForm = welcomeModal.querySelector("form");
+  const guestForm = $("#welcome-guest-form");
+  const knoblabBtn = $("#welcome-btn-knoblab");
 
   const authUser = getAuthUser();
   const savedName = getSavedName();
@@ -132,12 +133,19 @@ function initWelcomeModal(): void {
     }
   }
 
-  welcomeForm?.addEventListener("submit", (e) => {
+  // Knoblab SSO 통합 로그인 버튼
+  knoblabBtn?.addEventListener("click", () => {
+    loginWithKnoblab();
+  });
+
+  // 게스트 모드 닉네임 입력 폼 제출
+  guestForm?.addEventListener("submit", (e) => {
     e.preventDefault();
     const value = nameInput.value.trim();
     if (!value) return;
     setSavedName(value);
     welcomeModal.classList.add("hidden");
+    showToast(`${value}님, 환영합니다! (게스트 모드)`);
     updateAuthUI();
     switchTab("메인");
   });
