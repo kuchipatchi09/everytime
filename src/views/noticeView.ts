@@ -32,13 +32,13 @@ export function renderBoardList(): void {
   const content = $("#content");
   if (!content) return;
 
-  const filteredPosts =
-    boardFilter === "전체"
-      ? boardPosts
-      : boardPosts.filter((post) => {
-          const cat = String(post.category || "").trim();
-          return cat === boardFilter || cat === boardFilter.replace("학년", "");
-        });
+  const filteredPosts = boardPosts.filter((post) => {
+    const cat = String(post.category || "").trim();
+    if (boardFilter === "전체") {
+      return cat === "전체" || cat === "공통" || cat === "";
+    }
+    return cat === boardFilter || cat === boardFilter.replace("학년", "");
+  });
 
   content.innerHTML = `
     <section class="board-wrap">
