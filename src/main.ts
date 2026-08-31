@@ -21,6 +21,7 @@ import { renderBrand } from "./views/brandView";
 import { renderTimer } from "./views/timerView";
 import { ClassNumber, GradeNumber } from "./types/timetable";
 import { MealCode } from "./types/meal";
+import { getCachedWeatherCode, getWeatherGreeting } from "./constants/weatherGreetings";
 
 export type TabName = "메인" | "시간표" | "방과후" | "급식" | "공지" | "타이머" | "브랜드";
 
@@ -34,8 +35,9 @@ export function switchTab(tab: TabName, updateUrl = true): void {
   
   if (tab === "메인") {
     const savedName = getSavedName() || "학생";
+    const greetingText = getWeatherGreeting(getCachedWeatherCode(), savedName);
     pageTitle.innerHTML = `
-      <span class="welcome-name-wrap">${esc(savedName)}님, 오늘도 반가워요.</span>
+      <span class="welcome-name-wrap" id="welcome-name-wrap">${esc(greetingText)}</span>
       <button type="button" class="title-name-edit-btn" id="title-name-edit-btn" aria-label="환경설정" title="환경설정 열기">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -98,6 +100,15 @@ export function renderActiveView(): void {
     renderTimer();
   } else if (currentTab === "브랜드") {
     renderBrand(() => switchTab("메인"));
+  }
+}
+
+export function updateMainGreeting(weatherCode?: number): void {
+  if (currentTab !== "메인") return;
+  const wrap = $("#welcome-name-wrap");
+  if (wrap) {
+    const savedName = getSavedName() || "학생";
+    wrap.textContent = getWeatherGreeting(weatherCode ?? getCachedWeatherCode(), savedName);
   }
 }
 

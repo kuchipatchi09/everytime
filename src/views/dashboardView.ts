@@ -11,9 +11,10 @@ import { fetchMarketData } from "../services/marketService";
 import { esc } from "../utils/escape";
 import { formatDateKey, toMinutes } from "../utils/time";
 import { $ } from "../utils/dom";
-import { getSavedClass, getSavedTickers } from "../utils/storage";
+import { getSavedClass, getSavedName, getSavedTickers } from "../utils/storage";
 import { DayOfWeek } from "../types/timetable";
 import { TickerConfigItem } from "../types/market";
+import { getWeatherGreeting, setCachedWeatherCode } from "../constants/weatherGreetings";
 
 let marketCharts: Record<string, Chart> = {};
 const TIMEOUT_SEC = 30; // 30초 쿨다운
@@ -475,6 +476,17 @@ async function loadDashboardWeather(): Promise<void> {
     const data = await fetchCurrentWeather();
     const weatherCard = $("#weather-card");
     if (!weatherCard) return;
+
+    const weatherCode = data.weather[0]?.id;
+    if (weatherCode) {
+      setCachedWeatherCode(weatherCode);
+      const wrap = $("#welcome-name-wrap");
+      if (wrap) {
+        const savedName = getSavedName() || "학생";
+        wrap.textContent = getWeatherGreeting(weatherCode, savedName);
+      }
+    }
+
     weatherCard.innerHTML = `
       <span class="eyebrow">LIVE WEATHER</span>
       <div class="weather-main">
