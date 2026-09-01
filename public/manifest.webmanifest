@@ -5,8 +5,10 @@
   "lang": "ko-KR",
   "start_url": "./",
   "scope": "./",
-  "display": "standalone",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone", "window-controls-overlay"],
   "orientation": "any",
+
   "background_color": "#F7F6F2",
   "theme_color": "#000000",
   "icons": [

@@ -83,7 +83,9 @@ header {
   top: 0;
   z-index: 100;
   width: 100%;
+  padding-top: env(safe-area-inset-top, 0px);
 }
+
 
 .head {
   max-width: var(--max-content-width);
@@ -1902,10 +1904,12 @@ input#post-title:focus, textarea#post-body:focus, .editor-select:focus {
 footer {
   border-top: var(--border-main);
   background: var(--color-paper);
-  padding: 20px 0;
+  padding-top: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   margin-top: auto;
   width: 100%;
 }
+
 
 .head-footer, footer {
   max-width: var(--max-content-width);
