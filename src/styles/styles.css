@@ -507,6 +507,11 @@ main {
   gap: 12px;
 }
 
+.title.tab-hidden,
+.top-class-badge.tab-hidden {
+  display: none;
+}
+
 @media (min-width: 640px) {
   .title {
     flex-direction: row;
@@ -563,54 +568,6 @@ main {
 .top-class-badge:hover {
   background: var(--color-silver);
   border-color: var(--color-black);
-}
-
-.picker {
-  display: flex;
-  gap: 6px;
-  background: var(--color-vellum);
-  padding: 4px;
-  border: var(--border-main);
-  width: 100%;
-}
-
-@media (min-width: 640px) {
-  .picker {
-    width: auto;
-  }
-}
-
-.picker label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--color-paper);
-  border: 1px solid var(--color-silver);
-  padding: 4px 10px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  flex: 1;
-}
-
-@media (min-width: 640px) {
-  .picker label {
-    flex: initial;
-  }
-}
-
-.picker label small {
-  font-weight: 600;
-  color: var(--color-graphite);
-}
-
-.picker select {
-  border: 0;
-  background: transparent;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-  outline: none;
-  width: 100%;
 }
 
 .eyebrow {
@@ -774,20 +731,8 @@ button.back:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
-.now-card2 {
-  width: 100%;
-  background: var(--color-paper);
-  color: var(--color-black);
-  border: var(--border-main);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 200px;
-}
-
 @media (min-width: 1024px) {
-  .now-card, .now-card2 {
+  .now-card {
     grid-column: span 12;
     padding: 28px;
     min-height: 220px;
@@ -805,8 +750,6 @@ button.back:hover {
   margin-bottom: 14px;
 }
 
-.now-card2 .now-top { border-bottom-color: var(--color-silver); }
-
 .now-top span {
   display: inline-flex;
   align-items: center;
@@ -822,8 +765,6 @@ button.back:hover {
   display: inline-block;
   animation: pulse-dot 2s infinite ease-in-out;
 }
-
-.now-card2 .now-dot { background: var(--color-black); }
 
 .now-card-bottom-row {
   display: flex;
@@ -847,17 +788,6 @@ button.back:hover {
 .now-timer-toggle:hover {
   background: var(--color-paper);
   border-color: var(--color-paper);
-  color: var(--color-black);
-}
-
-body.sky-bg-active .now-timer-toggle {
-  border-color: rgba(247, 246, 242, 0.3);
-  color: rgba(247, 246, 242, 0.78);
-}
-
-body.sky-bg-active .now-timer-toggle:hover {
-  background: rgba(242, 246, 247, 0.72);
-  border-color: rgba(242, 246, 247, 0.72);
   color: var(--color-black);
 }
 
@@ -889,21 +819,14 @@ body.sky-bg-active .now-timer-toggle:hover {
   line-height: 1;
 }
 
-body.sky-bg-active .now-card-percent {
-  color: rgba(255, 255, 255, 0.75);
-}
-
-
-:is(.now-card, .now-card2) > p {
+.now-card > p {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--color-telemetry);
   margin-bottom: 4px;
 }
 
-.now-card2 > p { color: var(--color-graphite); }
-
-:is(.now-card, .now-card2) h2 {
+.now-card h2 {
   font-size: 1.75rem;
   font-weight: 300;
   letter-spacing: -0.04em;
@@ -912,20 +835,18 @@ body.sky-bg-active .now-card-percent {
 }
 
 @media (min-width: 768px) {
-  :is(.now-card, .now-card2) h2 {
+  .now-card h2 {
     font-size: 2.2rem;
   }
 }
 
-:is(.now-card, .now-card2) small {
+.now-card small {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--color-silver);
   display: block;
   margin-bottom: 16px;
 }
-
-.now-card2 small { color: var(--color-telemetry); font-weight: 600; }
 
 .routine-progress {
   width: 100%;
@@ -942,9 +863,6 @@ body.sky-bg-active .now-card-percent {
   transition: width 0.3s ease;
 }
 
-.now-card2 .routine-progress { background: #D6D3D1; }
-.now-card2 .routine-progress span { background: var(--color-black); }
-
 .now-next {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -957,9 +875,6 @@ body.sky-bg-active .now-card-percent {
   color: var(--color-paper);
   font-weight: 600;
 }
-
-.now-card2 .now-next { border-top-color: var(--color-silver); color: var(--color-graphite)}
-.now-card2 .now-next strong { color: var(--color-black); }
 
 .dash-card {
   width: 100%;
@@ -2079,7 +1994,7 @@ footer {
 }
 
 
-.head-footer, footer {
+footer {
   max-width: var(--max-content-width);
   margin-left: auto;
   margin-right: auto;
@@ -2092,7 +2007,7 @@ footer {
 }
 
 @media (min-width: 768px) {
-  .head-footer, footer {
+  footer {
     padding-left: 24px;
     padding-right: 24px;
     flex-direction: row;
@@ -2327,28 +2242,6 @@ footer {
   gap: 6px;
 }
 
-.btn-nav-login {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 5px 11px;
-  background: var(--color-knoblab);
-  color: var(--color-white);
-  border: 1px solid var(--color-knoblab);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  letter-spacing: -0.01em;
-}
-
-.btn-nav-login:hover {
-  background: var(--color-knoblab-hover);
-  border-color: var(--color-knoblab-hover);
-  transform: translateY(-1px);
-}
-
 .btn-nav-profile {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -2374,27 +2267,6 @@ footer {
   border-radius: 50%;
   background-color: #2e7d32;
   display: inline-block;
-}
-
-.btn-nav-name-edit {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px 8px;
-  background: transparent;
-  border: 1px dashed var(--color-graphite);
-  color: var(--color-black);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.15s ease;
-}
-
-.btn-nav-name-edit:hover {
-  border-style: solid;
-  border-color: var(--color-black);
-  background: var(--color-vellum);
 }
 
 /* Mobile Drawer Auth Box */
@@ -2632,24 +2504,13 @@ footer {
   background: var(--color-carbon);
 }
 
-.btn-cancel, .btn-secondary {
+.btn-cancel {
   background: var(--color-paper);
   color: var(--color-black);
 }
 
-.btn-cancel:hover, .btn-secondary:hover {
+.btn-cancel:hover {
   background: var(--color-vellum);
-}
-
-.btn-danger {
-  background: #FFF0EE;
-  border-color: var(--up-red);
-  color: var(--up-red);
-}
-
-.btn-danger:hover {
-  background: var(--up-red);
-  color: #FFFFFF;
 }
 
 .profile-info-box {
@@ -2767,12 +2628,6 @@ footer {
   margin: 4px 0;
 }
 
-.profile-ticker-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 .profile-ticker-header {
   display: flex;
   justify-content: space-between;
@@ -2795,22 +2650,7 @@ footer {
   font-weight: normal;
 }
 
-.btn-ticker-reset {
-  background: transparent;
-  border: 1px solid var(--color-silver);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  padding: 3px 8px;
-  cursor: pointer;
-  color: var(--color-graphite);
-  transition: all 0.15s ease;
-}
-
-.btn-ticker-reset:hover {
-  border-color: var(--color-black);
-  color: var(--color-black);
-  background: var(--color-vellum);
-}/* ==========================================================================
+/* ==========================================================================
    설정 모달 탭 (Settings Modal Tabs)
    ========================================================================== */
 .settings-tab-bar {
@@ -2857,8 +2697,8 @@ footer {
   display: flex;
 }
 
-.profile-ticker-desc {
-  font-size: 11.5px !important;
+.settings-tab-pane .profile-ticker-desc {
+  font-size: 11.5px;
   color: var(--color-graphite);
   line-height: 1.4;
   margin: 0;
@@ -2880,41 +2720,6 @@ footer {
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-}
-
-.profile-stock-grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.profile-stock-grid-2 .field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.profile-stock-grid-2 label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-graphite);
-}
-
-.profile-stock-grid-2 input {
-  border: var(--border-main);
-  background: var(--color-white);
-  padding: 8px 10px;
-  font-size: 13px;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  outline: none;
-  width: 100%;
-}
-
-.profile-stock-grid-2 input:focus {
-  border-color: var(--color-black);
-  box-shadow: inset 0 0 0 1px var(--color-black);
 }
 
 /* 프로필 내 학생 주식 티커 폼 스타일 */
@@ -3046,10 +2851,10 @@ footer {
   box-shadow: inset 0 0 0 1px var(--color-black);
 }
 
-.profile-ticker-input {
+.ticker-input-relative .profile-ticker-input {
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  font-weight: 700 !important;
+  font-weight: 700;
 }
 
 .ticker-search-dropdown {
@@ -3457,9 +3262,8 @@ footer {
   border-color: var(--color-black);
 }
 
-
-.zen-toggle-btn {
-  border-style: dashed;
+.timer-btn-sub.active:hover {
+  background-color: var(--color-black);
 }
 
 /* 사이드바 */
@@ -3562,186 +3366,127 @@ footer {
   color: var(--color-black);
 }
 
-.btn-sm {
-  padding: 4px 10px !important;
-  font-size: 11px !important;
+button.btn-sm {
+  padding: 4px 10px;
+  font-size: 11px;
 }
 
 /* ==========================================================================
    Zen Focus Mode (전체화면 몰입 모드)
    ========================================================================== */
 
-body.zen-active header,
-body.zen-active footer,
-body.zen-active .title,
-body.zen-active header,
-body.zen-active footer,
-body.zen-active .title,
-body.zen-active .timer-modes-bar,
-body.zen-active .timer-sidebar,
-body.fullscreen-active header,
-body.fullscreen-active footer,
-body.fullscreen-active .title,
-body.fullscreen-active .timer-modes-bar,
-body.fullscreen-active .timer-sidebar {
-  display: none !important;
-}
-
-body.zen-active main,
-body.fullscreen-active main {
-  padding: 0;
-  max-width: 100vw;
-  height: 100vh;
-}
-
-body.zen-active .timer-main-grid,
-body.fullscreen-active .timer-main-grid {
-  display: block;
-  width: 100vw;
-  height: 100vh;
-}
-
-.timer-display-card.zen-mode,
-body.fullscreen-active .timer-display-card {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  width: 100vw;
-  height: 100vh;
-  border: 0;
-  background: var(--color-paper);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 40px;
-}
-
-.timer-display-card.zen-mode .timer-card-top,
-body.fullscreen-active .timer-display-card .timer-card-top {
-  display: none !important;
-}
-
-.timer-display-card.zen-mode .timer-digits,
-body.fullscreen-active .timer-display-card .timer-digits {
-  font-size: 8rem;
-}
-
-@media (min-width: 768px) {
-  .timer-display-card.zen-mode .timer-digits,
-  body.fullscreen-active .timer-display-card .timer-digits {
-    font-size: 12rem;
-  }
-}
-
-.zen-close-btn,
-.fullscreen-close-btn {
-  display: none !important;
-}
-
-body.zen-active .zen-close-btn,
-body.fullscreen-active .fullscreen-close-btn {
-  display: inline-flex !important;
-  align-items: center;
-  gap: 6px;
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  z-index: 2100;
-  background: var(--color-paper);
-  border: var(--border-main);
-  padding: 8px 16px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-body.zen-active .zen-close-btn:hover,
-body.fullscreen-active .fullscreen-close-btn:hover {
-  background: var(--color-black);
-  color: var(--color-paper);
-}
-
-/* 1) 전체화면/몰입 모드 실시간 시계 기본 (하늘 배경 꺼져 있을 때: 중앙 작은 시계 초까지) */
 .zen-clock {
   display: none;
 }
 
-body.zen-active .zen-clock,
-body.fullscreen-active .zen-clock {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-graphite);
-  margin-top: 20px;
-  letter-spacing: 0.06em;
-  font-variant-numeric: tabular-nums;
-  text-align: center;
+/* 1) 전체화면/몰입 모드 실시간 시계 기본 (하늘 배경 꺼져 있을 때: 중앙 작은 시계 초까지) */
+body.zen-active {
+  header,
+  footer,
+  .title,
+  .timer-modes-bar,
+  .timer-sidebar {
+    display: none;
+  }
+
+  main {
+    padding: 0;
+    max-width: 100vw;
+    height: 100vh;
+  }
+
+  .timer-main-grid {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .timer-display-card {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    width: 100vw;
+    height: 100vh;
+    border: 0;
+    background: var(--color-paper);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+  }
+
+  .timer-display-card .timer-card-top {
+    display: none;
+  }
+
+  .timer-display-card .timer-digits {
+    font-size: 8rem;
+  }
+
+  @media (min-width: 768px) {
+    .timer-display-card .timer-digits {
+      font-size: 12rem;
+    }
+  }
+
+  .zen-clock {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-graphite);
+    margin-top: 24px;
+    margin-bottom: 4px;
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
 }
 
 /* 2) 하늘 배경 켜져 있을 때의 전체화면 모드: 투명 카드 & 하단 흰색 글로우 시계 */
-body.sky-bg-active.fullscreen-active .timer-display-card,
-body.sky-bg-active.zen-active .timer-display-card.zen-mode {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: none !important;
-  box-shadow: none !important;
-}
+body.sky-bg-active.zen-active {
+  .timer-display-card {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    box-shadow: none;
+  }
 
-body.sky-bg-active.fullscreen-active .timer-digits,
-body.sky-bg-active.zen-active .timer-digits {
-  color: #ffffff !important;
-  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.7), 0 1px 4px rgba(0, 0, 0, 0.9) !important;
-}
+  .timer-digits {
+    color: #ffffff;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.7), 0 1px 4px rgba(0, 0, 0, 0.9);
+  }
 
-body.sky-bg-active.fullscreen-active .timer-progress-track,
-body.sky-bg-active.zen-active .timer-progress-track {
-  background: rgba(255, 255, 255, 0.25) !important;
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
-}
+  .timer-progress-track {
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+  }
 
-body.sky-bg-active.fullscreen-active .timer-progress-fill,
-body.sky-bg-active.zen-active .timer-progress-fill {
-  background: #ffffff !important;
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.9) !important;
-}
+  .timer-progress-fill {
+    background: #ffffff;
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.9);
+  }
 
-body.sky-bg-active.zen-active .timer-progress-info {
-  color: #ffffff !important;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7) !important;
-  font-weight: 600 !important;
-}
+  .timer-progress-info {
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    font-weight: 600;
+  }
 
-
-body.zen-active .zen-clock {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-graphite);
-  margin-top: 24px;
-  margin-bottom: 4px;
-  letter-spacing: 0.06em;
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-}
-
-body.sky-bg-active.zen-active .zen-clock {
-  position: static !important;
-  transform: none !important;
-  margin-top: 24px !important;
-  margin-bottom: 4px !important;
-  color: #ffffff !important;
-  font-size: 16px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.08em !important;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.9) !important;
-  text-align: center !important;
+  .zen-clock {
+    position: static;
+    transform: none;
+    margin-top: 24px;
+    margin-bottom: 4px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.9);
+    text-align: center;
+  }
 }
 
 /* ==========================================================================
@@ -3749,175 +3494,171 @@ body.sky-bg-active.zen-active .zen-clock {
    ========================================================================== */
 
 .now-fullscreen-dock {
-  display: none !important;
+  display: none;
 }
 
-body.now-fullscreen-active header,
-body.now-fullscreen-active footer,
-body.now-fullscreen-active .title,
-body.now-fullscreen-active .dash-card,
-body.now-fullscreen-active .dash-market-section,
-body.now-fullscreen-active .market-section-head,
-body.now-fullscreen-active .market-section,
-body.now-fullscreen-active .market-head,
-body.now-fullscreen-active .market-grid,
-body.now-fullscreen-active .market-card,
-body.now-fullscreen-active .market-mobile-tabs,
-body.now-fullscreen-active .market-cards-grid,
-body.now-fullscreen-active .market-empty-box,
-body.now-fullscreen-active .now-card,
-body.now-fullscreen-active .now-card2 {
-  display: none !important;
-}
+body.now-fullscreen-active {
+  header,
+  footer,
+  .title,
+  .dash-card,
+  .dash-market-section,
+  .market-section-head,
+  .market-card,
+  .market-mobile-tabs,
+  .market-cards-grid,
+  .market-empty-box,
+  .now-card {
+    display: none;
+  }
 
+  main {
+    padding: 0;
+    max-width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+  }
 
-body.now-fullscreen-active main {
-  padding: 0 !important;
-  max-width: 100vw !important;
-  height: 100vh !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: flex-end !important;
-  align-items: center !important;
-}
+  .dashboard {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 0;
+    margin: 0;
+  }
 
-body.now-fullscreen-active .dashboard {
-  display: flex !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  justify-content: center !important;
-  align-items: flex-end !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
+  .now-fullscreen-dock {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100vw - 48px);
+    max-width: 820px;
+    z-index: 2000;
+    padding: 22px 28px;
+    background: var(--color-paper);
+    border: var(--border-main);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.16);
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
 
-body.now-fullscreen-active .now-fullscreen-dock {
-  display: flex !important;
-  flex-direction: column;
-  position: fixed;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100vw - 48px);
-  max-width: 820px;
-  z-index: 2000;
-  padding: 22px 28px;
-  background: var(--color-paper);
-  border: var(--border-main);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.16);
-  border-radius: 8px;
-  cursor: pointer;
-  user-select: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
+  .now-fullscreen-dock:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 20px 56px rgba(0, 0, 0, 0.22);
+  }
 
-body.now-fullscreen-active .now-fullscreen-dock:hover {
-  transform: translateX(-50%) translateY(-2px);
-  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.22);
-}
+  .now-fs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
 
+  .now-fs-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
 
-.now-fs-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
+  .now-fs-period-badge {
+    opacity: 0.7;
+    font-weight: 500;
+  }
 
-.now-fs-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
+  .now-fs-clock {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+  }
 
-.now-fs-period-badge {
-  opacity: 0.7;
-  font-weight: 500;
-}
+  .now-fs-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
 
-.now-fs-clock {
-  font-family: var(--font-mono);
-  font-size: 15px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.05em;
-}
+  .now-fs-subject {
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 2px;
+  }
 
-.now-fs-body {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
-  margin-bottom: 12px;
-}
+  .now-fs-class {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    opacity: 0.75;
+  }
 
-.now-fs-subject {
-  font-size: 2rem;
-  font-weight: 400;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-  margin-bottom: 2px;
-}
+  .now-fs-stats-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    gap: 2px;
+  }
 
-.now-fs-class {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  opacity: 0.75;
-}
+  .now-fs-remaining {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
 
-.now-fs-stats-box {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-  gap: 2px;
-}
+  .now-fs-percent {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.8;
+  }
 
-.now-fs-remaining {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
+  .now-fs-progress-track {
+    width: 100%;
+    height: 6px;
+    background: var(--color-vellum);
+    border: 1px solid var(--color-silver);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
 
-.now-fs-percent {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  opacity: 0.8;
-}
+  .now-fs-progress-fill {
+    height: 100%;
+    background: var(--color-black);
+    transition: width 0.05s linear;
+  }
 
-.now-fs-progress-track {
-  width: 100%;
-  height: 6px;
-  background: var(--color-vellum);
-  border: 1px solid var(--color-silver);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 10px;
-}
+  .now-fs-footer {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
 
-.now-fs-progress-fill {
-  height: 100%;
-  background: var(--color-black);
-  transition: width 0.05s linear;
-}
-
-.now-fs-footer {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.now-fs-next-label {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  opacity: 0.8;
+  .now-fs-next-label {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    opacity: 0.8;
+  }
 }
 
 /* 설정 모달 내 토글 스위치 행 */
@@ -4004,51 +3745,53 @@ body.now-fullscreen-active .now-fullscreen-dock:hover {
 }
 
 /* 하늘 배경 활성화 시의 NOW 전체화면 독 (글래스모피즘 & 화이트 글로우) */
-body.sky-bg-active.now-fullscreen-active .now-fullscreen-dock {
-  background: rgba(14, 18, 26, 0.65) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
-  color: #ffffff !important;
-}
+body.sky-bg-active.now-fullscreen-active {
+  .now-fullscreen-dock {
+    background: rgba(14, 18, 26, 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+  }
 
-body.sky-bg-active.now-fullscreen-active .now-fs-subject {
-  color: #ffffff !important;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7) !important;
-}
+  .now-fs-subject {
+    color: #ffffff;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7);
+  }
 
-body.sky-bg-active.now-fullscreen-active .now-fs-clock {
-  color: #ffffff !important;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 0, 0, 0.5) !important;
-}
+  .now-fs-clock {
+    color: #ffffff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 0, 0, 0.5);
+  }
 
-body.sky-bg-active.now-fullscreen-active .now-fs-remaining {
-  color: #ffffff !important;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7) !important;
-}
+  .now-fs-remaining {
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  }
 
-body.sky-bg-active.now-fullscreen-active .now-fs-percent {
-  color: rgba(255, 255, 255, 0.9) !important;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6) !important;
-}
+  .now-fs-percent {
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  }
 
-body.sky-bg-active.now-fullscreen-active .now-fs-progress-track {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-}
+  .now-fs-progress-track {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
 
-body.sky-bg-active.now-fullscreen-active .now-fs-progress-fill {
-  background: #ffffff !important;
-  box-shadow: 0 0 14px rgba(255, 255, 255, 0.9) !important;
-}
+  .now-fs-progress-fill {
+    background: #ffffff;
+    box-shadow: 0 0 14px rgba(255, 255, 255, 0.9);
+  }
 
-body.sky-bg-active.now-fullscreen-active .now-fs-next-label {
-  color: rgba(255, 255, 255, 0.75) !important;
-}
+  .now-fs-next-label {
+    color: rgba(255, 255, 255, 0.75);
+  }
 
-body.sky-bg-active.now-fullscreen-active .now-fs-next-label strong {
-  color: #ffffff !important;
+  .now-fs-next-label strong {
+    color: #ffffff;
+  }
 }
 
 /* ==========================================================================
@@ -4056,598 +3799,562 @@ body.sky-bg-active.now-fullscreen-active .now-fs-next-label strong {
    ========================================================================== */
 
 body.sky-bg-active {
-  background-color: transparent !important;
-}
-
-/* 1. 배경 하늘이 선명하게 보이도록 shell은 완전 투명 */
-body.sky-bg-active .shell {
-  position: relative;
-  z-index: 1;
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  min-height: 100vh;
-}
-
-/* 2. 헤더 및 푸터: 반투명 글래스 네비게이션 */
-body.sky-bg-active header {
-  background: rgba(242, 246, 247, 0.72) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-}
-
-body.sky-bg-active footer {
-  background: rgba(242, 246, 247, 0.72) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border-top: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
-}
-
-/* 3. 상단 타이틀 영역: 은은한 글래스 플레이트 */
-body.sky-bg-active .title,
-body.sky-bg-active .mealbar {
-  background: rgba(242, 246, 247, 0.72);
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  padding: 14px 18px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  margin-bottom: 20px;
-}
-
-body.sky-bg-active .title p#date {
-  color: #2c2c2e;
-  font-weight: 600;
-}
-
-body.sky-bg-active .top-class-badge {
-  background: rgba(242, 246, 247, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  color: var(--color-black);
-}
-
-body.sky-bg-active .top-class-badge:hover {
-  background: rgba(242, 246, 247, 0.9);
-  border-color: var(--color-black);
-}
-
-/* 4. 나우 카드 (지금 수업/일과): 다크 글래스모피즘 */
-body.sky-bg-active .now-card {
-  background: rgba(14, 17, 24, 0.76) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-body.sky-bg-active .now-card h2 {
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-body.sky-bg-active .now-card p,
-body.sky-bg-active .now-card small,
-body.sky-bg-active .now-card .now-next {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-/* 안 다크함 */
-
-body.sky-bg-active .now-card2 {
-  background: rgba(242, 246, 247, 0.72) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-body.sky-bg-active .now-card2 .now-card-percent {
-  color: var(--color-graphite);
-}
-
-body.sky-bg-active .now-card2 .routine-progress { background: var(--color-silver); }
-
-/* 5. 대시보드 및 시장 지표 카드: 프리미엄 라이트 글래스모피즘 */
-body.sky-bg-active .dash-card {
-  background: rgba(242, 246, 247, 0.72) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-body.sky-bg-active .market-card {
-  background: rgba(242, 246, 247, 0.72) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-/* 6. 금융 섹션 헤더: 글래스 스트립 */
-body.sky-bg-active .market-section-head {
-  background: rgba(242, 246, 247, 0.72);
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  padding: 10px 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-  margin-bottom: 16px;
-}
-
-body.sky-bg-active .market-refresh-btn {
-  background: rgba(242, 246, 247, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  color: var(--color-black);
-  font-weight: 700;
-}
-
-body.sky-bg-active .market-mob-tab {
-  background: rgba(242, 246, 247, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-}
-
-body.sky-bg-active .market-mob-tab.active {
-  background: var(--color-black);
-  color: var(--color-paper);
-}
-
-body.sky-bg-active .timer-display-card,
-body.sky-bg-active .timer-side-card {
-  background: rgba(242, 246, 247, 0.72) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-}
-
-/* 타이머 상단 모드 바 및 컨트롤 */
-body.sky-bg-active .timer-mode-btn {
-  background: rgba(242, 246, 247, 0.72) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  color: var(--color-black);
-}
-
-body.sky-bg-active .timer-mode-btn:hover {
-  background: rgba(242, 246, 247, 0.8) !important;
-}
-
-body.sky-bg-active .timer-mode-btn.active {
-  background: var(--color-black) !important;
-  color: var(--color-paper) !important;
-}
-
-body.sky-bg-active .sound-btn {
-  background: rgba(242, 246, 247, 0.8) !important;
-  border: 1px solid rgba(0, 0, 0, 0.18) !important;
-  color: var(--color-black);
-}
-
-body.sky-bg-active .sound-btn.active {
-  background: var(--color-black) !important;
-  color: var(--color-paper) !important;
-}
-
-body.sky-bg-active .timer-record-box,
-body.sky-bg-active .custom-time-config {
-  background: rgba(242, 246, 247, 0.3) !important;
-  border: 1px solid rgba(0, 0, 0, 0.18) !important;
-}
-
-body.sky-bg-active .timer-action-btn {
-  background: rgba(242, 246, 247, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  color: var(--color-black);
-}
-
-body.sky-bg-active .timer-action-btn.btn-start {
-  background: var(--color-black);
-  color: var(--color-paper);
-}
-
-/* 브랜드 페이지 글래스모피즘 */
-body.sky-bg-active .brand-nav-bar {
-  background: rgba(242, 246, 247, 0.68) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  padding: 12px 18px !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-}
-
-body.sky-bg-active .brand-hero-card {
-  background: rgba(242, 246, 247, 0.72) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-}
-
-body.sky-bg-active .brand-story-title-row {
-  background: rgba(242, 246, 247, 0.68) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  padding: 14px 18px !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  margin-bottom: 24px;
-}
-
-body.sky-bg-active .brand-chapters-container {
-  border: none !important;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-body.sky-bg-active .brand-chapter-block {
-  background: rgba(242, 246, 247, 0.72) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  padding: 28px 24px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-}
-
-body.sky-bg-active .brand-quote-box {
-  background: rgba(242, 246, 247, 0.8) !important;
-  border: 1px solid rgba(0, 0, 0, 0.18) !important;
-  border-left: 3px solid var(--color-black) !important;
-}
-
-body.sky-bg-active .brand-features-list {
-  background: rgba(242, 246, 247, 0.8) !important;
-  border: 1px solid rgba(0, 0, 0, 0.18) !important;
-}
-
-body.sky-bg-active .brand-epilogue-box {
-  background: rgba(14, 17, 24, 0.78) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-}
-
-body.sky-bg-active .brand-section-head {
-  background: rgba(242, 246, 247, 0.68) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  padding: 14px 18px !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-}
-
-body.sky-bg-active .brand-color-main-card {
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-}
-
-body.sky-bg-active .brand-color-list-card,
-body.sky-bg-active .brand-typo-section {
-  background: rgba(242, 246, 247, 0.72) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-}
-
-body.sky-bg-active .brand-bottom-bar {
-  background: rgba(242, 246, 247, 0.68) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  padding: 14px 18px !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-}
-
-/* 시간표, 방과후, 급식, 공지 등 공통 패널 & 글래스모피즘 */
-body.sky-bg-active .panel,
-body.sky-bg-active .todaycard,
-body.sky-bg-active .routine-board,
-body.sky-bg-active .meal-card-full,
-body.sky-bg-active .notice-card-full,
-body.sky-bg-active .notice-detail-card,
-body.sky-bg-active .afterschool-card,
-body.sky-bg-active .board-wrap,
-body.sky-bg-active .post-write-wrap {
-  background: rgba(242, 246, 247, 0.72) !important;
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-}
-
-/* 1) 공지 게시판 (Board) 세부 글래스모피즘 */
-body.sky-bg-active .board-filter-btn {
-  background: rgba(242, 246, 247, 0.8) !important;
-  border: 1px solid rgba(0, 0, 0, 0.18) !important;
-  color: var(--color-black);
-}
-
-body.sky-bg-active .board-filter-btn.active {
-  background: var(--color-black) !important;
-  color: var(--color-paper) !important;
-}
-
-body.sky-bg-active .post-table-head {
-  background: rgba(242, 246, 247, 0.5) !important;
-  border-top: 1px solid rgba(0, 0, 0, 0.4) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.4) !important;
-}
-
-body.sky-bg-active .post-row {
-  background: transparent !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2) !important;
-}
-
-body.sky-bg-active .post-row:hover {
-  background: rgba(242, 246, 247, 0.55) !important;
-}
-
-/* 2) 주간 시간표 & 시정표 세부 글래스모피즘 */
-body.sky-bg-active .scroll table,
-body.sky-bg-active table {
-  background: transparent !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-}
-
-body.sky-bg-active thead th,
-body.sky-bg-active th:first-child {
-  background: rgba(242, 246, 247, 0.5) !important;
-  border: 1px solid rgba(0, 0, 0, 0.4) !important;
-  color: var(--color-black);
-}
-
-body.sky-bg-active td {
-  background: transparent !important;
-  border: 1px solid rgba(0, 0, 0, 0.2) !important;
-  color: var(--color-black);
-}
-
-body.sky-bg-active th.today,
-body.sky-bg-active td.today {
-  background: rgba(242, 246, 247, 0.8) !important;
-  border: 1.5px solid rgba(0, 0, 0, 0.4) !important;
-  font-weight: 700 !important;
-}
-
-body.sky-bg-active .todaylist > div {
-  background: rgba(242, 246, 247, 0.8) !important;
-  border: 1px solid rgba(0, 0, 0, 0.18) !important;
-}
-
-body.sky-bg-active .routine-tabs {
-  background: rgba(242, 246, 247, 0.8) !important;
-  border: 1px solid rgba(0, 0, 0, 0.18) !important;
-}
-
-body.sky-bg-active .routine-tab-btn {
-  color: var(--color-black);
-}
-
-body.sky-bg-active .routine-tab-btn.active {
-  background: var(--color-black) !important;
-  color: var(--color-paper) !important;
-}
-
-body.sky-bg-active .routine-rows > div {
-  background: rgba(242, 246, 247, 0.8) !important;
-  border: 1px solid rgba(0, 0, 0, 0.18) !important;
-}
-
-body.sky-bg-active .tag {
-  background: rgba(242, 246, 247, 0.3) !important;
-  border: 1px solid rgba(0, 0, 0, 0.18) !important;
-}
-
-body.sky-bg-active .picker,
-body.sky-bg-active .date-nav-wrap,
-body.sky-bg-active .meal-type-nav {
-  background: rgba(242, 246, 247, 0.8) !important;
-  border: 1px solid rgba(0, 0, 0, 0.18) !important;
-}
-
-
-/* 7. 글자 시인성 강화 (Readable Typography) */
-body.sky-bg-active .eyebrow,
-body.sky-bg-active .eyebrow-plain {
-  color: #111111;
-  font-weight: 800;
-}
-
-body.sky-bg-active .dash-card h3,
-body.sky-bg-active .dash-card h2,
-body.sky-bg-active .market-card-title,
-body.sky-bg-active .title h1#page-title {
-  color: var(--color-black);
-  font-weight: 700;
-}
-
-body.sky-bg-active .today-line {
-  background: rgba(242, 246, 247, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.18);
-}
-
-body.sky-bg-active .today-line.current {
-  background: var(--color-black);
-  color: var(--color-paper);
-}
-
-body.sky-bg-active .dash-link {
-  background: rgba(242, 246, 247, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  color: var(--color-black);
-}
-
-body.sky-bg-active .dash-link:hover {
-  background: var(--color-black);
-  color: var(--color-paper);
-}
-
-/* 8. Remaining light surfaces: keep nested controls translucent too.
-   The base UI uses warm paper/vellum colours; these overrides prevent those
-   surfaces from showing through as yellow when the live sky is enabled. */
-body.sky-bg-active .mobile-menu-toggle,
-body.sky-bg-active .drawer-panel,
-body.sky-bg-active .drawer-ext-item,
-body.sky-bg-active .nav-dropdown-menu,
-body.sky-bg-active .picker label,
-body.sky-bg-active .empty,
-body.sky-bg-active .market-empty-box,
-body.sky-bg-active .market-mobile-tabs,
-body.sky-bg-active .market-status-badge.status-closed,
-body.sky-bg-active .segments,
-body.sky-bg-active .mealday,
-body.sky-bg-active .editor-select,
-body.sky-bg-active input#post-title,
-body.sky-bg-active textarea#post-body,
-body.sky-bg-active .drawer-auth-container,
-body.sky-bg-active .drawer-auth-actions .btn-drawer-secondary,
-body.sky-bg-active .timer-phase-pill,
-body.sky-bg-active .timer-phase-pill.shortBreak,
-body.sky-bg-active .timer-phase-pill.longBreak,
-body.sky-bg-active .custom-time-config input,
-body.sky-bg-active .timer-progress-track,
-body.sky-bg-active .ambient-btn,
-body.sky-bg-active .timer-stats-single {
-  background: rgba(242, 246, 247, 0.72) !important;
-  border-color: rgba(23, 49, 76, 0.18) !important;
-}
-
-body.sky-bg-active .drawer-nav-item:not(.active):hover,
-body.sky-bg-active .nav-dropdown-menu button:not(.active):hover,
-body.sky-bg-active button.secondary:hover,
-body.sky-bg-active .btn-nav-profile:hover,
-body.sky-bg-active .title-name-edit-btn:hover {
-  background: rgba(242, 246, 247, 0.8) !important;
-}
-
-body.sky-bg-active .mealday.current {
-  background: rgba(242, 246, 247, 0.9) !important;
-  border: 1.5px solid rgba(0, 0, 0, 0.4) !important;
-}
-
-body.sky-bg-active .drawer-panel {
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-}
-
-body.sky-bg-active .nav-dropdown-menu {
-  backdrop-filter: blur(14px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-}
-
-/* Active controls deliberately remain dark for a clear state contrast. */
-body.sky-bg-active .timer-phase-pill.focus {
-  background: var(--color-black) !important;
-  color: var(--color-paper) !important;
-}
-
-body.sky-bg-active .ambient-btn.active {
-  background: var(--color-black) !important;
-  color: var(--color-paper) !important;
-  border-color: var(--color-black) !important;
-}
-
-/* These controls switch their text to paper on hover, so their sky-mode
-   base glass surface must not win over the dark hover state. */
-
-body.sky-bg-active .mobile-menu-toggle:hover,
-body.sky-bg-active .drawer-ext-item:hover,
-body.sky-bg-active .drawer-close-btn:hover {
-  background: var(--color-black) !important;
-  border-color: var(--color-black) !important;
-  color: var(--color-paper) !important;
-}
-
-body.sky-bg-active .drawer-close-btn,
-body.sky-bg-active .title-name-edit-btn {
-  border-color: rgba(0, 0, 0, 0.18) !important;
-}
-
-body.sky-bg-active .title-name-edit-btn:hover {
-  border-color: var(--color-black) !important;
-}
-
-/* Modal content needs an opaque reading surface rather than sky glass. */
-body.sky-bg-active #welcome {
-  --border-main: 1px solid var(--color-black);
-}
-
-body.sky-bg-active #welcome .welcome-card {
-  background: var(--color-paper) !important;
-  border-color: var(--color-black) !important;
-}
-
-body.sky-bg-active #welcome .welcome-guest-form input {
-  background: var(--color-paper) !important;
-}
-
-body.sky-bg-active #welcome .btn-welcome-guest {
-  background: var(--color-vellum) !important;
-}
-
-body.sky-bg-active #profile-modal {
-  --border-main: 1px solid var(--color-black);
-}
-
-body.sky-bg-active #profile-modal .modal-card,
-body.sky-bg-active #profile-modal .settings-tab-btn.active,
-body.sky-bg-active #profile-modal .setting-switch-row,
-body.sky-bg-active #profile-modal .ticker-search-dropdown {
-  background: var(--color-paper) !important;
-}
-
-body.sky-bg-active #profile-modal .settings-tab-bar,
-body.sky-bg-active #profile-modal .profile-info-box,
-body.sky-bg-active #profile-modal .profile-stock-status-badge,
-body.sky-bg-active #profile-modal .preset-chip {
-  background: var(--color-vellum) !important;
-}
-
-body.sky-bg-active #profile-modal input,
-body.sky-bg-active #profile-modal select {
-  background: var(--color-white) !important;
-}
-
-/* The sky supplies the separation between ordinary glass surfaces; faint
-   gray frames only add visual noise. Keep explicit grids and dark controls
-   intact, but remove those neutral surface borders. */
-body.sky-bg-active {
+  background-color: transparent;
+
+  /* 1. 배경 하늘이 선명하게 보이도록 shell은 완전 투명 */
+  .shell {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    min-height: 100vh;
+  }
+
+  /* 2. 헤더 및 푸터: 반투명 글래스 네비게이션 */
+  header {
+    background: rgba(242, 246, 247, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  footer {
+    background: rgba(242, 246, 247, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  /* 3. 상단 타이틀 영역: 은은한 글래스 플레이트 */
+  .title,
+  .mealbar {
+    background: rgba(242, 246, 247, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 14px 18px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+  }
+
+  .title p#date {
+    color: #2c2c2e;
+    font-weight: 600;
+  }
+
+  .top-class-badge {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    color: var(--color-black);
+  }
+
+  .top-class-badge:hover {
+    background: rgba(242, 246, 247, 0.9);
+    border-color: var(--color-black);
+  }
+
+  /* 4. 나우 카드 (지금 수업/일과): 다크 글래스모피즘 */
+  .now-card {
+    background: rgba(14, 17, 24, 0.76);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  .now-card h2 {
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .now-card p,
+  .now-card small,
+  .now-card .now-next {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  /* 5. 대시보드 및 시장 지표 카드: 프리미엄 라이트 글래스모피즘 */
+  .dash-card {
+    background: rgba(242, 246, 247, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .market-card {
+    background: rgba(242, 246, 247, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  /* 6. 금융 섹션 헤더: 글래스 스트립 */
+  .market-section-head {
+    background: rgba(242, 246, 247, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 10px 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    margin-bottom: 16px;
+  }
+
+  .market-refresh-btn {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    color: var(--color-black);
+    font-weight: 700;
+  }
+
+  .market-mob-tab {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+  }
+
+  .market-mob-tab.active {
+    background: var(--color-black);
+    color: var(--color-paper);
+  }
+
+  .timer-display-card {
+    background: rgba(242, 246, 247, 0.72);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  /* 타이머 상단 모드 바 및 컨트롤 */
+  .timer-mode-btn {
+    background: rgba(242, 246, 247, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: var(--color-black);
+  }
+
+  .timer-mode-btn:hover {
+    background: rgba(242, 246, 247, 0.8);
+  }
+
+  .timer-mode-btn.active {
+    background: var(--color-black);
+    color: var(--color-paper);
+  }
+
+  .custom-time-config {
+    background: rgba(242, 246, 247, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+  }
+
+  /* 브랜드 페이지 글래스모피즘 */
+  .brand-nav-bar {
+    background: rgba(242, 246, 247, 0.68);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    padding: 12px 18px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  .brand-hero-card {
+    background: rgba(242, 246, 247, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  .brand-story-title-row {
+    background: rgba(242, 246, 247, 0.68);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    padding: 14px 18px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    margin-bottom: 24px;
+  }
+
+  .brand-chapters-container {
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .brand-chapter-block {
+    background: rgba(242, 246, 247, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 28px 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  .brand-quote-box {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    border-left: 3px solid var(--color-black);
+  }
+
+  .brand-features-list {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+  }
+
+  .brand-epilogue-box {
+    background: rgba(14, 17, 24, 0.78);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  }
+
+  .brand-section-head {
+    background: rgba(242, 246, 247, 0.68);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    padding: 14px 18px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  .brand-color-main-card {
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  }
+
+  .brand-color-list-card,
+  .brand-typo-section {
+    background: rgba(242, 246, 247, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  .brand-bottom-bar {
+    background: rgba(242, 246, 247, 0.68);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    padding: 14px 18px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  /* 시간표, 방과후, 급식, 공지 등 공통 패널 & 글래스모피즘 */
+  .panel,
+  .todaycard,
+  .routine-board,
+  .board-wrap {
+    background: rgba(242, 246, 247, 0.72);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  /* 1) 공지 게시판 (Board) 세부 글래스모피즘 */
+  .board-filter-btn {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    color: var(--color-black);
+  }
+
+  .board-filter-btn.active {
+    background: var(--color-black);
+    color: var(--color-paper);
+  }
+
+  .post-table-head {
+    background: rgba(242, 246, 247, 0.5);
+    border-top: 1px solid rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+  }
+
+  .post-row {
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  }
+
+  .post-row:hover {
+    background: rgba(242, 246, 247, 0.55);
+  }
+
+  /* 2) 주간 시간표 시정표 세부 글래스모피즘 */
+  .scroll table,
+  table {
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  thead th,
+  th:first-child {
+    background: rgba(242, 246, 247, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.4);
+    color: var(--color-black);
+  }
+
+  td {
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    color: var(--color-black);
+  }
+
+  th.today,
+  td.today {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1.5px solid rgba(0, 0, 0, 0.4);
+    font-weight: 700;
+  }
+
+  .todaylist > div {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+  }
+
+  .routine-tabs {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+  }
+
+  .routine-tab-btn {
+    color: var(--color-black);
+  }
+
+  .routine-tab-btn.active {
+    background: var(--color-black);
+    color: var(--color-paper);
+  }
+
+  .routine-rows > div {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+  }
+
+  .tag {
+    background: rgba(242, 246, 247, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+  }
+
+
+  /* 7. 글자 시인성 강화 (Readable Typography) */
+  .eyebrow,
+  .eyebrow-plain {
+    color: #111111;
+    font-weight: 800;
+  }
+
+  .dash-card h3,
+  .dash-card h2,
+  .market-card-title,
+  .title h1#page-title {
+    color: var(--color-black);
+    font-weight: 700;
+  }
+
+  .today-line {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+  }
+
+  .today-line.current {
+    background: var(--color-black);
+    color: var(--color-paper);
+  }
+
+  .dash-link {
+    background: rgba(242, 246, 247, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    color: var(--color-black);
+  }
+
+  .dash-link:hover {
+    background: var(--color-black);
+    color: var(--color-paper);
+  }
+
+  /* 8. Remaining light surfaces: keep nested controls translucent too.
+    The base UI uses warm paper/vellum colours; these overrides prevent those
+    surfaces from showing through as yellow when the live sky is enabled. */
+  .mobile-menu-toggle,
+  .drawer-panel,
+  .drawer-ext-item,
+  .drawer-auth-container,
+  .drawer-auth-actions .btn-drawer-secondary,
+  .nav-dropdown-menu,
+  .empty,
+  .market-empty-box,
+  .market-mobile-tabs,
+  .market-status-badge.status-closed,
+  .segments,
+  .mealday,
+  .editor-select,
+  input#post-title,
+  textarea#post-body,
+  .timer-phase-pill,
+  .timer-phase-pill.shortBreak,
+  .timer-phase-pill.longBreak,
+  .timer-btn-sub:not(.active),
+  .custom-time-config input,
+  .timer-progress-track,
+  .ambient-btn,
+  .timer-stats-single {
+    background: rgba(242, 246, 247, 0.72);
+    border-color: rgba(23, 49, 76, 0.18);
+  }
+
+  .drawer-nav-item:not(.active):hover,
+  .nav-dropdown-menu button:not(.active):hover,
+  button.secondary:hover,
+  .btn-nav-profile:hover,
+  .title-name-edit-btn:hover {
+    background: rgba(242, 246, 247, 0.8);
+  }
+
+  .mealday.current {
+    background: rgba(242, 246, 247, 0.9);
+    border: 1.5px solid rgba(0, 0, 0, 0.4);
+  }
+
+  .drawer-panel {
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+  }
+
+  .nav-dropdown-menu {
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+  }
+
+  .now-card-percent {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .now-timer-toggle {
+    border-color: rgba(247, 246, 242, 0.3);
+    color: rgba(247, 246, 242, 0.78);
+  }
+
+  .now-timer-toggle:hover {
+    background: rgba(242, 246, 247, 0.72);
+    border-color: rgba(242, 246, 247, 0.72);
+    color: var(--color-black);
+  }
+
+  /* Active controls deliberately remain dark for a clear state contrast. */
+  .timer-phase-pill.focus {
+    background: var(--color-black);
+    color: var(--color-paper);
+  }
+
+  .ambient-btn.active {
+    background: var(--color-black);
+    color: var(--color-paper);
+    border-color: var(--color-black);
+  }
+
+  /* These controls switch their text to paper on hover, so their sky-mode
+    base glass surface must not win over the dark hover state. */
+
+  .mobile-menu-toggle:hover,
+  .drawer-ext-item:hover,
+  .drawer-close-btn:hover {
+    background: var(--color-black);
+    border-color: var(--color-black);
+    color: var(--color-paper);
+  }
+
+  .drawer-close-btn,
+  .title-name-edit-btn {
+    border-color: rgba(0, 0, 0, 0.18);
+  }
+
+  .title-name-edit-btn:hover {
+    border-color: var(--color-black);
+  }
+
+  .timer-btn-sub.active:hover {
+    background-color: var(--color-black);
+  }
+
+  /* Modal content needs an opaque reading surface rather than sky glass. */
+  #welcome {
+    --border-main: 1px solid var(--color-black);
+  }
+
+  #welcome .welcome-card {
+    background: var(--color-paper);
+    border-color: var(--color-black);
+  }
+
+  #welcome .welcome-guest-form input {
+    background: var(--color-paper);
+  }
+
+  #welcome .btn-welcome-guest {
+    background: var(--color-vellum);
+  }
+
+  #profile-modal {
+    --border-main: 1px solid var(--color-black);
+  }
+
+  #profile-modal .modal-card,
+  #profile-modal .settings-tab-btn.active,
+  #profile-modal .setting-switch-row,
+  #profile-modal .ticker-search-dropdown {
+    background: var(--color-paper);
+  }
+
+  #profile-modal .settings-tab-bar,
+  #profile-modal .profile-info-box,
+  #profile-modal .profile-stock-status-badge,
+  #profile-modal .preset-chip {
+    background: var(--color-vellum);
+  }
+
+  #profile-modal input,
+  #profile-modal select {
+    background: var(--color-white);
+  }
+
+  /* The sky supplies the separation between ordinary glass surfaces; faint
+    gray frames only add visual noise. Keep explicit grids and dark controls
+    intact, but remove those neutral surface borders. */
+
   --border-main: 1px solid rgba(0, 0, 0, 0.18);
-}
 
-body.sky-bg-active .dash-head,
-body.sky-bg-active .routine-board-head,
-body.sky-bg-active .market-card-header,
-body.sky-bg-active .now-top,
-body.sky-bg-active .now-next,
-body.sky-bg-active .dash-notice-item,
-body.sky-bg-active .market-card-footer,
-body.sky-bg-active .mealdate,
-body.sky-bg-active .ambient-vol-control,
-body.sky-bg-active .brand-hero-footer-bar,
-body.sky-bg-active .drawer-nav-item {
-  border-top-color: transparent !important;
-  border-bottom-color: transparent !important;
-}
+  .dash-head,
+  .routine-board-head,
+  .market-card-header,
+  .now-top,
+  .now-next,
+  .dash-notice-item,
+  .market-card-footer,
+  .mealdate,
+  .ambient-vol-control,
+  .brand-hero-footer-bar,
+  .drawer-nav-item {
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+  }
 
-/* 가독성 */
+  /* 가독성 */
 
-body.sky-bg-active {
   --color-telemetry: var(--color-graphite);
-}
 
-body.sky-bg-active .board-brand p {
-  color: rgba(0, 0, 0, 0.6) !important;
-}
+  .board-brand p {
+    color: rgba(0, 0, 0, 0.6);
+  }
 
-body.sky-bg-active .post-row b {
-  color: rgba(0, 0, 0, 0.4) !important;
+  .post-row b {
+    color: rgba(0, 0, 0, 0.4);
+  }
 }

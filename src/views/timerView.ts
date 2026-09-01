@@ -91,7 +91,7 @@ export function renderTimer(): void {
 
       <!-- 메인 타이머 그리드 -->
       <div class="timer-main-grid">
-        <article class="panel timer-display-card ${isZenMode ? "zen-mode" : ""}" id="timer-display-card">
+        <article class="panel timer-display-card" id="timer-display-card">
           <!-- 상단 헤더: 몰입 모드가 아닐 때만 표시 -->
           <div class="timer-card-top" id="timer-card-top">
             <span class="eyebrow">${isStopwatch ? "STOPWATCH" : "FOCUS TIMER"}</span>
@@ -534,11 +534,9 @@ function stopZenClock(): void {
 
 function enterZenMode(): void {
   isZenMode = true;
-  const card = $("#timer-display-card");
   const cardTop = $("#timer-card-top");
   const zenBtn = $("#btn-timer-zen");
 
-  if (card) card.classList.add("zen-mode");
   if (cardTop) cardTop.style.display = "none";
   if (zenBtn) zenBtn.classList.add("active");
   document.body.classList.add("zen-active");
@@ -547,11 +545,9 @@ function enterZenMode(): void {
 
 function exitZenMode(): void {
   isZenMode = false;
-  const card = $("#timer-display-card");
   const cardTop = $("#timer-card-top");
   const zenBtn = $("#btn-timer-zen");
 
-  if (card) card.classList.remove("zen-mode");
   if (cardTop) cardTop.style.display = "";
   if (zenBtn) zenBtn.classList.remove("active");
   document.body.classList.remove("zen-active");
