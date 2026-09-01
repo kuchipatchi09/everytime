@@ -3639,7 +3639,8 @@ body.now-fullscreen-active .market-card,
 body.now-fullscreen-active .market-mobile-tabs,
 body.now-fullscreen-active .market-cards-grid,
 body.now-fullscreen-active .market-empty-box,
-body.now-fullscreen-active .now-card {
+body.now-fullscreen-active .now-card,
+body.now-fullscreen-active .now-card2 {
   display: none !important;
 }
 
