@@ -75,15 +75,30 @@
             />
           </button>
           <nav class="desktop-nav">
-            <button data-tab="메인">메인</button
-            ><button data-tab="시간표">시간표</button
-            ><button data-tab="방과후">방과후</button
-            ><button data-tab="급식">급식</button
-            ><button data-tab="공지">공지</button
-            ><button data-tab="타이머">타이머</button
-            ><button data-tab="브랜드">브랜드</button
-            ><a href="https://community.qpi.digital/" target="_blank" rel="noopener noreferrer">커뮤니티 <sup>↗</sup></a
-            ><a href="https://www.cnshstudy.kro.kr/" target="_blank" rel="noopener noreferrer">예약 <sup>↗</sup></a>
+            <button data-tab="메인">메인</button>
+            <button data-tab="공지">공지</button>
+            <div class="nav-dropdown">
+              <button class="nav-dropdown-trigger" type="button" aria-expanded="false" aria-controls="school-life-menu">
+                학교생활 <span aria-hidden="true"></span>
+              </button>
+              <div class="nav-dropdown-menu" id="school-life-menu" role="menu">
+                <button type="button" data-tab="시간표" role="menuitem">시간표</button>
+                <button type="button" data-tab="방과후" role="menuitem">방과후</button>
+                <button type="button" data-tab="급식" role="menuitem">급식</button>
+                <a href="https://kuchipatchi09.github.io/reserve/" target="_blank" rel="noopener noreferrer" role="menuitem">예약 <sup>↗</sup></a>
+              </div>
+            </div>
+            <div class="nav-dropdown">
+              <button class="nav-dropdown-trigger" type="button" aria-expanded="false" aria-controls="etc-menu">
+                기타 <span aria-hidden="true"></span>
+              </button>
+              <div class="nav-dropdown-menu" id="etc-menu" role="menu">
+                <button type="button" data-tab="타이머" role="menuitem">타이머</button>
+                <button type="button" data-tab="금융 지표" role="menuitem">금융 지표</button>
+                <button type="button" data-tab="브랜드" role="menuitem">브랜드</button>
+              </div>
+            </div>
+            <a href="https://community.qpi.digital/" target="_blank" rel="noopener noreferrer">커뮤니티 <sup>↗</sup></a>
             <div class="nav-divider"></div>
             <div id="nav-auth-container" class="nav-auth-container"></div>
           </nav>
@@ -154,6 +169,11 @@
                 <span class="drawer-idx">07</span>
                 <span class="drawer-label">브랜드 스토리</span>
                 <span class="drawer-sub">Brand & Design</span>
+              </button>
+              <button class="drawer-nav-item" data-tab="금융 지표">
+                <span class="drawer-idx">08</span>
+                <span class="drawer-label">금융 지표</span>
+                <span class="drawer-sub">Finance Info</span>
               </button>
             </nav>
 

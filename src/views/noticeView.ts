@@ -11,13 +11,20 @@ const CATEGORIES: NoticeCategory[] = ["전체", "1학년", "2학년", "3학년"]
 export async function renderBoard(): Promise<void> {
   const content = $("#content");
   if (!content) return;
-  content.innerHTML = `<div class="empty">공지를 불러오는 중입니다...</div>`;
+  const loadingState = document.createElement("div");
+  loadingState.className = "empty";
+  loadingState.textContent = "공지를 불러오는 중입니다...";
+  content.replaceChildren(loadingState);
 
   try {
-    boardPosts = await fetchNotices();
+    const posts = await fetchNotices();
+    // Another tab (or a newer board render) has replaced this loading state.
+    if (!content.contains(loadingState)) return;
+    boardPosts = posts;
     renderBoardList();
   } catch (error) {
     console.error("renderBoard error:", error);
+    if (!content.contains(loadingState)) return;
     content.innerHTML = `
       <div class="empty">
         <p style="margin-bottom: 12px;">공지를 불러오지 못했습니다.</p>
