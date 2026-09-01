@@ -4487,22 +4487,3 @@ body.sky-bg-active.zen-active .timer-btn-sub {
 body.sky-bg-active.zen-active .timer-btn-sub.active {
   background: var(--color-black) !important;
 }
-
-@property --hue {
-  syntax: '<number>';
-  initial-value: 0;
-  inherits: false;
-}
-#unknown-future {
-  color: oklch(0.8 0.06 var(--hue)) !important;
-  animation: future-glow alternate linear infinite 1s;
-}
-
-@keyframes future-glow {
-  0% {
-    --hue: 0;
-  }
-  100% {
-    --hue: 360;
-  }
-}
