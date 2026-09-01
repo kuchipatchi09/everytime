@@ -719,6 +719,29 @@ button.back:hover {
   opacity: 0.9;
 }
 
+.now-time-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+}
+
+.now-card-percent {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-telemetry);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+
+body.sky-bg-active .now-card-percent {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+
 .now-card > p {
   font-family: var(--font-mono);
   font-size: 12px;
