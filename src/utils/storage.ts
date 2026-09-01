@@ -61,3 +61,36 @@ export function setSavedTickers(tickers: TickerConfigItem[]): void {
 export function resetSavedTickers(): void {
   localStorage.setItem(FINANCE_TICKERS_STORAGE_KEY, JSON.stringify(DEFAULT_FINANCE_TICKERS));
 }
+
+const SKY_BG_STORAGE_KEY = "asterisk_sky_bg_enabled";
+const SKY_PERF_STORAGE_KEY = "asterisk_sky_perf_enabled";
+
+export function getSavedSkyBg(): boolean {
+  const val = localStorage.getItem(SKY_BG_STORAGE_KEY);
+  return val !== null ? val === "true" : true; // 기본값: 활성화
+}
+
+export function setSavedSkyBg(enabled: boolean): void {
+  localStorage.setItem(SKY_BG_STORAGE_KEY, String(enabled));
+}
+
+export function getSavedSkyPerf(): boolean {
+  return localStorage.getItem(SKY_PERF_STORAGE_KEY) === "true";
+}
+
+export function setSavedSkyPerf(enabled: boolean): void {
+  localStorage.setItem(SKY_PERF_STORAGE_KEY, String(enabled));
+}
+
+const SKY_TIME_OFFSET_STORAGE_KEY = "asterisk_sky_time_offset";
+
+export function getSavedSkyTimeOffset(): number {
+  const val = localStorage.getItem(SKY_TIME_OFFSET_STORAGE_KEY);
+  return val !== null ? Number(val) : 0; // 기본값 0 (현재 실시간)
+}
+
+export function setSavedSkyTimeOffset(offset: number): void {
+  localStorage.setItem(SKY_TIME_OFFSET_STORAGE_KEY, String(offset));
+}
+
+

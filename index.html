@@ -57,7 +57,10 @@
     <meta name="apple-mobile-web-app-title" content="asterisk*" />
   </head>
   <body>
+    <!-- 실시간 천체 하늘 고정 배경 레이어 -->
+    <div id="sky-background" class="sky-background-container"></div>
     <div class="shell">
+
       <header>
         <div class="head">
           <button class="brand asterisk-brand" aria-label="asterisk 메인으로 이동">
@@ -269,7 +272,11 @@
             <button type="button" class="settings-tab-btn" data-settings-tab="stocks" role="tab" aria-selected="false">
               관심 주식 (3개)
             </button>
+            <button type="button" class="settings-tab-btn" data-settings-tab="appearance" role="tab" aria-selected="false">
+              화면 효과
+            </button>
           </div>
+
 
           <form id="profile-stock-form" class="profile-stock-form">
             <!-- 탭 1: 내 정보 설정 (이름, 학년, 반, 번호, 계정) -->
@@ -339,11 +346,12 @@
                   <span class="profile-label">Knoblab UID</span>
                   <span class="profile-val uid" id="profile-display-uid">-</span>
                 </div>
-                <div style="margin-top: 8px;">
-                  <button type="button" class="btn-danger btn-sm" id="profile-btn-logout" style="width: 100%;">로그아웃</button>
+                <div style="margin-top: 12px;">
+                  <button type="button" class="btn-profile-auth-action is-login" id="profile-btn-logout">Knoblab 계정으로 로그인</button>
                 </div>
               </div>
             </div>
+
 
             <!-- 탭 2: 관심 주식 & 대시보드 티커 설정 -->
             <div class="settings-tab-pane" id="tab-pane-stocks">
@@ -432,10 +440,98 @@
               </div>
             </div>
 
+            <!-- 탭 3: 화면 효과 & 배경 설정 -->
+            <div class="settings-tab-pane" id="tab-pane-appearance">
+              <div class="settings-section">
+                <div class="settings-section-header">
+                  <span class="eyebrow-plain">VISUAL & PERFORMANCE</span>
+                  <h3>화면 효과 및 배경 설정</h3>
+                </div>
+                <p class="profile-ticker-desc">
+                  메인 대시보드 화면에 적용되는 실시간 시뮬레이션 및 그래픽 설정을 조정합니다.
+                </p>
+
+                <div class="setting-switch-row">
+                  <div class="setting-switch-info">
+                    <span class="setting-switch-title">실시간 천체 하늘 배경 (Planetarium Sky)</span>
+                    <span class="setting-switch-desc">
+                      현재 시각에 맞춰 태양, 달, 은하수, 황혼이 메인 화면 배경에 실시간으로 펼쳐집니다. (끄면 렌더링 루프가 완전히 종료되어 배터리와 자원을 소모하지 않습니다)
+                    </span>
+                  </div>
+                  <label class="toggle-switch" aria-label="실시간 천체 하늘 배경 토글">
+                    <input type="checkbox" id="setting-sky-bg-toggle" checked />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="setting-switch-row">
+                  <div class="setting-switch-info">
+                    <span class="setting-switch-title">저사양 성능 최적화 모드</span>
+                    <span class="setting-switch-desc">
+                      블러 효과 및 고부하 그래픽 연산을 간소화하여 저사양 기기나 절전 환경에서 부드럽게 동작합니다.
+                    </span>
+                  </div>
+                  <label class="toggle-switch" aria-label="저사양 성능 최적화 모드 토글">
+                    <input type="checkbox" id="setting-sky-perf-toggle" />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="setting-switch-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                  <div class="setting-switch-info">
+                    <span class="setting-switch-title">배경 시뮬레이션 시간대 (GMT 1시간 단위)</span>
+                    <span class="setting-switch-desc">
+                      배경의 태양·달·은하수·낮밤 시뮬레이션 시간을 1시간 단위로 시프트합니다. (0 = 실시간 로컬 시각)
+                    </span>
+                  </div>
+                  <select id="setting-sky-offset-select" class="setting-select-box" style="
+                    width: 100%;
+                    padding: 8px 10px;
+                    background: var(--color-paper);
+                    border: var(--border-main);
+                    font-family: var(--font-mono);
+                    font-size: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                  ">
+                    <option value="0">⚡ 실시간 로컬 시간 (기본값 / GMT+9 한국)</option>
+                    <option value="1">+1시간 (GMT+10 / 시드니 등)</option>
+                    <option value="2">+2시간 (GMT+11)</option>
+                    <option value="3">+3시간 (GMT+12 / 오클랜드 등)</option>
+                    <option value="4">+4시간 (GMT+13)</option>
+                    <option value="5">+5시간 (GMT+14)</option>
+                    <option value="-1">-1시간 (GMT+8 / 베이징, 싱가포르 등)</option>
+                    <option value="-2">-2시간 (GMT+7 / 방콕, 하노이 등)</option>
+                    <option value="-3">-3시간 (GMT+6 / 다카 등)</option>
+                    <option value="-4">-4시간 (GMT+5 / 타슈켄트 등)</option>
+                    <option value="-5">-5시간 (GMT+4 / 두바이 등)</option>
+                    <option value="-6">-6시간 (GMT+3 / 모스크바, 리야드 등)</option>
+                    <option value="-7">-7시간 (GMT+2 / 아테네, 카이로 등)</option>
+                    <option value="-8">-8시간 (GMT+1 / 파리, 베를린 등)</option>
+                    <option value="-9">-9시간 (GMT+0 / 런던, UTC 등)</option>
+                    <option value="-10">-10시간 (GMT-1 / 카보베르데 등)</option>
+                    <option value="-11">-11시간 (GMT-2)</option>
+                    <option value="-12">-12시간 (GMT-3 / 상파울루 등)</option>
+                    <option value="-13">-13시간 (GMT-4 / 뉴욕, 토론토 등)</option>
+                    <option value="-14">-14시간 (GMT-5 / 시카고 등)</option>
+                    <option value="-15">-15시간 (GMT-6 / 덴버 등)</option>
+                    <option value="-16">-16시간 (GMT-7 / LA, 샌프란시스코 등)</option>
+                    <option value="-17">-17시간 (GMT-8 / 앵커리지 등)</option>
+                    <option value="-18">-18시간 (GMT-9 / 하와이 등)</option>
+                    <option value="-19">-19시간 (GMT-10)</option>
+                    <option value="-20">-20시간 (GMT-11 / 사모아 등)</option>
+                    <option value="-21">-21시간 (GMT-12)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+
             <!-- 통합 저장 버튼 -->
             <button type="submit" class="btn-profile-stock-submit" id="btn-profile-stock-submit">
               <span>설정 저장하기</span>
             </button>
+
           </form>
         </div>
       </div>

@@ -4,6 +4,8 @@
    Mobile-First Responsive Architecture
    ========================================================================== */
 
+@import "./sky.css";
+
 :root {
   --color-black: #000000;
   --color-carbon: #1C1C1E;
@@ -2488,7 +2490,47 @@ footer {
   color: var(--color-graphite);
 }
 
+.btn-profile-auth-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 18px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border: 1px solid var(--color-black);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-profile-auth-action.is-login {
+  background: var(--color-black);
+  color: var(--color-paper);
+  border-color: var(--color-black);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-profile-auth-action.is-login:hover {
+  background: #2c2c2e;
+  transform: translateY(-1px);
+}
+
+.btn-profile-auth-action.is-logout {
+  background: rgba(255, 59, 48, 0.08);
+  color: #d70015;
+  border: 1px solid rgba(255, 59, 48, 0.25);
+}
+
+.btn-profile-auth-action.is-logout:hover {
+  background: #d70015;
+  color: #ffffff;
+}
+
 .profile-modal-card {
+
   max-width: 480px;
   width: 100%;
   max-height: 90vh;
@@ -3399,6 +3441,513 @@ body.zen-active .zen-close-btn:hover {
   background: var(--color-black);
   color: var(--color-paper);
 }
+
+/* ==========================================================================
+   Planetarium Sky Background & Translucent Glassmorphism UI Styling
+   ========================================================================== */
+
+body.sky-bg-active {
+  background-color: transparent !important;
+}
+
+/* 1. 배경 하늘이 선명하게 보이도록 shell은 완전 투명 */
+body.sky-bg-active .shell {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  min-height: 100vh;
+}
+
+/* 2. 헤더 및 푸터: 반투명 글래스 네비게이션 */
+body.sky-bg-active header {
+  background: rgba(247, 246, 242, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+body.sky-bg-active footer {
+  background: rgba(247, 246, 242, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* 3. 상단 타이틀 영역: 은은한 글래스 플레이트 */
+body.sky-bg-active .title {
+  background: rgba(247, 246, 242, 0.65);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 14px 18px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+body.sky-bg-active .title p#date {
+  color: #2c2c2e;
+  font-weight: 600;
+}
+
+body.sky-bg-active .top-class-badge {
+  background: rgba(235, 233, 225, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  color: var(--color-black);
+}
+
+/* 4. 나우 카드 (지금 수업/일과): 다크 글래스모피즘 */
+body.sky-bg-active .now-card {
+  background: rgba(14, 17, 24, 0.76) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+body.sky-bg-active .now-card h2 {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+body.sky-bg-active .now-card p,
+body.sky-bg-active .now-card small,
+body.sky-bg-active .now-card .now-next {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* 5. 대시보드 및 시장 지표 카드: 프리미엄 라이트 글래스모피즘 */
+body.sky-bg-active .dash-card {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+body.sky-bg-active .market-card {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* 6. 금융 섹션 헤더: 글래스 스트립 */
+body.sky-bg-active .market-section-head {
+  background: rgba(247, 246, 242, 0.65);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 10px 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+}
+
+body.sky-bg-active .market-refresh-btn {
+  background: rgba(235, 233, 225, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  color: var(--color-black);
+  font-weight: 700;
+}
+
+body.sky-bg-active .market-mob-tab {
+  background: rgba(247, 246, 242, 0.75);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+body.sky-bg-active .market-mob-tab.active {
+  background: var(--color-black);
+  color: var(--color-paper);
+}
+
+body.sky-bg-active .timer-display-card,
+body.sky-bg-active .timer-side-card {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* 타이머 상단 모드 바 및 컨트롤 */
+body.sky-bg-active .timer-mode-btn {
+  background: rgba(247, 246, 242, 0.75) !important;
+  backdrop-filter: blur(12px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: var(--color-black);
+}
+
+body.sky-bg-active .timer-mode-btn.active {
+  background: var(--color-black) !important;
+  color: var(--color-paper) !important;
+}
+
+body.sky-bg-active .sound-btn {
+  background: rgba(235, 233, 225, 0.75) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: var(--color-black);
+}
+
+body.sky-bg-active .sound-btn.active {
+  background: var(--color-black) !important;
+  color: var(--color-paper) !important;
+}
+
+body.sky-bg-active .timer-record-box,
+body.sky-bg-active .custom-time-config {
+  background: rgba(235, 233, 225, 0.75) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+body.sky-bg-active .timer-action-btn {
+  background: rgba(235, 233, 225, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  color: var(--color-black);
+}
+
+body.sky-bg-active .timer-action-btn.btn-start {
+  background: var(--color-black);
+  color: var(--color-paper);
+}
+
+/* 브랜드 페이지 글래스모피즘 */
+body.sky-bg-active .brand-nav-bar {
+  background: rgba(247, 246, 242, 0.68) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  padding: 12px 18px !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+body.sky-bg-active .brand-hero-card {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+body.sky-bg-active .brand-story-title-row {
+  background: rgba(247, 246, 242, 0.68) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  padding: 14px 18px !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  margin-bottom: 24px;
+}
+
+body.sky-bg-active .brand-chapters-container {
+  border: none !important;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+body.sky-bg-active .brand-chapter-block {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  padding: 28px 24px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+body.sky-bg-active .brand-quote-box {
+  background: rgba(235, 233, 225, 0.75) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-left: 3px solid var(--color-black) !important;
+}
+
+body.sky-bg-active .brand-features-list {
+  background: rgba(235, 233, 225, 0.75) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+body.sky-bg-active .brand-epilogue-box {
+  background: rgba(14, 17, 24, 0.78) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+body.sky-bg-active .brand-section-head {
+  background: rgba(247, 246, 242, 0.68) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  padding: 14px 18px !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+body.sky-bg-active .brand-color-main-card {
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+body.sky-bg-active .brand-color-list-card,
+body.sky-bg-active .brand-typo-section {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+body.sky-bg-active .brand-bottom-bar {
+  background: rgba(247, 246, 242, 0.68) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  padding: 14px 18px !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+/* 시간표, 방과후, 급식, 공지 등 공통 패널 & 글래스모피즘 */
+body.sky-bg-active .panel,
+body.sky-bg-active .todaycard,
+body.sky-bg-active .routine-board,
+body.sky-bg-active .meal-card-full,
+body.sky-bg-active .notice-card-full,
+body.sky-bg-active .notice-detail-card,
+body.sky-bg-active .afterschool-card,
+body.sky-bg-active .board-wrap,
+body.sky-bg-active .post-write-wrap {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* 1) 공지 게시판 (Board) 세부 글래스모피즘 */
+body.sky-bg-active .board-filter-btn {
+  background: rgba(235, 233, 225, 0.75) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: var(--color-black);
+}
+
+body.sky-bg-active .board-filter-btn.active {
+  background: var(--color-black) !important;
+  color: var(--color-paper) !important;
+}
+
+body.sky-bg-active .post-table-head {
+  background: rgba(235, 233, 225, 0.6) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+body.sky-bg-active .post-row {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+body.sky-bg-active .post-row:hover {
+  background: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* 2) 주간 시간표 & 시정표 세부 글래스모피즘 */
+body.sky-bg-active .scroll table,
+body.sky-bg-active table {
+  background: transparent !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+body.sky-bg-active thead th,
+body.sky-bg-active th:first-child {
+  background: rgba(235, 233, 225, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: var(--color-black);
+}
+
+body.sky-bg-active td {
+  background: rgba(255, 255, 255, 0.55) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: var(--color-black);
+}
+
+body.sky-bg-active th.today,
+body.sky-bg-active td.today {
+  background: rgba(228, 226, 216, 0.88) !important;
+  border: 1.5px solid rgba(0, 0, 0, 0.3) !important;
+  font-weight: 700 !important;
+}
+
+body.sky-bg-active .todaylist > div {
+  background: rgba(235, 233, 225, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+body.sky-bg-active .routine-tabs {
+  background: rgba(235, 233, 225, 0.75) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+body.sky-bg-active .routine-tab-btn {
+  color: var(--color-black);
+}
+
+body.sky-bg-active .routine-tab-btn.active {
+  background: var(--color-black) !important;
+  color: var(--color-paper) !important;
+}
+
+body.sky-bg-active .routine-rows > div {
+  background: rgba(247, 246, 242, 0.55) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+body.sky-bg-active .picker,
+body.sky-bg-active .date-nav-wrap,
+body.sky-bg-active .meal-type-nav {
+  background: rgba(247, 246, 242, 0.75) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+
+/* 7. 글자 시인성 강화 (Readable Typography) */
+body.sky-bg-active .eyebrow,
+body.sky-bg-active .eyebrow-plain {
+  color: #111111;
+  font-weight: 800;
+}
+
+body.sky-bg-active .dash-card h3,
+body.sky-bg-active .dash-card h2,
+body.sky-bg-active .market-card-title,
+body.sky-bg-active .title h1#page-title {
+  color: var(--color-black);
+  font-weight: 700;
+}
+
+body.sky-bg-active .today-line {
+  background: rgba(235, 233, 225, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.sky-bg-active .today-line.current {
+  background: var(--color-black);
+  color: var(--color-paper);
+}
+
+body.sky-bg-active .dash-link {
+  background: rgba(235, 233, 225, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  color: var(--color-black);
+}
+
+body.sky-bg-active .dash-link:hover {
+  background: var(--color-black);
+  color: var(--color-paper);
+}
+
+
+
+
+
+
+/* 설정 모달 내 토글 스위치 행 */
+.setting-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--color-paper);
+  border: var(--border-main);
+  gap: 12px;
+}
+
+.setting-switch-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.setting-switch-title {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.setting-switch-desc {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-graphite);
+  line-height: 1.4;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-silver);
+  border: 1px solid var(--color-graphite);
+  transition: 0.2s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-graphite);
+  transition: 0.2s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: var(--color-black);
+  border-color: var(--color-black);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+  background-color: var(--color-paper);
+  border-color: var(--color-black);
+}
+
 
 
 
