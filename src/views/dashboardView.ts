@@ -290,7 +290,7 @@ export async function renderDashboard(
 
         <div class="now-fs-footer">
           <span class="now-fs-next-label">
-            ${g === "3" ? `다음 <strong id="unknown-future">???</strong>` : `다음 <strong>${parseInt(g)+1}학년</strong>`}
+            ${g === "3" ? `다음 <strong>???</strong>` : `다음 <strong>${parseInt(g)+1}학년</strong>`}
           </span>
         </div>
       </div>
