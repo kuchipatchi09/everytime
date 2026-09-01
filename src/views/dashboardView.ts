@@ -62,14 +62,14 @@ function startNowCardContinuousTicker(
     const percentEl = document.getElementById("now-card-percent");
     const barEl = document.getElementById("now-card-progress-bar");
 
+    const rem2El = document.getElementById("now-card-remaining2");
+    const percent2El = document.getElementById("now-card-percent2");
+    const bar2El = document.getElementById("now-card-progress-bar2");
+
     const fsClockEl = document.getElementById("now-fs-clock");
     const fsRemEl = document.getElementById("now-fs-remaining");
     const fsPercentEl = document.getElementById("now-fs-percent");
     const fsBarEl = document.getElementById("now-fs-progress-bar");
-
-    const fsRem2El = document.getElementById("now-fs-remaining2");
-    const fsPercent2El = document.getElementById("now-fs-percent2");
-    const fsBar2El = document.getElementById("now-fs-progress-bar2");
 
     if (!remEl && !percentEl && !barEl && !fsClockEl) {
       stopNowCardContinuousTicker();
@@ -135,9 +135,9 @@ function startNowCardContinuousTicker(
     }
 
     // 전체화면 독 갱신 2
-    if (fsRem2El) fsRem2El.textContent = `종료까지 ${remainingMin2}분`;
-    if (fsPercent2El) fsPercent2El.textContent = `${progress2.toFixed(7)}%`;
-    if (fsBar2El) fsBar2El.style.width = `${progress2.toFixed(7)}%`;
+    if (rem2El) rem2El.textContent = `종료까지 ${remainingMin2}분`;
+    if (percent2El) percent2El.textContent = `${progress2.toFixed(7)}%`;
+    if (bar2El) bar2El.style.width = `${progress2.toFixed(7)}%`;
   }, 50); // 50ms 주기 고정폭 셋째자리 정밀 틱
 }
 
@@ -271,28 +271,6 @@ export async function renderDashboard(
             ${next ? `다음 일과 <strong>${next[2]} · ${next[0]}</strong>` : "오늘 일과가 끝났습니다."}
           </span>
         </div>
-
-        <div class="now-fs-body">
-          <div class="now-fs-title-box">
-            <h1 class="now-fs-subject">${g}학년</h1>
-            <span class="now-fs-class">${theYear}. 3. 2. 00:00 - ${theYear+1}. 1. 1. 00:00</span>
-          </div>
-          <div class="now-fs-stats-box">
-            <strong class="now-fs-remaining" id="now-fs-remaining2">${remainingSec > 0 ? `종료까지 ${remainingMin2}분` : "진행 중"}</strong>
-            <span class="now-fs-percent" id="now-fs-percent2">${progress2.toFixed(7)}%</span>
-          </div>
-        </div>
-
-        <!-- 작고 긴 진척도 바 -->
-        <div class="now-fs-progress-track">
-          <div class="now-fs-progress-fill" id="now-fs-progress-bar2" style="width:${progress2.toFixed(7)}%;"></div>
-        </div>
-
-        <div class="now-fs-footer">
-          <span class="now-fs-next-label">
-            ${g === "3" ? `다음 <strong>???</strong>` : `다음 <strong>${parseInt(g)+1}학년</strong>`}
-          </span>
-        </div>
       </div>
 
 
@@ -314,10 +292,7 @@ export async function renderDashboard(
           ${next ? `다음 일과 <strong>${next[2]} · ${next[0]}</strong>` : "오늘 일과가 끝났습니다."}
         </div>
       </article>
-
-
-
-
+      
       <article class="dash-card weather-card" id="weather-card">
         <span class="eyebrow">LIVE WEATHER</span>
         <div class="weather-main"><strong>—°</strong></div>
@@ -355,7 +330,7 @@ export async function renderDashboard(
       </article>
 
       <!-- 관심 금융 지표 카드 섹션 (최대 3개) -->
-      <section class="dash-market-section">
+      ` /* <section class="dash-market-section">
         <div class="market-section-head">
           <div>
             <span class="eyebrow-plain">asterisk* Finance Info</span>
@@ -430,7 +405,26 @@ export async function renderDashboard(
           </div>
         `
         }
-      </section>
+      </section> */ + `
+
+      <article class="now-card2" id="now-card2" role="button" tabindex="0" title="전체화면으로 보기 (클릭)">
+        <div class="now-top">
+          <span><i class="now-dot"></i>현황</span>
+          <div class="now-time-stat">
+            <b id="now-card-remaining2">종료까지 ${remainingMin2}분</b>
+            <span id="now-card-percent2" class="now-card-percent">${progress2.toFixed(7)}%</span>
+          </div>
+        </div>
+        <p>${theYear}. 3. 2. – ${theYear}. 12. 31.</p>
+        <h2>${g}학년</h2>
+        <small>${g}학년 ${c}반</small>
+        <div class="routine-progress">
+          <span id="now-card-progress-bar2" style="width:${progress2.toFixed(7)}%;"></span>
+        </div>
+        <div class="now-next">
+          ${g === "3" ? `다음 <strong>???</strong>` : `다음 <strong>${parseInt(g)+1}학년</strong>`}
+        </div>
+      </article>
     </section>`;
 
   $("#now-card")?.addEventListener("click", () => enterNowFullscreen());
@@ -445,7 +439,7 @@ export async function renderDashboard(
 
   $("#dash-meal-btn")?.addEventListener("click", () => onNavigateTab("급식"));
   $("#dash-timetable-btn")?.addEventListener("click", () => onNavigateTab("시간표"));
-  $("#market-refresh-btn")?.addEventListener("click", () => handleMarketManualRefresh());
+  // $("#market-refresh-btn")?.addEventListener("click", () => handleMarketManualRefresh());
 
 
   // 모바일 시장 지표 1개씩 전환 탭 이벤트
@@ -475,7 +469,7 @@ export async function renderDashboard(
 }
 
 
-async function handleMarketManualRefresh(): Promise<void> {
+/* async function handleMarketManualRefresh(): Promise<void> {
   const marketItems = getSavedTickers();
   if (marketItems.length === 0) return;
   if (remainingSeconds > 0) return;
@@ -486,7 +480,7 @@ async function handleMarketManualRefresh(): Promise<void> {
   }
   await loadAllMarketCards(marketItems);
   startMarketCooldown();
-}
+} */
 
 function startMarketCooldown(): void {
   const btn = document.getElementById("market-refresh-btn") as HTMLButtonElement | null;
