@@ -20,11 +20,68 @@ let marketCharts: Record<string, Chart> = {};
 const TIMEOUT_SEC = 30; // 30초 쿨다운
 let cooldownTimer: number | null = null;
 let remainingSeconds = 0;
+let nowCardTicker: number | null = null;
+
+
+export function stopNowCardContinuousTicker(): void {
+  if (nowCardTicker) {
+    clearInterval(nowCardTicker);
+    nowCardTicker = null;
+  }
+}
+
+function startNowCardContinuousTicker(
+  active: [string, string, string],
+  onReload: () => void
+): void {
+  stopNowCardContinuousTicker();
+
+  nowCardTicker = window.setInterval(() => {
+    const remEl = document.getElementById("now-card-remaining");
+    const barEl = document.getElementById("now-card-progress-bar");
+    if (!remEl && !barEl) {
+      stopNowCardContinuousTicker();
+      return;
+    }
+
+    const now = new Date();
+    const isAfterMidnight = now.getHours() === 0 && now.getMinutes() < 30;
+    const currentSec =
+      now.getHours() * 3600 +
+      now.getMinutes() * 60 +
+      now.getSeconds() +
+      (isAfterMidnight ? 24 * 3600 : 0);
+
+    const startSec = toMinutes(active[0]) * 60;
+    const endSec = toMinutes(active[1]) * 60;
+    const durationSec = Math.max(1, endSec - startSec);
+    const remainingSec = endSec - currentSec;
+
+    // 만약 현재 교시 범위를 벗어나면 다음 교시로 대시보드 갱신
+    if (remainingSec <= 0 || currentSec < startSec) {
+      stopNowCardContinuousTicker();
+      onReload();
+      return;
+    }
+
+    const remainingMin = Math.ceil(remainingSec / 60);
+    const progress = Math.min(100, Math.max(0, ((currentSec - startSec) / durationSec) * 100));
+
+    if (remEl) {
+      remEl.textContent = `종료까지 ${remainingMin}분`;
+    }
+    if (barEl) {
+      barEl.style.width = `${progress.toFixed(2)}%`;
+    }
+  }, 1000);
+}
 
 export async function renderDashboard(
   onNavigateTab: (tab: string) => void,
   onOpenNoticeDetail: (index: number) => void
 ): Promise<void> {
+  stopNowCardContinuousTicker();
+
   // 이전 차트 정리
   Object.values(marketCharts).forEach((chart) => {
     try {
@@ -41,10 +98,13 @@ export async function renderDashboard(
   const today = currentDayOfWeek ? DEFAULT_TIMETABLE[g][c][currentDayOfWeek] : [];
 
   const isAfterMidnightRoutine = now.getHours() === 0 && now.getMinutes() < 30;
-  const minutes =
-    now.getHours() * 60 +
-    now.getMinutes() +
-    (isAfterMidnightRoutine ? 24 * 60 : 0);
+  const currentSec =
+    now.getHours() * 3600 +
+    now.getMinutes() * 60 +
+    now.getSeconds() +
+    (isAfterMidnightRoutine ? 24 * 3600 : 0);
+  const minutes = currentSec / 60;
+
   const routineDay = isAfterMidnightRoutine
     ? (now.getDay() + 6) % 7
     : now.getDay();
@@ -77,12 +137,16 @@ export async function renderDashboard(
     }
   }
 
-  const remaining = Math.max(0, toMinutes(active[1]) - minutes);
+  const startSec = toMinutes(active[0]) * 60;
+  const endSec = toMinutes(active[1]) * 60;
+  const durationSec = Math.max(1, endSec - startSec);
+  const remainingSec = Math.max(0, endSec - currentSec);
+  const remainingMin = Math.ceil(remainingSec / 60);
+
   const next = items[items.indexOf(active) + 1];
-  const duration = Math.max(1, toMinutes(active[1]) - toMinutes(active[0]));
   const progress = Math.min(
     100,
-    Math.max(3, ((minutes - toMinutes(active[0])) / duration) * 100)
+    Math.max(0, ((currentSec - startSec) / durationSec) * 100)
   );
   const times = [
     "08:40",
@@ -99,16 +163,19 @@ export async function renderDashboard(
       <article class="now-card">
         <div class="now-top">
           <span><i class="now-dot"></i>지금 ${activityType}</span>
-          <b>${remaining ? `종료까지 ${remaining}분` : "진행 중"}</b>
+          <b id="now-card-remaining">${remainingSec > 0 ? `종료까지 ${remainingMin}분` : "진행 중"}</b>
         </div>
         <p>${active[2]} · ${active[0]}–${active[1]}</p>
         <h2>${esc(activityName)}</h2>
         <small>${g}학년 ${c}반</small>
-        <div class="routine-progress"><span style="width:${progress}%"></span></div>
+        <div class="routine-progress">
+          <span id="now-card-progress-bar" style="width:${progress.toFixed(2)}%; transition: width 0.5s linear;"></span>
+        </div>
         <div class="now-next">
           ${next ? `다음 일과 <strong>${next[2]} · ${next[0]}</strong>` : "오늘 일과가 끝났습니다."}
         </div>
       </article>
+
 
       <article class="dash-card weather-card" id="weather-card">
         <span class="eyebrow">LIVE WEATHER</span>
@@ -250,7 +317,11 @@ export async function renderDashboard(
     loadAllMarketCards(marketItems);
     startMarketCooldown();
   }
+
+  // 실시간 연속 갱신 타이커 가동 (초 단위 정밀 계산 & 진행바 부드러운 애니메이션)
+  startNowCardContinuousTicker(active, () => renderDashboard(onNavigateTab, onOpenNoticeDetail));
 }
+
 
 async function handleMarketManualRefresh(): Promise<void> {
   const marketItems = getSavedTickers();

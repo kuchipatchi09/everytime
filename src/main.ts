@@ -12,7 +12,7 @@ import {
 } from "./utils/storage";
 import { checkAuth, getAuthUser, loginWithKnoblab, logout, onAuthStateChange } from "./utils/auth";
 import { TickerConfigItem } from "./types/market";
-import { renderDashboard } from "./views/dashboardView";
+import { renderDashboard, stopNowCardContinuousTicker } from "./views/dashboardView";
 import { renderTimetable } from "./views/timetableView";
 import { renderAfterschool } from "./views/afterschoolView";
 import { renderMeals, setMealCode } from "./views/mealView";
@@ -22,6 +22,7 @@ import { renderTimer } from "./views/timerView";
 import { ClassNumber, GradeNumber } from "./types/timetable";
 import { MealCode } from "./types/meal";
 import { getCachedWeatherCode, getWeatherGreeting } from "./constants/weatherGreetings";
+import { skyBackgroundService } from "./services/skyBackgroundService";
 
 export type TabName = "메인" | "시간표" | "방과후" | "급식" | "공지" | "타이머" | "브랜드";
 
@@ -29,7 +30,16 @@ let currentTab: TabName = "메인";
 
 export function switchTab(tab: TabName, updateUrl = true): void {
   currentTab = tab;
+  stopNowCardContinuousTicker();
+
+  // 모든 탭에서 배경이 매끄럽게 동작하도록 유지
+  if (skyBackgroundService.getIsEnabled()) {
+    skyBackgroundService.resume();
+  }
+
   const pageTitle = $("#page-title");
+
+
   const titleContainer = document.querySelector<HTMLElement>(".title");
   const topClassBadge = document.querySelector<HTMLElement>("#top-class-badge");
   
@@ -240,12 +250,13 @@ export function openProfileModal(): void {
   if (logoutBtn) {
     if (user) {
       logoutBtn.textContent = "로그아웃";
-      logoutBtn.className = "btn-danger";
+      logoutBtn.className = "btn-profile-auth-action is-logout";
     } else {
-      logoutBtn.textContent = "Knoblab 로그인";
-      logoutBtn.className = "btn-submit";
+      logoutBtn.textContent = "Knoblab 계정으로 로그인";
+      logoutBtn.className = "btn-profile-auth-action is-login";
     }
   }
+
 
   loadProfileStockData();
 
@@ -364,6 +375,16 @@ async function loadProfileStockData(): Promise<void> {
   if (ticker2Input && !ticker2Input.value && localTickers[1]) ticker2Input.value = localTickers[1].symbol;
   if (ticker3Input && !ticker3Input.value && localTickers[2]) ticker3Input.value = localTickers[2].symbol;
 
+  // 화면 효과 스위치 및 시간 오프셋 동기화
+  const skyBgToggle = $<HTMLInputElement>("#setting-sky-bg-toggle");
+  const skyPerfToggle = $<HTMLInputElement>("#setting-sky-perf-toggle");
+  const skyOffsetSelect = $<HTMLSelectElement>("#setting-sky-offset-select");
+  if (skyBgToggle) skyBgToggle.checked = skyBackgroundService.getIsEnabled();
+  if (skyPerfToggle) skyPerfToggle.checked = skyBackgroundService.getIsPerfMode();
+  if (skyOffsetSelect) skyOffsetSelect.value = String(skyBackgroundService.getTimeOffset());
+
+
+
   if (!user) {
     if (statusBadge) {
       statusBadge.textContent = "게스트 모드 (로컬 설정)";
@@ -472,7 +493,44 @@ function initProfileModal(): void {
     });
   });
 
+  // 1-1. 화면 효과 및 저사양 성능 모드 스위치 이벤트
+  const skyBgToggle = $<HTMLInputElement>("#setting-sky-bg-toggle");
+  const skyPerfToggle = $<HTMLInputElement>("#setting-sky-perf-toggle");
+
+  skyBgToggle?.addEventListener("change", () => {
+    const isChecked = skyBgToggle.checked;
+    skyBackgroundService.toggle(isChecked);
+    showToast(
+      isChecked
+        ? "실시간 천체 하늘 배경이 켜졌습니다."
+        : "천체 하늘 배경이 완전히 꺼졌습니다 (렌더링 루프 종료)."
+    );
+  });
+
+  skyPerfToggle?.addEventListener("change", () => {
+    const isChecked = skyPerfToggle.checked;
+    skyBackgroundService.setPerfMode(isChecked);
+    showToast(
+      isChecked
+        ? "저사양 성능 최적화 모드가 켜졌습니다."
+        : "저사양 성능 모드가 꺼졌습니다."
+    );
+  });
+
+  const skyOffsetSelect = $<HTMLSelectElement>("#setting-sky-offset-select");
+  skyOffsetSelect?.addEventListener("change", () => {
+    const offset = Number(skyOffsetSelect.value);
+    skyBackgroundService.setTimeOffset(offset);
+    showToast(
+      offset === 0
+        ? "실시간 로컬 시각(한국 기준)으로 동기화되었습니다."
+        : `배경 시뮬레이션 시간대가 ${offset > 0 ? `+${offset}` : offset}시간으로 변경되었습니다.`
+    );
+  });
+
+
   // 2. 입력창마다 인라인 자동완성 검색 드롭다운 연결
+
   const tickerSlots = [
     {
       input: ticker1Input,
@@ -719,7 +777,7 @@ export function updateAuthUI(): void {
   if (navContainer) {
     if (user) {
       navContainer.innerHTML = `
-        <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="계정 정보 (${esc(user.email || user.uid)})">
+        <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="환경설정 (${esc(user.email || user.uid)})">
           <span class="btn-nav-profile-dot"></span>
           <span>${esc(savedName)}</span>
         </button>
@@ -727,21 +785,20 @@ export function updateAuthUI(): void {
       $("#btn-nav-profile")?.addEventListener("click", () => openProfileModal());
     } else {
       navContainer.innerHTML = `
-        <button type="button" class="btn-nav-name-edit" id="btn-nav-name-edit" title="이름 변경">
+        <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="환경설정 (내 정보 / 관심 주식 / 화면 효과)">
+          <span class="btn-nav-profile-dot" style="background: var(--color-graphite);"></span>
           <span>${esc(savedName)}</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; opacity: 0.7;">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
         </button>
-        <button type="button" class="btn-nav-login" id="btn-nav-login" title="Knoblab 계정으로 로그인">
-          <span>로그인</span>
-        </button>
       `;
-      $("#btn-nav-name-edit")?.addEventListener("click", () => openNameChangeModal());
-      $("#btn-nav-login")?.addEventListener("click", () => loginWithKnoblab());
+      $("#btn-nav-profile")?.addEventListener("click", () => openProfileModal());
     }
   }
+
+
 
   // 모바일 드로어
   if (drawerContainer) {
@@ -909,11 +966,15 @@ function initDateDisplay(): void {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const skyContainer = document.getElementById("sky-background");
+  skyBackgroundService.init(skyContainer);
+
   initDateDisplay();
   initTopClassBadge();
   initWelcomeModal();
   initNameChangeModal();
   initProfileModal();
+
   updateAuthUI();
   onAuthStateChange(async (user) => {
     if (!getSavedName() && user?.email) {
