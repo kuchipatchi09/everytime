@@ -38,43 +38,48 @@ function startNowCardContinuousTicker(
 
   nowCardTicker = window.setInterval(() => {
     const remEl = document.getElementById("now-card-remaining");
+    const percentEl = document.getElementById("now-card-percent");
     const barEl = document.getElementById("now-card-progress-bar");
-    if (!remEl && !barEl) {
+    if (!remEl && !percentEl && !barEl) {
       stopNowCardContinuousTicker();
       return;
     }
 
     const now = new Date();
     const isAfterMidnight = now.getHours() === 0 && now.getMinutes() < 30;
-    const currentSec =
-      now.getHours() * 3600 +
-      now.getMinutes() * 60 +
-      now.getSeconds() +
-      (isAfterMidnight ? 24 * 3600 : 0);
+    const currentMs =
+      (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) * 1000 +
+      now.getMilliseconds() +
+      (isAfterMidnight ? 24 * 3600 * 1000 : 0);
 
-    const startSec = toMinutes(active[0]) * 60;
-    const endSec = toMinutes(active[1]) * 60;
-    const durationSec = Math.max(1, endSec - startSec);
-    const remainingSec = endSec - currentSec;
+    const startMs = toMinutes(active[0]) * 60 * 1000;
+    const endMs = toMinutes(active[1]) * 60 * 1000;
+    const durationMs = Math.max(1, endMs - startMs);
+    const remainingMs = endMs - currentMs;
+    const elapsedMs = currentMs - startMs;
 
     // 만약 현재 교시 범위를 벗어나면 다음 교시로 대시보드 갱신
-    if (remainingSec <= 0 || currentSec < startSec) {
+    if (remainingMs <= 0 || currentMs < startMs) {
       stopNowCardContinuousTicker();
       onReload();
       return;
     }
 
-    const remainingMin = Math.ceil(remainingSec / 60);
-    const progress = Math.min(100, Math.max(0, ((currentSec - startSec) / durationSec) * 100));
+    const remainingMin = Math.ceil(remainingMs / 60000);
+    const progress = Math.min(100, Math.max(0, (elapsedMs / durationMs) * 100));
 
     if (remEl) {
       remEl.textContent = `종료까지 ${remainingMin}분`;
     }
-    if (barEl) {
-      barEl.style.width = `${progress.toFixed(2)}%`;
+    if (percentEl) {
+      percentEl.textContent = `${progress.toFixed(3)}%`;
     }
-  }, 1000);
+    if (barEl) {
+      barEl.style.width = `${progress.toFixed(3)}%`;
+    }
+  }, 50); // 50ms 주기 고정폭 셋째자리 정밀 틱
 }
+
 
 export async function renderDashboard(
   onNavigateTab: (tab: string) => void,
@@ -163,18 +168,22 @@ export async function renderDashboard(
       <article class="now-card">
         <div class="now-top">
           <span><i class="now-dot"></i>지금 ${activityType}</span>
-          <b id="now-card-remaining">${remainingSec > 0 ? `종료까지 ${remainingMin}분` : "진행 중"}</b>
+          <div class="now-time-stat">
+            <b id="now-card-remaining">${remainingSec > 0 ? `종료까지 ${remainingMin}분` : "진행 중"}</b>
+            <span id="now-card-percent" class="now-card-percent">${progress.toFixed(3)}%</span>
+          </div>
         </div>
         <p>${active[2]} · ${active[0]}–${active[1]}</p>
         <h2>${esc(activityName)}</h2>
         <small>${g}학년 ${c}반</small>
         <div class="routine-progress">
-          <span id="now-card-progress-bar" style="width:${progress.toFixed(2)}%; transition: width 0.5s linear;"></span>
+          <span id="now-card-progress-bar" style="width:${progress.toFixed(3)}%;"></span>
         </div>
         <div class="now-next">
           ${next ? `다음 일과 <strong>${next[2]} · ${next[0]}</strong>` : "오늘 일과가 끝났습니다."}
         </div>
       </article>
+
 
 
       <article class="dash-card weather-card" id="weather-card">
