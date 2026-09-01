@@ -12,7 +12,7 @@ import {
 } from "./utils/storage";
 import { checkAuth, getAuthUser, loginWithKnoblab, logout, onAuthStateChange } from "./utils/auth";
 import { TickerConfigItem } from "./types/market";
-import { renderDashboard, stopNowCardContinuousTicker } from "./views/dashboardView";
+import { renderDashboard, stopNowCardContinuousTicker, exitNowFullscreen } from "./views/dashboardView";
 import { renderTimetable } from "./views/timetableView";
 import { renderAfterschool } from "./views/afterschoolView";
 import { renderMeals, setMealCode } from "./views/mealView";
@@ -31,6 +31,8 @@ let currentTab: TabName = "메인";
 export function switchTab(tab: TabName, updateUrl = true): void {
   currentTab = tab;
   stopNowCardContinuousTicker();
+  exitNowFullscreen();
+
 
   // 모든 탭에서 배경이 매끄럽게 동작하도록 유지
   if (skyBackgroundService.getIsEnabled()) {
@@ -965,7 +967,81 @@ function initDateDisplay(): void {
   setMealCode(defaultMealCode);
 }
 
+function preventAccidentalZoom(): void {
+
+  // 1. 트랙패드 핀치 줌 & 마우스 휠 줌(Ctrl+Wheel) 차단
+  window.addEventListener(
+    "wheel",
+    (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  // 2. 모바일 멀티 터치 핀치 줌 차단
+  window.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  // 3. iOS Safari 제스처 줌 차단
+  document.addEventListener(
+    "gesturestart",
+    (e) => {
+      e.preventDefault();
+    },
+    { passive: false }
+  );
+  document.addEventListener(
+    "gesturechange",
+    (e) => {
+      e.preventDefault();
+    },
+    { passive: false }
+  );
+  document.addEventListener(
+    "gestureend",
+    (e) => {
+      e.preventDefault();
+    },
+    { passive: false }
+  );
+
+  // 4. 모바일 더블 탭 확대 방지
+  let lastTouchEnd = 0;
+  document.addEventListener(
+    "touchend",
+    (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    },
+    { passive: false }
+  );
+
+  // 5. 키보드 줌 단축키 차단 (Ctrl + +, Ctrl + -, Ctrl + 0)
+  window.addEventListener("keydown", (e) => {
+    if (
+      e.ctrlKey &&
+      (e.key === "+" || e.key === "-" || e.key === "=" || e.key === "0")
+    ) {
+      e.preventDefault();
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  preventAccidentalZoom();
+
   const skyContainer = document.getElementById("sky-background");
   skyBackgroundService.init(skyContainer);
 
@@ -995,3 +1071,4 @@ document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   handleUrlRoute();
 });
+

@@ -23,6 +23,27 @@ let remainingSeconds = 0;
 let nowCardTicker: number | null = null;
 
 
+let isNowFullscreen = false;
+
+export function exitNowFullscreen(): void {
+  isNowFullscreen = false;
+  document.body.classList.remove("now-fullscreen-active");
+
+  if (document.fullscreenElement) {
+    document.exitFullscreen?.().catch(() => {});
+  }
+}
+
+export function enterNowFullscreen(): void {
+  isNowFullscreen = true;
+  document.body.classList.add("now-fullscreen-active");
+
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  }
+}
+
+
 export function stopNowCardContinuousTicker(): void {
   if (nowCardTicker) {
     clearInterval(nowCardTicker);
@@ -40,7 +61,13 @@ function startNowCardContinuousTicker(
     const remEl = document.getElementById("now-card-remaining");
     const percentEl = document.getElementById("now-card-percent");
     const barEl = document.getElementById("now-card-progress-bar");
-    if (!remEl && !percentEl && !barEl) {
+
+    const fsClockEl = document.getElementById("now-fs-clock");
+    const fsRemEl = document.getElementById("now-fs-remaining");
+    const fsPercentEl = document.getElementById("now-fs-percent");
+    const fsBarEl = document.getElementById("now-fs-progress-bar");
+
+    if (!remEl && !percentEl && !barEl && !fsClockEl) {
       stopNowCardContinuousTicker();
       return;
     }
@@ -68,17 +95,24 @@ function startNowCardContinuousTicker(
     const remainingMin = Math.ceil(remainingMs / 60000);
     const progress = Math.min(100, Math.max(0, (elapsedMs / durationMs) * 100));
 
-    if (remEl) {
-      remEl.textContent = `종료까지 ${remainingMin}분`;
-    }
-    if (percentEl) {
-      percentEl.textContent = `${progress.toFixed(3)}%`;
-    }
-    if (barEl) {
-      barEl.style.width = `${progress.toFixed(3)}%`;
-    }
+    const h = String(now.getHours()).padStart(2, "0");
+    const m = String(now.getMinutes()).padStart(2, "0");
+    const s = String(now.getSeconds()).padStart(2, "0");
+    const clockText = `${h}:${m}:${s}`;
+
+    // 기본 대시보드 카드 갱신
+    if (remEl) remEl.textContent = `종료까지 ${remainingMin}분`;
+    if (percentEl) percentEl.textContent = `${progress.toFixed(3)}%`;
+    if (barEl) barEl.style.width = `${progress.toFixed(3)}%`;
+
+    // 전체화면 독 갱신
+    if (fsClockEl) fsClockEl.textContent = clockText;
+    if (fsRemEl) fsRemEl.textContent = `종료까지 ${remainingMin}분`;
+    if (fsPercentEl) fsPercentEl.textContent = `${progress.toFixed(3)}%`;
+    if (fsBarEl) fsBarEl.style.width = `${progress.toFixed(3)}%`;
   }, 50); // 50ms 주기 고정폭 셋째자리 정밀 틱
 }
+
 
 
 export async function renderDashboard(
@@ -165,7 +199,42 @@ export async function renderDashboard(
 
   $("#content").innerHTML = `
     <section class="dashboard">
-      <article class="now-card">
+      <!-- 전체화면 하단 진척도 & 실시간 텔레메트리 독 (클릭 시 전체화면 종료) -->
+      <div class="now-fullscreen-dock" id="now-fullscreen-dock" role="button" tabindex="0" title="전체화면 종료 (클릭)">
+        <div class="now-fs-header">
+          <div class="now-fs-badge" id="now-fs-exit-badge" title="전체화면 종료 (클릭)">
+            <i class="now-dot"></i>
+            <span>지금 ${activityType}</span>
+            <span class="now-fs-period-badge">${active[2]} · ${active[0]}–${active[1]}</span>
+          </div>
+          <div class="now-fs-clock" id="now-fs-clock">--:--:--</div>
+        </div>
+
+        <div class="now-fs-body">
+          <div class="now-fs-title-box">
+            <h1 class="now-fs-subject">${esc(activityName)}</h1>
+            <span class="now-fs-class">${g}학년 ${c}반</span>
+          </div>
+          <div class="now-fs-stats-box">
+            <strong class="now-fs-remaining" id="now-fs-remaining">${remainingSec > 0 ? `종료까지 ${remainingMin}분` : "진행 중"}</strong>
+            <span class="now-fs-percent" id="now-fs-percent">${progress.toFixed(3)}%</span>
+          </div>
+        </div>
+
+        <!-- 작은 진척도 바 -->
+        <div class="now-fs-progress-track">
+          <div class="now-fs-progress-fill" id="now-fs-progress-bar" style="width:${progress.toFixed(3)}%;"></div>
+        </div>
+
+        <div class="now-fs-footer">
+          <span class="now-fs-next-label">
+            ${next ? `다음 일과 <strong>${next[2]} · ${next[0]}</strong>` : "오늘 일과가 끝났습니다."}
+          </span>
+        </div>
+      </div>
+
+
+      <article class="now-card" id="now-card" role="button" tabindex="0" title="전체화면으로 보기 (클릭)">
         <div class="now-top">
           <span><i class="now-dot"></i>지금 ${activityType}</span>
           <div class="now-time-stat">
@@ -183,6 +252,7 @@ export async function renderDashboard(
           ${next ? `다음 일과 <strong>${next[2]} · ${next[0]}</strong>` : "오늘 일과가 끝났습니다."}
         </div>
       </article>
+
 
 
 
@@ -301,9 +371,20 @@ export async function renderDashboard(
       </section>
     </section>`;
 
+  $("#now-card")?.addEventListener("click", () => enterNowFullscreen());
+  $("#now-fullscreen-dock")?.addEventListener("click", () => exitNowFullscreen());
+
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement && isNowFullscreen) {
+      exitNowFullscreen();
+    }
+  });
+
+
   $("#dash-meal-btn")?.addEventListener("click", () => onNavigateTab("급식"));
   $("#dash-timetable-btn")?.addEventListener("click", () => onNavigateTab("시간표"));
   $("#market-refresh-btn")?.addEventListener("click", () => handleMarketManualRefresh());
+
 
   // 모바일 시장 지표 1개씩 전환 탭 이벤트
   document.querySelectorAll<HTMLButtonElement>(".market-mob-tab").forEach((btn) => {
