@@ -70,10 +70,10 @@ export function switchTab(tab: TabName, updateUrl = true): void {
 
   // 브랜드 탭일 때와 일반 탭일 때의 상단 타이틀 및 학년/반 배지 표시 제어
   if (titleContainer) {
-    titleContainer.style.display = tab === "브랜드" ? "none" : "flex";
+    titleContainer.classList.toggle("tab-hidden", tab === "브랜드");
   }
   if (topClassBadge) {
-    topClassBadge.style.display = (tab === "브랜드" || tab === "공지" || tab === "타이머" || tab === "금융 지표") ? "none" : "flex";
+    topClassBadge.classList.toggle("tab-hidden", ["브랜드", "공지", "타이머", "금융 지표"].includes(tab));
   }
 
   // 데스크탑 네비게이션 및 모바일 드로어 탭 활성화 상태 동기화
