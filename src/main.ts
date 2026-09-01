@@ -36,8 +36,9 @@ export function switchTab(tab: TabName, updateUrl = true): void {
   exitNowFullscreen();
 
 
-  // 모든 탭에서 배경이 매끄럽게 동작하도록 유지
-  if (skyBackgroundService.getIsEnabled()) {
+  // 브랜드는 고정된 브랜드 캔버스를 사용하므로, 저장된 설정은 유지한 채 하늘만 숨긴다.
+  skyBackgroundService.setSuppressed(tab === "브랜드");
+  if (skyBackgroundService.getIsEnabled() && tab !== "브랜드") {
     skyBackgroundService.resume();
   }
 
@@ -1113,6 +1114,7 @@ document.addEventListener("DOMContentLoaded", () => {
   preventAccidentalZoom();
 
   const skyContainer = document.getElementById("sky-background");
+  skyBackgroundService.setSuppressed(window.location.hash === "#brand" || window.location.pathname.endsWith("/brand") || window.location.pathname.endsWith("/brand.html"));
   skyBackgroundService.init(skyContainer);
 
   initDateDisplay();

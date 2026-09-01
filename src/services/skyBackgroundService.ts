@@ -26,6 +26,7 @@ export class SkyBackgroundService {
   private timeOffset: number = 0; // 시간 단위 오프셋 (-12 ~ +14)
   private isRunning: boolean = false;
   private isPaused: boolean = false;
+  private isSuppressed: boolean = false;
 
   private lastZenith: string = '';
   private lastHorizon: string = '';
@@ -41,12 +42,12 @@ export class SkyBackgroundService {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         this.pause();
-      } else if (this.isEnabled && this.isRunning) {
+      } else if (this.isEnabled && !this.isSuppressed && this.isRunning) {
         this.resume();
       }
     });
 
-    if (this.isEnabled && this.container) {
+    if (this.isEnabled && !this.isSuppressed && this.container) {
       this.start();
     }
   }
@@ -61,6 +62,18 @@ export class SkyBackgroundService {
 
   public getTimeOffset(): number {
     return this.timeOffset;
+  }
+
+  /** Temporarily hide the sky without changing the user's saved preference. */
+  public setSuppressed(suppressed: boolean): void {
+    if (this.isSuppressed === suppressed) return;
+    this.isSuppressed = suppressed;
+
+    if (suppressed) {
+      this.stop();
+    } else if (this.isEnabled) {
+      this.start();
+    }
   }
 
   public setTimeOffset(offset: number): void {
@@ -79,7 +92,7 @@ export class SkyBackgroundService {
    * 하늘 배경 시뮬레이션 시작 (DOM 생성, RAF 루프 가동, 위성 스케줄러 등록)
    */
   public start(): void {
-    if (this.isRunning) return;
+    if (this.isRunning || this.isSuppressed) return;
     if (!this.container) {
       this.container = document.getElementById('sky-background');
       if (!this.container) return;
@@ -160,7 +173,7 @@ export class SkyBackgroundService {
    * 메인 탭 복귀 시 루프 재개
    */
   public resume(): void {
-    if (!this.isEnabled) return;
+    if (!this.isEnabled || this.isSuppressed) return;
     if (!this.isRunning) {
       this.start();
       return;
@@ -177,7 +190,7 @@ export class SkyBackgroundService {
     this.isEnabled = enabled;
     setSavedSkyBg(enabled);
 
-    if (enabled) {
+    if (enabled && !this.isSuppressed) {
       this.start();
     } else {
       this.stop();
@@ -188,7 +201,7 @@ export class SkyBackgroundService {
     this.isPerfMode = enabled;
     setSavedSkyPerf(enabled);
 
-    if (enabled) {
+    if (enabled && !this.isSuppressed) {
       document.body.classList.add('perf-active');
     } else {
       document.body.classList.remove('perf-active');

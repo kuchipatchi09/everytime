@@ -77,12 +77,6 @@ const ArrowLeftIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
   </svg>
 );
 
-const ArrowUpRightIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M7 7h10v10" /><path d="M7 17 17 7" />
-  </svg>
-);
-
 const CheckIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 6 9 17l-5-5" />
@@ -215,7 +209,7 @@ export function BrandComponent({ onReturnMain }: { onReturnMain: () => void }) {
                     프로그래밍 언어와 데이터베이스에서 <code>*</code> 기호는 모든 조건을 아우르는 <strong>와일드카드(Wildcard)</strong> 문자로서 <strong>‘모든 것(Everything)’</strong>을 의미합니다.
                   </p>
                   <ul className="brand-features-list">
-                    <li><span>*</span> <span>TIMETABLE & CLASSROOMS (시간표 및 강의실 동선)</span></li>
+                    <li><span>*</span> <span>TIMETABLE & SCHEDULE (시간표 및 일정)</span></li>
                     <li><span>*</span> <span>CAFETERIA NUTRITION (일일 급식 및 식단 정보)</span></li>
                     <li><span>*</span> <span>ACADEMIC NOTICE & CALENDAR (학사 일정 및 주요 공지)</span></li>
                     <li><span>*</span> <span>CAMPUS FORUM & DIALOGUE (실시간 학생 커뮤니티)</span></li>
@@ -239,6 +233,9 @@ export function BrandComponent({ onReturnMain }: { onReturnMain: () => void }) {
                   <p className="brand-text-p">
                     이러한 정보를 가장 정확하게 전달하기 위해 우리는 화려한 시각적 장식을 배제했습니다. 실제 인쇄 용지의 감촉을 담은 <strong>Base Paper White (#F7F6F2)</strong>와 선명한 가독성을 보장하는 <strong>Absolute Ink Black (#000000)</strong>의 흑백 팔레트 위에 1px의 정밀한 그리드만을 설계했습니다.
                   </p>
+                  {document.body.classList.contains("sky-bg-active") && (<p className="brand-text-p">
+                    네? 배경이 하늘색이라고요? 이 이쁜 은하수가 어떻게 화려한 장식이 아니냐고요?;; ㅎㅎ... ㅋㅋ;;
+                  </p>)}
                 </div>
               </div>
             </div>
@@ -465,10 +462,6 @@ export function BrandComponent({ onReturnMain }: { onReturnMain: () => void }) {
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "var(--color-black)" }}>
-            <span>asterisk* Docs</span>
-            <ArrowUpRightIcon size={12} />
-          </span>
           <span>asterisk*</span>
         </div>
       </div>
