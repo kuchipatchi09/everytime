@@ -67,6 +67,10 @@ function startNowCardContinuousTicker(
     const fsPercentEl = document.getElementById("now-fs-percent");
     const fsBarEl = document.getElementById("now-fs-progress-bar");
 
+    const fsRem2El = document.getElementById("now-fs-remaining2");
+    const fsPercent2El = document.getElementById("now-fs-percent2");
+    const fsBar2El = document.getElementById("now-fs-progress-bar2");
+
     if (!remEl && !percentEl && !barEl && !fsClockEl) {
       stopNowCardContinuousTicker();
       return;
@@ -110,6 +114,30 @@ function startNowCardContinuousTicker(
     if (fsRemEl) fsRemEl.textContent = `종료까지 ${remainingMin}분`;
     if (fsPercentEl) fsPercentEl.textContent = `${progress.toFixed(3)}%`;
     if (fsBarEl) fsBarEl.style.width = `${progress.toFixed(3)}%`;
+
+    const theYear = new Date().getFullYear();
+    const theTime = new Date(theYear + 1, 1-1, 1, 0, 0, 0);
+    const oldTime = new Date(theYear, 3-1, 2, 0, 0, 0);
+    const thisTime = new Date();
+    const durationMS = theTime.getTime() - oldTime.getTime();
+    const remainingMS = theTime.getTime() - thisTime.getTime();
+    const remainingMin2 = Math.ceil(remainingMS / 60000);
+    const progress2 = Math.min(
+      100,
+      Math.max(0, (1 - (remainingMS / durationMS)) * 100)
+    );
+
+    // 만약 현재 ??? 범위를 벗어나면 다음 ???로 대시보드 갱신
+    if (remainingMS <= 0) {
+      stopNowCardContinuousTicker();
+      onReload();
+      return;
+    }
+
+    // 전체화면 독 갱신 2
+    if (fsRem2El) fsRem2El.textContent = `종료까지 ${remainingMin2}분`;
+    if (fsPercent2El) fsPercent2El.textContent = `${progress2.toFixed(7)}%`;
+    if (fsBar2El) fsBar2El.style.width = `${progress2.toFixed(7)}%`;
   }, 50); // 50ms 주기 고정폭 셋째자리 정밀 틱
 }
 
@@ -197,6 +225,18 @@ export async function renderDashboard(
     "15:30",
   ];
 
+  const theYear = new Date().getFullYear();
+  const theTime = new Date(theYear + 1, 1-1, 1, 0, 0, 0);
+  const oldTime = new Date(theYear, 3-1, 2, 0, 0, 0);
+  const thisTime = new Date();
+  const durationMS = theTime.getTime() - oldTime.getTime();
+  const remainingMS = theTime.getTime() - thisTime.getTime();
+  const remainingMin2 = Math.ceil(remainingMS / 60000);
+  const progress2 = Math.min(
+    100,
+    Math.max(0, (1 - (remainingMS / durationMS)) * 100)
+  );
+
   $("#content").innerHTML = `
     <section class="dashboard">
       <!-- 전체화면 하단 진척도 & 실시간 텔레메트리 독 (클릭 시 전체화면 종료) -->
@@ -229,6 +269,28 @@ export async function renderDashboard(
         <div class="now-fs-footer">
           <span class="now-fs-next-label">
             ${next ? `다음 일과 <strong>${next[2]} · ${next[0]}</strong>` : "오늘 일과가 끝났습니다."}
+          </span>
+        </div>
+
+        <div class="now-fs-body">
+          <div class="now-fs-title-box">
+            <h1 class="now-fs-subject">${g}학년</h1>
+            <span class="now-fs-class">${theYear}. 3. 2. 00:00 - ${theYear+1}. 1. 1. 00:00</span>
+          </div>
+          <div class="now-fs-stats-box">
+            <strong class="now-fs-remaining" id="now-fs-remaining2">${remainingSec > 0 ? `종료까지 ${remainingMin2}분` : "진행 중"}</strong>
+            <span class="now-fs-percent" id="now-fs-percent2">${progress2.toFixed(7)}%</span>
+          </div>
+        </div>
+
+        <!-- 작고 긴 진척도 바 -->
+        <div class="now-fs-progress-track">
+          <div class="now-fs-progress-fill" id="now-fs-progress-bar2" style="width:${progress2.toFixed(7)}%;"></div>
+        </div>
+
+        <div class="now-fs-footer">
+          <span class="now-fs-next-label">
+            ${g === "3" ? `다음 <strong id="unknown-future">???</strong>` : `다음 <strong>${parseInt(g)+1}학년</strong>`}
           </span>
         </div>
       </div>

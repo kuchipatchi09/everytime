@@ -3669,7 +3669,7 @@ body.now-fullscreen-active .now-fullscreen-dock:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .now-fs-badge {
@@ -3701,7 +3701,11 @@ body.now-fullscreen-active .now-fullscreen-dock:hover {
   justify-content: space-between;
   align-items: flex-end;
   gap: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
+}
+
+.now-fs-footer + .now-fs-body {
+  margin-top: 12px;
 }
 
 .now-fs-subject {
@@ -3709,7 +3713,7 @@ body.now-fullscreen-active .now-fullscreen-dock:hover {
   font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 1.1;
-  margin-bottom: 2px;
+  margin-bottom: -2px;
 }
 
 .now-fs-class {
@@ -3747,7 +3751,7 @@ body.now-fullscreen-active .now-fullscreen-dock:hover {
   border: 1px solid var(--color-silver);
   border-radius: 3px;
   overflow: hidden;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 .now-fs-progress-fill {
@@ -4474,4 +4478,31 @@ body.sky-bg-active .board-brand p {
 
 body.sky-bg-active .post-row b {
   color: rgba(0, 0, 0, 0.4) !important;
+}
+
+body.sky-bg-active.zen-active .timer-btn-sub {
+  background: rgba(242, 246, 247, 0.8) !important;
+}
+
+body.sky-bg-active.zen-active .timer-btn-sub.active {
+  background: var(--color-black) !important;
+}
+
+@property --hue {
+  syntax: '<number>';
+  initial-value: 0;
+  inherits: false;
+}
+#unknown-future {
+  color: oklch(0.7 0.1597 var(--hue)) !important;
+  animation: future-glow alternate linear infinite 1s;
+}
+
+@keyframes future-glow {
+  0% {
+    --hue: 0;
+  }
+  100% {
+    --hue: 360;
+  }
 }
