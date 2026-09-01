@@ -19,18 +19,20 @@ import { renderMeals, setMealCode } from "./views/mealView";
 import { renderBoard, renderNoticeDetail } from "./views/noticeView";
 import { renderBrand } from "./views/brandView";
 import { renderTimer } from "./views/timerView";
+import { renderMarketView, stopMarketView } from "./views/marketView";
 import { ClassNumber, GradeNumber } from "./types/timetable";
 import { MealCode } from "./types/meal";
 import { getCachedWeatherCode, getWeatherGreeting } from "./constants/weatherGreetings";
 import { skyBackgroundService } from "./services/skyBackgroundService";
 
-export type TabName = "메인" | "시간표" | "방과후" | "급식" | "공지" | "타이머" | "브랜드";
+export type TabName = "메인" | "시간표" | "방과후" | "급식" | "공지" | "타이머" | "금융 지표" | "브랜드";
 
 let currentTab: TabName = "메인";
 
 export function switchTab(tab: TabName, updateUrl = true): void {
   currentTab = tab;
   stopNowCardContinuousTicker();
+  stopMarketView();
   exitNowFullscreen();
 
 
@@ -71,12 +73,17 @@ export function switchTab(tab: TabName, updateUrl = true): void {
     titleContainer.style.display = tab === "브랜드" ? "none" : "flex";
   }
   if (topClassBadge) {
-    topClassBadge.style.display = (tab === "브랜드" || tab === "공지" || tab === "타이머") ? "none" : "flex";
+    topClassBadge.style.display = (tab === "브랜드" || tab === "공지" || tab === "타이머" || tab === "금융 지표") ? "none" : "flex";
   }
 
   // 데스크탑 네비게이션 및 모바일 드로어 탭 활성화 상태 동기화
   document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tab);
+  });
+  document.querySelectorAll<HTMLButtonElement>(".nav-dropdown-trigger").forEach((trigger) => {
+    const dropdown = trigger.closest<HTMLElement>(".nav-dropdown");
+    const containsActiveTab = !!dropdown?.querySelector(`[data-tab="${tab}"]`);
+    trigger.classList.toggle("active", containsActiveTab);
   });
 
   if (updateUrl) {
@@ -110,6 +117,8 @@ export function renderActiveView(): void {
     renderBoard();
   } else if (currentTab === "타이머") {
     renderTimer();
+  } else if (currentTab === "금융 지표") {
+    renderMarketView();
   } else if (currentTab === "브랜드") {
     renderBrand(() => switchTab("메인"));
   }
@@ -882,8 +891,68 @@ function initNavigation(): void {
   document.querySelectorAll<HTMLButtonElement>(".desktop-nav [data-tab]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const tab = btn.dataset.tab as TabName;
-      if (tab) switchTab(tab);
+      if (tab) {
+        closeDesktopDropdowns();
+        switchTab(tab);
+      }
     });
+  });
+
+  const desktopDropdowns = document.querySelectorAll<HTMLElement>(".nav-dropdown");
+  const dropdownMenus = new Map<HTMLElement, HTMLElement>();
+  desktopDropdowns.forEach((dropdown) => {
+    const menu = dropdown.querySelector<HTMLElement>(".nav-dropdown-menu");
+    if (menu) dropdownMenus.set(dropdown, menu);
+  });
+
+  const closeDesktopDropdowns = () => {
+    desktopDropdowns.forEach((dropdown) => {
+      dropdown.classList.remove("is-open");
+      dropdown.querySelector<HTMLButtonElement>(".nav-dropdown-trigger")?.setAttribute("aria-expanded", "false");
+      const menu = dropdownMenus.get(dropdown);
+      menu?.classList.remove("is-open");
+      if (menu?.classList.contains("is-portaled")) {
+        menu.classList.remove("is-portaled");
+        menu.style.removeProperty("top");
+        menu.style.removeProperty("left");
+        dropdown.append(menu);
+      }
+    });
+  };
+
+  desktopDropdowns.forEach((dropdown) => {
+    const trigger = dropdown.querySelector<HTMLButtonElement>(".nav-dropdown-trigger");
+    const menu = dropdownMenus.get(dropdown);
+    menu?.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => {
+      link.addEventListener("click", closeDesktopDropdowns);
+    });
+    trigger?.addEventListener("click", () => {
+      const willOpen = !dropdown.classList.contains("is-open");
+      closeDesktopDropdowns();
+      dropdown.classList.toggle("is-open", willOpen);
+      trigger.setAttribute("aria-expanded", String(willOpen));
+      if (willOpen && menu) {
+        menu.classList.add("is-open");
+        if (document.body.classList.contains("sky-bg-active")) {
+          const rect = dropdown.getBoundingClientRect();
+          menu.classList.add("is-portaled");
+          document.body.append(menu);
+          menu.style.top = `${rect.bottom - 8}px`;
+          menu.style.left = `${rect.left}px`;
+        }
+      }
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    const clickedDropdown = target instanceof Node && (
+      Array.from(desktopDropdowns).some((dropdown) => dropdown.contains(target)) ||
+      Array.from(dropdownMenus.values()).some((menu) => menu.contains(target))
+    );
+    if (!clickedDropdown) {
+      closeDesktopDropdowns();
+    }
   });
 
   // 모바일 드로어 탭 클릭
@@ -914,6 +983,7 @@ function initNavigation(): void {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
+      closeDesktopDropdowns();
       if (!mobileDrawer?.classList.contains("hidden")) {
         closeMobileDrawer();
       }
@@ -943,7 +1013,7 @@ function handleUrlRoute(): void {
     switchTab("타이머", false);
   } else if (hash) {
     const decoded = decodeURIComponent(hash) as TabName;
-    if (["메인", "시간표", "방과후", "급식", "공지", "타이머", "브랜드"].includes(decoded)) {
+    if (["메인", "시간표", "방과후", "급식", "공지", "타이머", "금융 지표", "브랜드"].includes(decoded)) {
       switchTab(decoded, false);
       return;
     }
@@ -1071,4 +1141,3 @@ document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   handleUrlRoute();
 });
-

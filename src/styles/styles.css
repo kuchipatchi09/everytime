@@ -179,6 +179,88 @@ header {
   font-weight: 600;
 }
 
+.nav-dropdown {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.nav-dropdown-trigger span {
+  width: 6px;
+  height: 6px;
+  margin: 0 1px 0 2px;
+  border: solid currentColor;
+  border-width: 0 1px 1px 0;
+  display: inline-block;
+  transform: rotate(-45deg);
+}
+
+.nav-dropdown.is-open .nav-dropdown-trigger,
+.nav-dropdown-trigger.active {
+  border-color: var(--color-black);
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% - 8px);
+  left: 0;
+  z-index: 110;
+  min-width: 112px;
+  padding: 4px;
+  display: none;
+  flex-direction: column;
+  background: var(--color-paper);
+  border: var(--border-main);
+}
+
+.nav-dropdown.is-open .nav-dropdown-menu,
+.nav-dropdown-menu.is-open {
+  display: flex;
+}
+
+/* In sky mode the open menu is moved outside the glass header so its
+   backdrop can sample the live sky rather than the header's flat backdrop. */
+.nav-dropdown-menu.is-portaled {
+  position: fixed;
+}
+
+.nav-dropdown-menu button,
+.nav-dropdown-menu a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-black);
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.nav-dropdown-menu button:hover,
+.nav-dropdown-menu a:hover {
+  border-color: var(--color-black);
+}
+
+.nav-dropdown-menu a sup {
+  font-size: 9px;
+  font-family: var(--font-sans);
+  color: inherit;
+}
+
+.nav-dropdown-menu button.active {
+  background: var(--color-black);
+  color: var(--color-paper);
+  border-color: var(--color-black);
+  font-weight: 600;
+}
+
 .desktop-nav a sup {
   font-size: 9px;
   font-family: var(--font-sans);
@@ -743,6 +825,42 @@ button.back:hover {
 
 .now-card2 .now-dot { background: var(--color-black); }
 
+.now-card-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.now-timer-toggle {
+  flex-shrink: 0;
+  padding: 5px 8px;
+  border: 1px solid rgba(247, 246, 242, 0.45);
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.now-timer-toggle:hover {
+  background: var(--color-paper);
+  border-color: var(--color-paper);
+  color: var(--color-black);
+}
+
+body.sky-bg-active .now-timer-toggle {
+  border-color: rgba(247, 246, 242, 0.3);
+  color: rgba(247, 246, 242, 0.78);
+}
+
+body.sky-bg-active .now-timer-toggle:hover {
+  background: rgba(242, 246, 247, 0.72);
+  border-color: rgba(242, 246, 247, 0.72);
+  color: var(--color-black);
+}
+
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
@@ -1026,6 +1144,14 @@ body.sky-bg-active .now-card-percent {
 .dash-market-section {
   width: 100%;
   margin-top: 8px;
+}
+
+.market-view {
+  width: 100%;
+}
+
+.market-view .dash-market-section {
+  margin-top: 0;
 }
 
 @media (min-width: 1024px) {
@@ -4370,6 +4496,7 @@ body.sky-bg-active .dash-link:hover {
 body.sky-bg-active .mobile-menu-toggle,
 body.sky-bg-active .drawer-panel,
 body.sky-bg-active .drawer-ext-item,
+body.sky-bg-active .nav-dropdown-menu,
 body.sky-bg-active .picker label,
 body.sky-bg-active .empty,
 body.sky-bg-active .market-empty-box,
@@ -4394,6 +4521,7 @@ body.sky-bg-active .timer-stats-single {
 }
 
 body.sky-bg-active .drawer-nav-item:not(.active):hover,
+body.sky-bg-active .nav-dropdown-menu button:not(.active):hover,
 body.sky-bg-active button.secondary:hover,
 body.sky-bg-active .btn-nav-profile:hover,
 body.sky-bg-active .title-name-edit-btn:hover {
@@ -4406,6 +4534,11 @@ body.sky-bg-active .mealday.current {
 }
 
 body.sky-bg-active .drawer-panel {
+  backdrop-filter: blur(14px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+}
+
+body.sky-bg-active .nav-dropdown-menu {
   backdrop-filter: blur(14px) saturate(160%) !important;
   -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
 }
