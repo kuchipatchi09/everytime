@@ -407,7 +407,7 @@ export async function renderDashboard(
         }
       </section> */ + `
 
-      <article class="now-card2" id="now-card2" role="button" tabindex="0" title="전체화면으로 보기 (클릭)">
+      <article class="now-card2" id="now-card2">
         <div class="now-top">
           <span><i class="now-dot"></i>현황</span>
           <div class="now-time-stat">
