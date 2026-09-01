@@ -1,7 +1,7 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="public/Concept.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="public/Concept-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="public/Concept.svg">
   <img alt="asterisk" src="public/Concept.svg" width="120">
 </picture>
@@ -16,7 +16,7 @@
 [![Deploy](https://img.shields.io/badge/Deploy-GitHub%20Pages-222?style=flat-square&logo=githubpages&logoColor=white)](https://asteris.kro.kr)
 [![PWA](https://img.shields.io/badge/PWA-Installable-5a0fc8?style=flat-square&logo=pwa&logoColor=white)](#pwa-설치)
 
-[**asteris.kro.kr**](https://asteris.kro.kr)
+[**cnsh.live**](https://cnsh.live)
 
 </div>
 
@@ -35,7 +35,7 @@ GitHub이나 메신저에서 링크 공유 시 아래 메타데이터가 렌더�
 | `og:locale` | ko_KR |
 | `twitter:card` | summary_large_image |
 
-> 메타 태그 원본: [`index.html`](index.html) L8-L25
+> 메타 태그 원본: [`index.html`](index.html) L9-L26
 
 ---
 
@@ -61,10 +61,10 @@ asterisk\*는 충남과학고등학교 학생들이 시간표, 급식, 공지사
 
 ## Architecture
 
-```
+```text
 asterisk/
 ├── index.html                 # SPA 엔트리 + OG/Twitter 메타 태그
-├── brand.html                 # 브랜드 스토리 페이지 엔트리
+├── brand.html                 # 브랜드 스토리 페이지 엔트리 (index.html#brand로 리다이렉트)
 ├── vite.config.ts             # Vite 설정 + Yahoo Finance 프록시 미들웨어
 ├── tsconfig.json
 ├── package.json
@@ -73,6 +73,7 @@ asterisk/
 │   ├── manifest.webmanifest   # PWA 매니페스트
 │   ├── afterschool.json       # 방과후 정적 데이터
 │   ├── Concept.svg            # 로고 SVG
+│   ├── Concept-dark.svg       # 로고 SVG (다크 모드용)
 │   ├── asterisk-logo.png      # OG 이미지
 │   ├── favicon.svg
 │   └── CNAME                  # GitHub Pages 커스텀 도메인
@@ -182,6 +183,6 @@ npm run preview
 
 <div align="center">
 
-`asteris.kro.kr` · 충남과학고등학교
+`cnsh.life` · 충남과학고등학교
 
 </div>
