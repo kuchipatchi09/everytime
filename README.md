@@ -16,7 +16,7 @@
 [![Deploy](https://img.shields.io/badge/Deploy-GitHub%20Pages-222?style=flat-square&logo=githubpages&logoColor=white)](https://asteris.kro.kr)
 [![PWA](https://img.shields.io/badge/PWA-Installable-5a0fc8?style=flat-square&logo=pwa&logoColor=white)](#pwa-설치)
 
-[**cnsh.live**](https://cnsh.live)
+[**cnsh.life**](https://cnsh.life)
 
 </div>
 
