@@ -4494,7 +4494,7 @@ body.sky-bg-active.zen-active .timer-btn-sub.active {
   inherits: false;
 }
 #unknown-future {
-  color: oklch(0.7 0.1597 var(--hue)) !important;
+  color: oklch(0.8 0.06 var(--hue)) !important;
   animation: future-glow alternate linear infinite 1s;
 }
 
