@@ -58,6 +58,7 @@ let timerInterval: number | null = null;
 let pomodoroRound = 1;
 let isZenMode = false;
 
+
 export function renderTimer(): void {
   // custom 분 불러오기
   PRESETS.custom.focusMinutes = getSavedCustomMinutes();
@@ -120,7 +121,11 @@ export function renderTimer(): void {
             <div class="timer-progress-info" id="timer-progress-info">
               ${isStopwatch ? "누적 측정 중" : `진행률 ${Math.round(calculateProgress())}%`}
             </div>
+
+            <!-- 몰입 모드 전용 실시간 시계 (초 단위까지 표시) -->
+            <div class="zen-clock" id="zen-clock">--:--:--</div>
           </div>
+
 
           <!-- 컨트롤 버튼군 -->
           <div class="timer-actions">
@@ -135,19 +140,18 @@ export function renderTimer(): void {
                 ? `<button class="secondary timer-btn-sub" id="btn-timer-skip" title="다음 단계로 건너뛰기">건너뛰기 ➔</button>`
                 : ""
             }
-            <button class="secondary timer-btn-sub zen-toggle-btn" id="btn-timer-zen" title="몰입 모드(전체화면)">
+            <button class="secondary timer-btn-sub ${isZenMode ? "active" : ""}" id="btn-timer-zen" title="몰입 모드">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                <rect width="18" height="18" x="3" y="3" rx="2"/>
+                <path d="M9 9h6v6H9z"/>
               </svg>
               <span>몰입 모드</span>
             </button>
           </div>
-
-          <!-- 몰입 모드 전용 닫기 버튼 (헤더와 겹치지 않게 독립 배치) -->
-          <button class="zen-close-btn ${isZenMode ? "" : "hidden"}" id="btn-zen-close" aria-label="몰입 모드 종료">
-            ✕ 몰입 종료 (ESC)
-          </button>
         </article>
+
+
+
 
         <!-- 사이드바: 앰비언스 사운드 & 오늘 통계 -->
         <div class="timer-sidebar">
@@ -273,12 +277,12 @@ function bindTimerEvents(): void {
 
   // 몰입 (Zen) 모드 토글
   $("#btn-timer-zen")?.addEventListener("click", () => {
-    enterZenMode();
+    if (isZenMode) exitZenMode();
+    else enterZenMode();
   });
 
-  $("#btn-zen-close")?.addEventListener("click", () => {
-    exitZenMode();
-  });
+
+
 
   // 앰비언스 사운드 버튼들
   document.querySelectorAll<HTMLButtonElement>(".ambient-btn").forEach((btn) => {
@@ -504,26 +508,56 @@ function updateTimerUI(): void {
   }
 }
 
+let zenClockTicker: number | null = null;
+
+function startZenClock(): void {
+  stopZenClock();
+  const update = () => {
+    const clockEl = $("#zen-clock");
+    if (!clockEl) return;
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, "0");
+    const m = String(now.getMinutes()).padStart(2, "0");
+    const s = String(now.getSeconds()).padStart(2, "0");
+    clockEl.textContent = `${h}:${m}:${s}`;
+  };
+  update();
+  zenClockTicker = window.setInterval(update, 500);
+}
+
+function stopZenClock(): void {
+  if (zenClockTicker) {
+    clearInterval(zenClockTicker);
+    zenClockTicker = null;
+  }
+}
+
 function enterZenMode(): void {
   isZenMode = true;
   const card = $("#timer-display-card");
-  const zenClose = $("#btn-zen-close");
   const cardTop = $("#timer-card-top");
+  const zenBtn = $("#btn-timer-zen");
 
   if (card) card.classList.add("zen-mode");
-  if (zenClose) zenClose.classList.remove("hidden");
   if (cardTop) cardTop.style.display = "none";
+  if (zenBtn) zenBtn.classList.add("active");
   document.body.classList.add("zen-active");
+  startZenClock();
 }
 
 function exitZenMode(): void {
   isZenMode = false;
   const card = $("#timer-display-card");
-  const zenClose = $("#btn-zen-close");
   const cardTop = $("#timer-card-top");
+  const zenBtn = $("#btn-timer-zen");
 
   if (card) card.classList.remove("zen-mode");
-  if (zenClose) zenClose.classList.add("hidden");
   if (cardTop) cardTop.style.display = "";
+  if (zenBtn) zenBtn.classList.remove("active");
   document.body.classList.remove("zen-active");
+  stopZenClock();
 }
+
+
+
+
