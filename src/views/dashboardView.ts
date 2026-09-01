@@ -612,7 +612,7 @@ function renderCardChart(
       },
       scales: {
         x: {
-          grid: { color: "#D1D1D6" },
+          grid: { color: document.body.matches(".sky-bg-active") ? "#48484A" : "#D1D1D6" },
           ticks: {
             color: "#48484A",
             font: { family: "Asta Sans, Pretendard, monospace", size: 9 },
@@ -620,7 +620,7 @@ function renderCardChart(
           },
         },
         y: {
-          grid: { color: "#D1D1D6" },
+          grid: { color: document.body.matches(".sky-bg-active") ? "#48484A" : "#D1D1D6" },
           ticks: {
             color: "#48484A",
             font: { family: "Asta Sans, Pretendard, monospace", size: 9 },
