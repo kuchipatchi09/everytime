@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>asterisk* — Rain & Thunder Clock</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Asta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asta+Sans:wght@300..800&display=swap" rel="stylesheet">
+
+  <!-- Pretendard CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+
+  <style>
+    :root {
+      --knds-bg: #0A0B0E;
+      --knds-surface: #14161B;
+      --knds-border: #2E323C;
+      --knds-border-focus: #F7F6F2;
+      --knds-text: #F7F6F2;
+      --knds-muted: #8E8E93;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Asta Sans', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif !important;
+      background-color: var(--knds-bg);
+      color: var(--knds-text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    /* 숫자 고정폭 정렬 (초 변경 시 글자 흔들림 방지) */
+    .font-mono-custom {
+      font-family: 'Asta Sans', 'Pretendard', 'SF Mono', 'Roboto Mono', monospace !important;
+      font-variant-numeric: tabular-nums !important;
+      font-feature-settings: "tnum" 1 !important;
+    }
+
+    .tabular-fixed {
+      font-variant-numeric: tabular-nums !important;
+      font-feature-settings: "tnum" 1 !important;
+      display: inline-block;
+    }
+
+    ::selection {
+      background-color: #F7F6F2;
+      color: #000000;
+    }
+
+    /* 하드웨어 슬라이더 */
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 2px;
+      background: #2E323C;
+      outline: none;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 18px;
+      background: #F7F6F2;
+      border: 1px solid #000000;
+      border-radius: 1px;
+      cursor: ew-resize;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+      transition: background-color 0.15s, transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: #FFFFFF;
+      transform: scaleY(1.15);
+    }
+
+    /* 사이드 드로어 트랜지션 */
+    #settingsDrawer {
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #settingsDrawer.drawer-closed {
+      transform: translateX(110%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    #settingsDrawer.drawer-open {
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* 시계 발광 효과 */
+    .clock-glow {
+      text-shadow: 0 0 35px rgba(247, 246, 242, 0.08);
+      transition: text-shadow 0.1s ease, color 0.1s ease;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center relative select-none w-screen h-screen">
+
+  <!-- 1. 24 FPS 시네마틱 빗줄기 & 번개 캔버스 -->
+  <canvas id="canvas" class="absolute inset-0 w-full h-full z-0"></canvas>
+  <div id="lightning-overlay" class="absolute inset-0 pointer-events-none z-10 transition-opacity duration-100 opacity-0 bg-[radial-gradient(circle_at_50%_15%,rgba(215,230,255,0.45),rgba(140,170,230,0.08)_70%,transparent)] mix-blend-screen"></div>
+
+  <!-- 2. 중앙 미니멀 디지털 시계 -->
+  <main class="relative z-20 flex flex-col items-center justify-center pointer-events-none text-center px-4">
+    <div id="clockDisplay" class="clock-glow font-mono-custom font-light text-[#F7F6F2] flex items-baseline justify-center">
+      <span id="timeHoursMins" class="tabular-fixed text-7xl sm:text-9xl md:text-[11rem] leading-none text-center">00:00</span>
+      <div class="flex flex-col items-start ml-2 sm:ml-4 -translate-y-2 sm:-translate-y-4">
+        <span id="timeSeconds" class="tabular-fixed w-[1.4em] text-left text-xl sm:text-3xl md:text-4xl text-[#8E8E93] font-normal">00</span>
+        <span id="timeAmPm" class="tabular-fixed w-[2.2em] text-left text-[10px] sm:text-xs tracking-widest text-[#8E8E93] uppercase font-medium">AM</span>
+      </div>
+    </div>
+    <div id="dateDisplay" class="font-mono-custom text-xs sm:text-sm md:text-base tracking-[0.2em] text-[#8E8E93] mt-5 uppercase">
+      ---- . -- . -- ---
+    </div>
+  </main>
+
+  <!-- 3. 우측 상단 플로팅 컨트롤 바 -->
+  <div class="fixed top-6 right-6 z-30 flex items-center gap-3">
+    <!-- 퀵 재생/일시정지 버튼 -->
+    <button id="quickPlayBtn" class="w-11 h-11 rounded-full bg-[#14161B]/85 backdrop-blur-xl border border-[#2E323C] hover:border-[#F7F6F2] text-[#F7F6F2] transition-all duration-200 flex items-center justify-center shadow-lg hover:scale-105 active:scale-95" title="소리 켜기 / 끄기">
+      <svg id="quickPlayIcon" class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+      <svg id="quickPauseIcon" class="w-4 h-4 fill-current hidden" viewBox="0 0 24 24">
+        <rect x="6" y="4" width="4" height="16"/>
+        <rect x="14" y="4" width="4" height="16"/>
+      </svg>
+    </button>
+
+    <!-- 설정 서랍 토글 버튼 -->
+    <button id="toggleDrawerBtn" class="w-11 h-11 rounded-full bg-[#14161B]/85 backdrop-blur-xl border border-[#2E323C] hover:border-[#F7F6F2] text-[#F7F6F2] transition-all duration-200 flex items-center justify-center shadow-lg hover:scale-105 active:scale-95" title="설정 콘솔 열기">
+      <svg class="w-4 h-4 stroke-current fill-none stroke-[2]" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- 4. 우측 설정 콘솔 서랍 -->
+  <aside id="settingsDrawer" class="drawer-closed fixed top-0 right-0 h-full w-[360px] max-w-[85vw] bg-[#14161B]/95 backdrop-blur-2xl border-l border-[#2E323C] p-6 z-40 flex flex-col justify-between shadow-2xl">
+    <div>
+      <div class="flex items-center justify-between pb-5 border-b border-[#2E323C]">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#F7F6F2]"></span>
+          <h2 class="font-mono-custom text-xs tracking-widest uppercase font-semibold text-[#F7F6F2]">ACOUSTIC CONTROLS</h2>
+        </div>
+        <button id="closeDrawerBtn" class="text-[#8E8E93] hover:text-[#F7F6F2] p-1 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <button id="powerBtn" class="w-full py-3 px-4 my-5 border border-[#383C46] bg-[#1C1E24] hover:bg-[#242730] text-[#F7F6F2] font-mono-custom text-xs font-semibold tracking-wider uppercase transition-all duration-150 flex items-center justify-center gap-2.5">
+        <svg id="iconPlay" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <svg id="iconPause" class="w-3.5 h-3.5 fill-current hidden" viewBox="0 0 24 24">
+          <rect x="6" y="4" width="4" height="16"/>
+          <rect x="14" y="4" width="4" height="16"/>
+        </svg>
+        <span id="powerText">재생 시작</span>
+      </button>
+
+      <div class="space-y-5 border-t border-b border-[#2E323C] py-5">
+        <div>
+          <div class="flex justify-between items-center text-xs font-mono-custom mb-1.5">
+            <span class="text-[#8E8E93]">비의 강도</span>
+            <span id="rainIntensityVal" class="text-[#F7F6F2]">55%</span>
+          </div>
+          <input type="range" id="rainIntensitySlider" min="0.1" max="1.0" step="0.01" value="0.55">
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center text-xs font-mono-custom mb-1.5">
+            <span class="text-[#8E8E93]">빗소리 볼륨</span>
+            <span id="rainVolVal" class="text-[#F7F6F2]">45%</span>
+          </div>
+          <input type="range" id="rainVolSlider" min="0" max="1" step="0.01" value="0.45">
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center text-xs font-mono-custom mb-1.5">
+            <span class="text-[#8E8E93]">천둥 볼륨</span>
+            <span id="thunderVolVal" class="text-[#F7F6F2]">50%</span>
+          </div>
+          <input type="range" id="thunderVolSlider" min="0" max="1" step="0.01" value="0.5">
+        </div>
+      </div>
+
+      <div class="space-y-2.5 mt-5">
+        <button id="triggerBtn" class="w-full py-2.5 px-4 bg-transparent border border-[#2E323C] hover:border-[#F7F6F2] text-[#F7F6F2] font-mono-custom text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-2">
+          <svg class="w-3.5 h-3.5 stroke-current fill-none stroke-[2]" viewBox="0 0 24 24">
+            <path d="M13 2 L3 14 h9 l-1 8 10 -12 h-9 l1 -8 z" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>천둥 발생</span>
+        </button>
+
+        <button id="fullscreenBtn" class="w-full py-2.5 px-4 bg-transparent border border-[#2E323C] hover:border-[#F7F6F2] text-[#F7F6F2] font-mono-custom text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-2">
+          <svg id="fsEnterIcon" class="w-3.5 h-3.5 stroke-current fill-none stroke-[2]" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/>
+          </svg>
+          <svg id="fsExitIcon" class="w-3.5 h-3.5 stroke-current fill-none stroke-[2] hidden" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"/>
+          </svg>
+          <span id="fullscreenText">전체화면 모드</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="pt-4 border-t border-[#2E323C] text-[11px] font-mono-custom text-[#8E8E93]/70 flex justify-between items-center">
+      <span>asterisk* velvet rain audio</span>
+      <span>24 FPS CINEMA</span>
+    </div>
+  </aside>
+
+  <div id="drawerBackdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+  <script>
+    // ==========================================================================
+    // 1. 시계 로직 (흔들림 없는 고정폭)
+    // ==========================================================================
+    const timeHoursMins = document.getElementById('timeHoursMins');
+    const timeSeconds = document.getElementById('timeSeconds');
+    const timeAmPm = document.getElementById('timeAmPm');
+    const dateDisplay = document.getElementById('dateDisplay');
+
+    const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+
+      const displayHours = String(hours % 12 || 12).padStart(2, '0');
+
+      timeHoursMins.textContent = `${displayHours}:${minutes}`;
+      timeSeconds.textContent = seconds;
+      timeAmPm.textContent = ampm;
+
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const date = String(now.getDate()).padStart(2, '0');
+      const day = DAYS[now.getDay()];
+
+      dateDisplay.textContent = `${year} . ${month} . ${date}  ${day}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ==========================================================================
+    // 2. 포근하고 부드러운 벨벳 빗소리 & 천둥 물리 합성 엔진 (자극적 클릭 완전 박멸)
+    // ==========================================================================
+    let audioCtx = null;
+    let isRunning = false;
+
+    let masterCompressor = null;
+    let masterGain = null;
+    let convolverNode = null;
+    let reverbWetGain = null;
+    let drySignalGain = null;
+
+    let rainBusGain = null;
+    let thunderBusGain = null;
+    let rainBedPanner = null;
+
+    // 빗소리 레이어 노드
+    let rainLowSource = null;
+    let rainLowFilter = null;
+    let rainLowGain = null;
+
+    let rainBodySource = null;
+    let rainBodyFilter = null;
+    let rainBodyGain = null;
+
+    let rainAirSource = null;
+    let rainAirFilter = null;
+    let rainAirGain = null;
+
+    let sharedBrownBuffer = null;
+    let sharedPinkBuffer = null;
+
+    let dropletScheduler = null;
+    let thunderScheduler = null;
+    let weatherCycleTimer = null;
+
+    let baseIntensity = 0.55;
+    let currentSurge = 1.0;
+    let targetSurge = 1.0;
+    let currentWindDrift = -0.15;
+    let targetWindDrift = -0.15;
+
+    // 5.8초 대기 흡수 개활지 임펄스 응답 (기존 천둥 잔향 100% 보존)
+    function generateAtmosphericIR(ctx, duration = 5.8) {
+      const length = ctx.sampleRate * duration;
+      const buffer = ctx.createBuffer(2, length, ctx.sampleRate);
+      const left = buffer.getChannelData(0);
+      const right = buffer.getChannelData(1);
+
+      let lSmooth = 0, rSmooth = 0;
+      for (let i = 0; i < length; i++) {
+        const t = i / ctx.sampleRate;
+        const decay = Math.exp(-t * 1.10);
+        const airAbsorption = Math.max(0.025, 1.0 - (t / duration) * 0.94);
+
+        const lNoise = (Math.random() * 2 - 1) * decay;
+        const rNoise = (Math.random() * 2 - 1) * decay;
+
+        lSmooth += airAbsorption * (lNoise - lSmooth);
+        rSmooth += airAbsorption * (rNoise - rSmooth);
+
+        left[i] = lSmooth * 0.75;
+        right[i] = rSmooth * 0.75;
+      }
+      return buffer;
+    }
+
+    // 저음 대지 럼블용 Brown Noise (8초 루프, 완벽한 스무딩)
+    function createStereoBrownNoise(ctx, duration = 8) {
+      const buffer = ctx.createBuffer(2, ctx.sampleRate * duration, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const data = buffer.getChannelData(ch);
+        let acc = 0.0;
+        for (let i = 0; i < data.length; i++) {
+          const white = Math.random() * 2 - 1;
+          acc = (acc + (0.02 * white)) / 1.02;
+          data[i] = acc * 2.8;
+        }
+      }
+      return buffer;
+    }
+
+    // 포근하고 부드러운 빗줄기 장막용 Velvet Pink Noise
+    function createStereoPinkNoise(ctx, duration = 8) {
+      const buffer = ctx.createBuffer(2, ctx.sampleRate * duration, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const data = buffer.getChannelData(ch);
+        let b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0;
+        for (let i = 0; i < data.length; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.76160 * b5 - white * 0.0168980;
+          data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+          b6 = white * 0.115926;
+        }
+      }
+      return buffer;
+    }
+
+    function initAudio() {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      masterCompressor = audioCtx.createDynamicsCompressor();
+      masterCompressor.threshold.setValueAtTime(-20, audioCtx.currentTime);
+      masterCompressor.knee.setValueAtTime(12, audioCtx.currentTime);
+      masterCompressor.ratio.setValueAtTime(3.5, audioCtx.currentTime);
+
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(0.55, audioCtx.currentTime);
+
+      masterCompressor.connect(masterGain);
+      masterGain.connect(audioCtx.destination);
+
+      convolverNode = audioCtx.createConvolver();
+      convolverNode.buffer = generateAtmosphericIR(audioCtx, 5.8);
+
+      reverbWetGain = audioCtx.createGain();
+      reverbWetGain.gain.setValueAtTime(0.55, audioCtx.currentTime); // 과도하지 않은 부드러운 공간감
+
+      drySignalGain = audioCtx.createGain();
+      drySignalGain.gain.setValueAtTime(0.75, audioCtx.currentTime);
+
+      convolverNode.connect(reverbWetGain);
+      reverbWetGain.connect(masterCompressor);
+      drySignalGain.connect(masterCompressor);
+
+      rainBedPanner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+      rainBusGain = audioCtx.createGain();
+      rainBusGain.gain.setValueAtTime(parseFloat(rainVolSlider.value), audioCtx.currentTime);
+
+      if (rainBedPanner) {
+        rainBedPanner.connect(drySignalGain);
+        rainBedPanner.connect(convolverNode);
+        rainBusGain.connect(rainBedPanner);
+      } else {
+        rainBusGain.connect(drySignalGain);
+        rainBusGain.connect(convolverNode);
+      }
+
+      thunderBusGain = audioCtx.createGain();
+      thunderBusGain.gain.setValueAtTime(parseFloat(thunderVolSlider.value), audioCtx.currentTime);
+      thunderBusGain.connect(drySignalGain);
+      thunderBusGain.connect(convolverNode);
+
+      sharedBrownBuffer = createStereoBrownNoise(audioCtx, 8);
+      sharedPinkBuffer = createStereoPinkNoise(audioCtx, 8);
+    }
+
+    // [음향 개선] 5~8초 주기로 비가 부드럽게 몰아쳤다 가라앉는 자연의 호흡 (바람 서지)
+    function runDynamicWeatherEngine() {
+      if (!isRunning) return;
+
+      const now = audioCtx.currentTime;
+      const cycleDuration = 6.0 + Math.random() * 6.0;
+
+      targetSurge = 0.8 + Math.random() * 0.45;
+      targetWindDrift = -0.05 - (Math.random() * 0.35);
+
+      if (rainLowGain && rainBodyGain && rainAirGain) {
+        const effIntensity = Math.min(1.0, baseIntensity * targetSurge);
+
+        // 1. 대지 저음 바디
+        const targetLowGain = (0.28 + effIntensity * 0.4) * (0.9 + targetSurge * 0.15);
+        const targetLowFreq = 260 + effIntensity * 120;
+
+        // 2. 따뜻한 빗줄기 본체 (귀 아픈 고주파가 없는 1200~1900Hz 밴드)
+        const targetBodyGain = (0.35 + effIntensity * 0.5) * (0.85 + targetSurge * 0.2);
+        const targetBodyFreq = 1350 + (targetSurge * 350);
+
+        // 3. 고요한 공기감 (4kHz 이상은 자극 없도록 철저히 차단)
+        const targetAirGain = (0.08 + effIntensity * 0.22) * (0.9 + targetSurge * 0.2);
+        const targetAirFreq = 2400 + (effIntensity * 800);
+
+        rainLowGain.gain.setTargetAtTime(targetLowGain, now, cycleDuration * 0.35);
+        rainLowFilter.frequency.setTargetAtTime(targetLowFreq, now, cycleDuration * 0.35);
+
+        rainBodyGain.gain.setTargetAtTime(targetBodyGain, now, cycleDuration * 0.35);
+        rainBodyFilter.frequency.setTargetAtTime(targetBodyFreq, now, cycleDuration * 0.35);
+
+        rainAirGain.gain.setTargetAtTime(targetAirGain, now, cycleDuration * 0.35);
+        rainAirFilter.frequency.setTargetAtTime(targetAirFreq, now, cycleDuration * 0.35);
+
+        if (rainBedPanner) {
+          rainBedPanner.pan.setTargetAtTime(targetWindDrift * 0.6, now, cycleDuration * 0.4);
+        }
+      }
+
+      weatherCycleTimer = setTimeout(runDynamicWeatherEngine, cycleDuration * 1000);
+    }
+
+    // [음향 개선] 귀가 편안한 3중 벨벳 빗소리 시작 (자극적 클릭 0%)
+    function startRainSound() {
+      // 레이어 1: 촉촉하게 대지를 적시는 묵직한 저음 럼블 (Brown Noise + 280Hz Lowpass)
+      rainLowSource = audioCtx.createBufferSource();
+      rainLowSource.buffer = sharedBrownBuffer;
+      rainLowSource.loop = true;
+
+      rainLowFilter = audioCtx.createBiquadFilter();
+      rainLowFilter.type = 'lowpass';
+      rainLowFilter.frequency.value = 280;
+
+      rainLowGain = audioCtx.createGain();
+      rainLowGain.gain.value = 0.32 + baseIntensity * 0.38;
+
+      rainLowSource.connect(rainLowFilter);
+      rainLowFilter.connect(rainLowGain);
+      rainLowGain.connect(rainBusGain);
+      rainLowSource.start();
+
+      // 레이어 2: 쏟아지는 비의 풍성하고 따뜻한 장막 "쏴아아아-" (Pink Noise + 1500Hz Bandpass)
+      rainBodySource = audioCtx.createBufferSource();
+      rainBodySource.buffer = sharedPinkBuffer;
+      rainBodySource.loop = true;
+
+      rainBodyFilter = audioCtx.createBiquadFilter();
+      rainBodyFilter.type = 'bandpass';
+      rainBodyFilter.frequency.value = 1450;
+      rainBodyFilter.Q.value = 0.55; // 넓고 완만하게 감싸는 따뜻한 대역
+
+      rainBodyGain = audioCtx.createGain();
+      rainBodyGain.gain.value = 0.38 + baseIntensity * 0.45;
+
+      rainBodySource.connect(rainBodyFilter);
+      rainBodyFilter.connect(rainBodyGain);
+      rainBodyGain.connect(rainBusGain);
+      rainBodySource.start();
+
+      // 레이어 3: 대기 중의 부드러운 수증기 확산음 (귀를 찌르지 않도록 3200Hz에서 부드럽게 롤오프)
+      rainAirSource = audioCtx.createBufferSource();
+      rainAirSource.buffer = sharedPinkBuffer;
+      rainAirSource.loop = true;
+
+      rainAirFilter = audioCtx.createBiquadFilter();
+      rainAirFilter.type = 'lowpass';
+      rainAirFilter.frequency.value = 2800; // 4kHz 이상의 불쾌한 치찰음 차단
+
+      rainAirGain = audioCtx.createGain();
+      rainAirGain.gain.value = 0.12 + baseIntensity * 0.2;
+
+      rainAirSource.connect(rainAirFilter);
+      rainAirFilter.connect(rainAirGain);
+      rainAirGain.connect(rainBusGain);
+      rainAirSource.start();
+
+      scheduleGentleDroplets();
+      runDynamicWeatherEngine();
+    }
+
+    // [음향 개선] 타다다닥 소리 완전 제거! 1.5~3초 간격으로 처마 밑에서 가끔 톡 떨어지는 은은한 물방울
+    function scheduleGentleDroplets() {
+      if (!isRunning) return;
+
+      const now = audioCtx.currentTime;
+      const currentEffIntensity = Math.min(1.0, baseIntensity * currentSurge);
+
+      // 날카로운 클릭이 절대 발생하지 않도록 15ms의 부드러운 어택을 가진 먼 웅덩이 공명음
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const filter = audioCtx.createBiquadFilter();
+      const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+      // 400~600Hz 대역의 따뜻하고 둥근 톤
+      const startFreq = 420 + Math.random() * 180;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(startFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(startFreq * 0.75, now + 0.04);
+
+      filter.type = 'lowpass';
+      filter.frequency.value = 750; // 모든 고주파를 차단하여 부드럽고 둥근 소리만 통과
+
+      const dropVol = (0.003 + Math.random() * 0.005) * currentEffIntensity;
+      gain.gain.setValueAtTime(0.00001, now);
+      gain.gain.linearRampToValueAtTime(dropVol, now + 0.015); // 15ms 부드러운 페이드인 (클릭음 원천 차단)
+      gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.07);
+
+      osc.connect(filter);
+      filter.connect(gain);
+
+      if (panner) {
+        panner.pan.value = (Math.random() * 2 - 1) * 0.75;
+        gain.connect(panner);
+        panner.connect(rainBusGain);
+      } else {
+        gain.connect(rainBusGain);
+      }
+
+      osc.start(now);
+      osc.stop(now + 0.08);
+
+      // 간격을 1.2초 ~ 2.8초로 넉넉하게 띄워 기계적 반복음 방지
+      const nextDelay = 1200 + Math.random() * 1600;
+      dropletScheduler = setTimeout(scheduleGentleDroplets, nextDelay);
+    }
+
+    function stopRainSound() {
+      [rainLowSource, rainBodySource, rainAirSource].forEach(node => {
+        if (node) {
+          try { node.stop(); } catch(e){}
+          try { node.disconnect(); } catch(e){}
+        }
+      });
+      rainLowSource = null;
+      rainBodySource = null;
+      rainAirSource = null;
+
+      if (dropletScheduler) clearTimeout(dropletScheduler);
+      if (weatherCycleTimer) clearTimeout(weatherCycleTimer);
+    }
+
+    // ==========================================================================
+    // 기존의 깊고 웅장한 13.5~20초 롱테일 천둥 합성 알고리즘 (완전 보존)
+    // ==========================================================================
+    function triggerThunderDischarge(isManual = false) {
+      if (!audioCtx || !isRunning) return;
+
+      const distance = 0.6 + Math.random() * 0.35;
+      const delay = isManual ? 0.3 : (2.0 + distance * 3.0);
+
+      flashLightning(distance);
+
+      setTimeout(() => {
+        if (!isRunning) return;
+        renderThunderAcoustics(distance);
+      }, delay * 1000);
+    }
+
+    function renderThunderAcoustics(distance) {
+      const now = audioCtx.currentTime;
+      const duration = 13.5 + Math.random() * 6.5;
+
+      const thunderTrack = audioCtx.createGain();
+      const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+      const startSide = Math.random() > 0.5 ? 1 : -1;
+      const startPan = startSide * (0.6 + Math.random() * 0.3);
+      const endPan = -startPan * (0.5 + Math.random() * 0.4);
+
+      if (panner) {
+        panner.pan.setValueAtTime(startPan, now);
+        panner.pan.linearRampToValueAtTime(endPan, now + duration);
+        thunderTrack.connect(panner);
+        panner.connect(thunderBusGain);
+      } else {
+        thunderTrack.connect(thunderBusGain);
+      }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = createStereoBrownNoise(audioCtx, duration + 6);
+
+      const subFilter = audioCtx.createBiquadFilter();
+      subFilter.type = 'lowpass';
+      subFilter.frequency.setValueAtTime(75, now);
+      subFilter.Q.value = 3.2;
+
+      const midFilter = audioCtx.createBiquadFilter();
+      midFilter.type = 'bandpass';
+      midFilter.frequency.setValueAtTime(125, now);
+      midFilter.Q.value = 1.6;
+
+      const rumbleEnv = audioCtx.createGain();
+      rumbleEnv.gain.setValueAtTime(0.0001, now);
+
+      const attack = 1.6 + Math.random() * 0.8;
+      const peak = 0.55 + Math.random() * 0.25;
+      rumbleEnv.gain.linearRampToValueAtTime(peak, now + attack);
+
+      const rumbleMainDuration = duration * 0.62;
+      let cur = now + attack;
+      const crests = Math.floor(6 + Math.random() * 4);
+      const step = (rumbleMainDuration - attack) / crests;
+
+      for (let i = 0; i < crests; i++) {
+        const pTime = cur + (step * (0.7 + Math.random() * 0.6));
+        const decay = Math.pow(1 - ((i + 1) / crests), 1.1);
+        const amp = (0.22 + Math.random() * 0.48) * peak * decay;
+
+        rumbleEnv.gain.setTargetAtTime(Math.max(0.001, amp * 0.38), cur + (step * 0.3), 0.35);
+        rumbleEnv.gain.setTargetAtTime(Math.max(0.001, amp), pTime, 0.45);
+
+        subFilter.frequency.setTargetAtTime(65 + amp * 45, pTime, 0.35);
+        cur = pTime;
+      }
+
+      const tailStartTime = cur;
+      subFilter.frequency.setTargetAtTime(50, tailStartTime, 1.4);
+      rumbleEnv.gain.setTargetAtTime(0.00001, tailStartTime, 2.3);
+
+      noise.connect(subFilter);
+      noise.connect(midFilter);
+      subFilter.connect(rumbleEnv);
+      midFilter.connect(rumbleEnv);
+      rumbleEnv.connect(thunderTrack);
+
+      noise.start(now);
+      noise.stop(now + duration + 4.5);
+    }
+
+    function scheduleAutoThunder() {
+      if (!isRunning) return;
+      const delay = 26000 + Math.random() * 26000;
+      thunderScheduler = setTimeout(() => {
+        triggerThunderDischarge(false);
+        scheduleAutoThunder();
+      }, delay);
+    }
+
+    // ==========================================================================
+    // 3. 24 FPS 시네마틱 + 불규칙 자연 빗줄기 물리 엔진
+    // ==========================================================================
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const lightningOverlay = document.getElementById('lightning-overlay');
+    const clockDisplay = document.getElementById('clockDisplay');
+
+    let width, height, dpr;
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const TOTAL_DROPS = 1050;
+    const raindrops = [];
+    const ripples = [];
+    const splashBeads = [];
+    const groundMist = [];
+    const glassDrops = [];
+
+    let animatedWind = -0.15;
+    let simTime = 0;
+    let lightningFlashIntensity = 0;
+
+    for (let i = 0; i < TOTAL_DROPS; i++) {
+      const z = 0.08 + Math.pow(Math.random(), 1.7) * 1.25;
+      const isBokeh = z > 1.08;
+      const isDrizzle = z < 0.35;
+
+      raindrops.push({
+        x: Math.random() * (width + 600) - 300,
+        y: Math.random() * (height + 200) - 100,
+        z: z,
+        isBokeh: isBokeh,
+        isDrizzle: isDrizzle,
+        mass: isDrizzle ? 0.35 : (0.7 + z * 0.8),
+        baseLen: isBokeh ? (90 + Math.random() * 50) : (isDrizzle ? (8 + Math.random() * 8) : (18 + z * 34)),
+        baseSpeed: isBokeh ? (36 + Math.random() * 16) : (isDrizzle ? (11 + Math.random() * 8) : (16 + z * 24)),
+        alpha: isBokeh ? 0.16 : (isDrizzle ? 0.18 : (0.15 + z * 0.45)),
+        swayFreq: 1.5 + Math.random() * 3.0,
+        swayPhase: Math.random() * Math.PI * 2,
+        seed: Math.random() * 1000
+      });
+    }
+
+    function triggerGroundPhysics(x, y, z, dynamicIntensity) {
+      if (ripples.length < 130) {
+        ripples.push({
+          x: x,
+          y: y,
+          r: 1.2,
+          maxR: (3.5 + Math.random() * 7 * dynamicIntensity) * Math.min(1.0, z),
+          alpha: (0.4 + Math.random() * 0.4) * Math.min(1.0, z)
+        });
+      }
+
+      if (z > 0.45 && splashBeads.length < 160) {
+        const count = Math.floor(2 + Math.random() * 4 * dynamicIntensity);
+        for (let i = 0; i < count; i++) {
+          const angle = (Math.random() * Math.PI) - (Math.PI / 2) + (animatedWind * 0.9);
+          const vel = (1.8 + Math.random() * 3.8) * Math.min(1.0, z);
+          splashBeads.push({
+            x: x,
+            y: y,
+            vx: Math.sin(angle) * vel,
+            vy: -Math.cos(angle) * vel,
+            gravity: 0.24,
+            alpha: 0.85 * Math.min(1.0, z),
+            radius: (0.6 + Math.random() * 0.7) * Math.min(1.0, z)
+          });
+        }
+      }
+
+      if (z > 0.5 && groundMist.length < 90 && Math.random() < 0.35 * dynamicIntensity) {
+        groundMist.push({
+          x: x,
+          y: y,
+          vx: animatedWind * (0.8 + Math.random() * 1.2),
+          vy: -(0.2 + Math.random() * 0.5),
+          radius: 3 + Math.random() * 6,
+          maxRadius: 18 + Math.random() * 20,
+          alpha: 0.18 * dynamicIntensity
+        });
+      }
+    }
+
+    function updateGlassCondensation(dynamicIntensity, dtScale) {
+      if (glassDrops.length < 16 && Math.random() < 0.05 * dynamicIntensity) {
+        glassDrops.push({
+          x: Math.random() * width,
+          y: Math.random() * (height * 0.85),
+          radius: 2.0 + Math.random() * 3.5,
+          alpha: 0.55 + Math.random() * 0.3,
+          dripSpeed: 0.15 + Math.random() * 0.45,
+          trail: [],
+          life: 200 + Math.random() * 250
+        });
+      }
+
+      for (let i = glassDrops.length - 1; i >= 0; i--) {
+        const gd = glassDrops[i];
+        if (Math.random() < 0.65) {
+          gd.y += gd.dripSpeed * dtScale;
+          if (Math.random() < 0.25) {
+            gd.trail.push({ x: gd.x + (Math.random() * 0.8 - 0.4), y: gd.y, alpha: gd.alpha * 0.5, r: gd.radius * 0.6 });
+          }
+        }
+        gd.life -= dtScale;
+        gd.alpha -= 0.0018 * dtScale;
+
+        for (let t = gd.trail.length - 1; t >= 0; t--) {
+          const tr = gd.trail[t];
+          ctx.fillStyle = `rgba(247, 246, 242, ${tr.alpha * 0.4})`;
+          ctx.beginPath();
+          ctx.arc(tr.x, tr.y, tr.r, 0, Math.PI * 2);
+          ctx.fill();
+          tr.alpha -= 0.004 * dtScale;
+          if (tr.alpha <= 0) gd.trail.splice(t, 1);
+        }
+
+        ctx.fillStyle = `rgba(0, 0, 0, ${gd.alpha * 0.5})`;
+        ctx.beginPath();
+        ctx.arc(gd.x, gd.y, gd.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = `rgba(247, 246, 242, ${gd.alpha * 0.95})`;
+        ctx.beginPath();
+        ctx.arc(gd.x - gd.radius * 0.3, gd.y - gd.radius * 0.35, gd.radius * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (gd.life <= 0 || gd.alpha <= 0) glassDrops.splice(i, 1);
+      }
+    }
+
+    // 24 FPS 고정 타임 스케줄러
+    const TARGET_FPS = 24;
+    const FRAME_INTERVAL = 1000 / TARGET_FPS;
+    const DT_SCALE = 60 / TARGET_FPS;
+    let lastRenderTimestamp = performance.now();
+
+    function renderRealisticEngine(currentTimestamp) {
+      requestAnimationFrame(renderRealisticEngine);
+
+      const elapsed = currentTimestamp - lastRenderTimestamp;
+      if (elapsed < FRAME_INTERVAL) return;
+
+      lastRenderTimestamp = currentTimestamp - (elapsed % FRAME_INTERVAL);
+
+      ctx.clearRect(0, 0, width, height);
+      simTime += 0.0416;
+
+      lightningFlashIntensity *= Math.pow(0.88, DT_SCALE);
+
+      if (lightningFlashIntensity > 0.05) {
+        clockDisplay.style.textShadow = `0 0 ${40 * lightningFlashIntensity}px rgba(215, 230, 255, ${lightningFlashIntensity * 0.75})`;
+      } else {
+        clockDisplay.style.textShadow = '0 0 35px rgba(247, 246, 242, 0.08)';
+      }
+
+      currentSurge += (targetSurge - currentSurge) * (0.015 * DT_SCALE);
+      currentWindDrift += (targetWindDrift - currentWindDrift) * (0.012 * DT_SCALE);
+
+      const dynamicIntensity = Math.min(1.0, baseIntensity * currentSurge);
+
+      const windTurbulence = Math.sin(simTime * 0.8) * 0.09 + Math.cos(simTime * 1.5) * 0.04;
+      animatedWind = (currentWindDrift + windTurbulence);
+
+      const activeCount = Math.floor(280 + dynamicIntensity * 760);
+
+      const groundH = 90;
+      const puddleGrad = ctx.createLinearGradient(0, height - groundH, 0, height);
+      const groundFlashAlpha = lightningFlashIntensity * 0.25;
+      puddleGrad.addColorStop(0, 'rgba(10, 11, 14, 0)');
+      puddleGrad.addColorStop(0.35, `rgba(16, 20, 28, ${0.45 + dynamicIntensity * 0.3})`);
+      puddleGrad.addColorStop(1, `rgba(28, 36, 48, ${0.7 + groundFlashAlpha})`);
+      ctx.fillStyle = puddleGrad;
+      ctx.fillRect(0, height - groundH, width, groundH);
+
+      for (let i = 0; i < activeCount; i++) {
+        const d = raindrops[i];
+
+        const curtainWave = Math.sin(d.x * 0.0022 + simTime * 1.3) * Math.cos(d.y * 0.0016 - simTime * 0.9);
+        const curtainDensity = 0.72 + curtainWave * 0.36;
+
+        const sway = d.isDrizzle ? (Math.sin(simTime * d.swayFreq + d.swayPhase) * 1.8) : 0;
+        const windInfluence = animatedWind * (d.isDrizzle ? 3.4 : (2.4 / d.mass));
+
+        const speed = d.baseSpeed * (0.8 + dynamicIntensity * 0.5);
+        const len = d.baseLen * (0.85 + dynamicIntensity * 0.45);
+
+        const dx = (windInfluence * speed) + sway;
+        const dy = speed;
+
+        const flashBoost = 1.0 + lightningFlashIntensity * 2.2;
+        const effectiveAlpha = Math.min(1.0, d.alpha * (0.4 + dynamicIntensity * 0.6) * curtainDensity * flashBoost);
+
+        if (d.isBokeh) {
+          ctx.lineWidth = 5.5 + dynamicIntensity * 2.5;
+          const bokehGrad = ctx.createLinearGradient(d.x, d.y, d.x - dx, d.y - len);
+          bokehGrad.addColorStop(0, `rgba(247, 246, 242, ${effectiveAlpha * 0.25})`);
+          bokehGrad.addColorStop(1, 'rgba(210, 225, 245, 0)');
+          ctx.strokeStyle = bokehGrad;
+        } else if (d.isDrizzle) {
+          ctx.lineWidth = 0.65 * d.z;
+          ctx.strokeStyle = `rgba(215, 228, 248, ${effectiveAlpha * 0.65})`;
+        } else {
+          ctx.lineWidth = (0.75 + dynamicIntensity * 0.65) * Math.min(1.0, d.z) * 1.4;
+          const dropGrad = ctx.createLinearGradient(d.x, d.y, d.x - dx, d.y - len);
+          dropGrad.addColorStop(0, `rgba(247, 246, 242, ${effectiveAlpha})`);
+          dropGrad.addColorStop(0.35, `rgba(215, 228, 248, ${effectiveAlpha * 0.75})`);
+          dropGrad.addColorStop(1, 'rgba(180, 205, 240, 0)');
+          ctx.strokeStyle = dropGrad;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(d.x - dx, d.y - len);
+        ctx.stroke();
+
+        d.x += dx * 0.28 * DT_SCALE;
+        d.y += dy * DT_SCALE;
+
+        if (d.y > height - 8) {
+          if (!d.isBokeh && Math.random() < 0.45) {
+            triggerGroundPhysics(d.x, height - 5, d.z, dynamicIntensity);
+          }
+          d.y = -len - (Math.random() * 120);
+          d.x = Math.random() * (width + 600) - 300;
+        }
+      }
+
+      // 파문
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const rp = ripples[i];
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(247, 246, 242, ${rp.alpha * (1.0 + lightningFlashIntensity)})`;
+        ctx.lineWidth = 1.1;
+        ctx.ellipse(rp.x, rp.y, rp.r * 2.8, rp.r * 0.65, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        rp.r += 0.65 * DT_SCALE;
+        rp.alpha -= 0.024 * DT_SCALE;
+        if (rp.alpha <= 0) ripples.splice(i, 1);
+      }
+
+      // 비드 파편
+      for (let i = splashBeads.length - 1; i >= 0; i--) {
+        const sb = splashBeads[i];
+        ctx.fillStyle = `rgba(247, 246, 242, ${sb.alpha * (1.0 + lightningFlashIntensity)})`;
+        ctx.beginPath();
+        ctx.arc(sb.x, sb.y, sb.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        sb.x += sb.vx * DT_SCALE;
+        sb.y += sb.vy * DT_SCALE;
+        sb.vy += sb.gravity * DT_SCALE;
+        sb.alpha -= 0.025 * DT_SCALE;
+
+        if (sb.alpha <= 0 || sb.y > height - 2) splashBeads.splice(i, 1);
+      }
+
+      // 지면 안개
+      for (let i = groundMist.length - 1; i >= 0; i--) {
+        const gm = groundMist[i];
+        ctx.fillStyle = `rgba(180, 205, 235, ${gm.alpha})`;
+        ctx.beginPath();
+        ctx.arc(gm.x, gm.y, gm.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        gm.x += gm.vx * DT_SCALE;
+        gm.y += gm.vy * DT_SCALE;
+        gm.radius += 0.35 * DT_SCALE;
+        gm.alpha -= 0.0035 * DT_SCALE;
+
+        if (gm.alpha <= 0 || gm.radius >= gm.maxRadius) groundMist.splice(i, 1);
+      }
+
+      updateGlassCondensation(dynamicIntensity, DT_SCALE);
+    }
+    requestAnimationFrame(renderRealisticEngine);
+
+    function flashLightning(distance) {
+      const maxOpacity = Math.max(0.22, (1.0 - distance) * 0.7);
+      lightningOverlay.style.opacity = maxOpacity;
+      lightningFlashIntensity = 1.0;
+
+      setTimeout(() => {
+        lightningOverlay.style.opacity = maxOpacity * 0.4;
+        setTimeout(() => {
+          lightningOverlay.style.opacity = maxOpacity * 0.95;
+          lightningFlashIntensity = 1.0;
+          setTimeout(() => {
+            lightningOverlay.style.opacity = 0;
+          }, 120);
+        }, 45);
+      }, 70);
+    }
+
+    // ==========================================================================
+    // 4. UI 인터랙션
+    // ==========================================================================
+    const powerBtn = document.getElementById('powerBtn');
+    const powerText = document.getElementById('powerText');
+    const iconPlay = document.getElementById('iconPlay');
+    const iconPause = document.getElementById('iconPause');
+
+    const quickPlayBtn = document.getElementById('quickPlayBtn');
+    const quickPlayIcon = document.getElementById('quickPlayIcon');
+    const quickPauseIcon = document.getElementById('quickPauseIcon');
+
+    const toggleDrawerBtn = document.getElementById('toggleDrawerBtn');
+    const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+    const settingsDrawer = document.getElementById('settingsDrawer');
+    const drawerBackdrop = document.getElementById('drawerBackdrop');
+
+    const triggerBtn = document.getElementById('triggerBtn');
+    const rainIntensitySlider = document.getElementById('rainIntensitySlider');
+    const rainVolSlider = document.getElementById('rainVolSlider');
+    const thunderVolSlider = document.getElementById('thunderVolSlider');
+
+    const rainIntensityVal = document.getElementById('rainIntensityVal');
+    const rainVolVal = document.getElementById('rainVolVal');
+    const thunderVolVal = document.getElementById('thunderVolVal');
+
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const fullscreenText = document.getElementById('fullscreenText');
+    const fsEnterIcon = document.getElementById('fsEnterIcon');
+    const fsExitIcon = document.getElementById('fsExitIcon');
+
+    function openDrawer() {
+      settingsDrawer.classList.remove('drawer-closed');
+      settingsDrawer.classList.add('drawer-open');
+      drawerBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+      drawerBackdrop.classList.add('opacity-100', 'pointer-events-auto');
+    }
+
+    function closeDrawer() {
+      settingsDrawer.classList.add('drawer-closed');
+      settingsDrawer.classList.remove('drawer-open');
+      drawerBackdrop.classList.add('opacity-0', 'pointer-events-none');
+      drawerBackdrop.classList.remove('opacity-100', 'pointer-events-auto');
+    }
+
+    toggleDrawerBtn.addEventListener('click', openDrawer);
+    closeDrawerBtn.addEventListener('click', closeDrawer);
+    drawerBackdrop.addEventListener('click', closeDrawer);
+
+    async function togglePower() {
+      if (!audioCtx) initAudio();
+
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+
+      if (!isRunning) {
+        isRunning = true;
+        
+        powerText.textContent = "일시 정지";
+        iconPlay.classList.add('hidden');
+        iconPause.classList.remove('hidden');
+        powerBtn.className = "w-full py-3 px-4 my-5 border border-[#F7F6F2] bg-[#F7F6F2] text-[#000000] font-mono-custom text-xs font-bold tracking-wider uppercase transition-all duration-150 flex items-center justify-center gap-2.5 shadow-md";
+
+        quickPlayIcon.classList.add('hidden');
+        quickPauseIcon.classList.remove('hidden');
+        quickPlayBtn.classList.add('border-[#F7F6F2]', 'bg-[#F7F6F2]', 'text-black');
+        quickPlayBtn.classList.remove('text-[#F7F6F2]', 'bg-[#14161B]/85');
+
+        startRainSound();
+        scheduleAutoThunder();
+      } else {
+        isRunning = false;
+        
+        powerText.textContent = "재생 시작";
+        iconPlay.classList.remove('hidden');
+        iconPause.classList.add('hidden');
+        powerBtn.className = "w-full py-3 px-4 my-5 border border-[#383C46] bg-[#1C1E24] hover:bg-[#242730] text-[#F7F6F2] font-mono-custom text-xs font-semibold tracking-wider uppercase transition-all duration-150 flex items-center justify-center gap-2.5";
+
+        quickPlayIcon.classList.remove('hidden');
+        quickPauseIcon.classList.add('hidden');
+        quickPlayBtn.classList.remove('border-[#F7F6F2]', 'bg-[#F7F6F2]', 'text-black');
+        quickPlayBtn.classList.add('text-[#F7F6F2]', 'bg-[#14161B]/85');
+
+        stopRainSound();
+        if (thunderScheduler) clearTimeout(thunderScheduler);
+      }
+    }
+
+    powerBtn.addEventListener('click', togglePower);
+    quickPlayBtn.addEventListener('click', togglePower);
+
+    triggerBtn.addEventListener('click', () => {
+      if (!isRunning) {
+        alert("먼저 소리 재생을 시작해주세요.");
+        return;
+      }
+      triggerThunderDischarge(true);
+    });
+
+    function toggleFullscreen() {
+      const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if (!isFs) {
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(err => console.log(err));
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(err => console.log(err));
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    }
+
+    function updateFullscreenUI() {
+      const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if (isFs) {
+        fullscreenText.textContent = "전체화면 종료";
+        fsEnterIcon.classList.add('hidden');
+        fsExitIcon.classList.remove('hidden');
+      } else {
+        fullscreenText.textContent = "전체화면 모드";
+        fsEnterIcon.classList.remove('hidden');
+        fsExitIcon.classList.add('hidden');
+      }
+    }
+
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', updateFullscreenUI);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
+
+    rainIntensitySlider.addEventListener('input', (e) => {
+      baseIntensity = parseFloat(e.target.value);
+      rainIntensityVal.textContent = `${Math.round(baseIntensity * 100)}%`;
+    });
+
+    rainVolSlider.addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      rainVolVal.textContent = `${Math.round(v * 100)}%`;
+      if (rainBusGain && audioCtx) {
+        rainBusGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.05);
+      }
+    });
+
+    thunderVolSlider.addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      thunderVolVal.textContent = `${Math.round(v * 100)}%`;
+      if (thunderBusGain && audioCtx) {
+        thunderBusGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.05);
+      }
+    });
+  </script>
+</body>
+</html>
