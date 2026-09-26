@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:astronomy": "vite astronomy-test --port 5174 --open",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>asterisk* — Planetarium Observatory (독립 플라네타리움)</title>
+
+    <!-- Google Fonts & Pretendard -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Asta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/favicon.svg" />
+  </head>
+  <body class="sky-bg-active">
+    <!-- 1. 플라네타리움 천체 배경 렌더링 컨테이너 -->
+    <div id="sky-background" class="sky-background-container"></div>
+
+    <!-- 2. 상단 네비게이션 & 시계 헤더 -->
+    <header class="app-header glass-panel">
+      <div class="brand-section">
+        <svg class="brand-icon" viewBox="0 0 24 24">
+          <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+        </svg>
+        <span class="brand-title">
+          asterisk*
+          <span class="brand-badge">PLANETARIUM</span>
+        </span>
+      </div>
+
+      <div class="status-clock">
+        <span id="clockMain" class="clock-main">00:00:00</span>
+        <span id="clockSub" class="clock-sub">2026. 09. 27 토</span>
+        <span id="clockSpeedBadge" class="clock-speed-badge">1x</span>
+        <span id="fpsBadge" class="fps-badge">60 FPS</span>
+      </div>
+
+      <div class="header-actions">
+        <!-- 단축키 힌트 / Zen 모드 버튼 -->
+        <button id="btnToggleZen" class="btn-icon" title="월페이퍼 모드 (UI 숨기기 - 단축키 H)">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        </button>
+
+        <!-- 전체화면 버튼 -->
+        <button id="btnFullscreen" class="btn-icon" title="전체화면 (단축키 F)">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+          </svg>
+        </button>
+
+        <!-- 사이드 관측 제어판 토글 버튼 -->
+        <button id="btnToggleDrawer" class="btn-icon" title="천문 관측 제어판 열기/닫기">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- 3. 하단 인터랙티브 컨트롤 덱 -->
+    <main class="control-deck glass-panel">
+      <!-- 24시간 타임라인 스크러버 -->
+      <div class="timeline-wrapper">
+        <div class="timeline-info">
+          <span>24시간 시뮬레이션 타임라인 스크러버 (00:00 ~ 24:00)</span>
+          <span id="timelineVal" style="font-weight: 700; color: #fff;">12:00</span>
+        </div>
+        <div class="timeline-track-container">
+          <div class="timeline-gradient-bar"></div>
+          <div class="timeline-markers">
+            <span>00:00</span>
+            <span>06:00 (일출)</span>
+            <span>12:00 (남중)</span>
+            <span>18:00 (일몰)</span>
+            <span>24:00</span>
+          </div>
+          <input
+            type="range"
+            id="timelineSlider"
+            class="timeline-slider"
+            min="0"
+            max="1440"
+            step="0.5"
+            value="720"
+            aria-label="천체 시뮬레이션 시각 조절"
+          />
+        </div>
+      </div>
+
+      <!-- 시뮬레이션 조작 버튼 행 -->
+      <div class="deck-buttons-row">
+        <!-- 재생/정지 및 배속 선택 -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button id="btnPlayPause" class="btn-action primary" title="재생 / 일시정지 (Space)">
+            <svg id="iconPlay" width="14" height="14" fill="currentColor" viewBox="0 0 24 24" style="display: none;">
+              <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
+            <svg id="iconPause" width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+              <rect x="6" y="4" width="4" height="16" />
+              <rect x="14" y="4" width="4" height="16" />
+            </svg>
+            <span>재생 / 일시정지</span>
+          </button>
+
+          <!-- 속도 선택 칩 그룹 -->
+          <div class="btn-group">
+            <button class="btn-chip btn-speed active" data-speed="1" title="실시간 (1배속)">1x</button>
+            <button class="btn-chip btn-speed" data-speed="10" title="10배속">10x</button>
+            <button class="btn-chip btn-speed" data-speed="60" title="60배속 (1초에 1분)">60x</button>
+            <button class="btn-chip btn-speed" data-speed="300" title="300배속 (1초에 5분)">300x</button>
+            <button class="btn-chip btn-speed" data-speed="1800" title="1800배속 (1초에 30분 타임랩스)">1800x</button>
+          </div>
+        </div>
+
+        <!-- 퀵 점프 바로가기 버튼들 -->
+        <div class="quick-jumps-row">
+          <button class="quick-chip" data-target="now" style="color: #69db7c; border-color: rgba(105, 219, 124, 0.4);" title="현재 로컬 시각 동기화 (단축키 N)">⚡ 지금 시각</button>
+          <button class="quick-chip" data-target="dawn">🌅 새벽 (Dawn)</button>
+          <button class="quick-chip" data-target="sunrise">☀️ 일출 (Sunrise)</button>
+          <button class="quick-chip" data-target="noon">🌞 남중 (Noon)</button>
+          <button class="quick-chip" data-target="sunset">🌇 일몰 (Sunset)</button>
+          <button class="quick-chip" data-target="dusk">🌌 황혼 (Dusk)</button>
+          <button class="quick-chip" data-target="midnight">🌙 자정 (Midnight)</button>
+        </div>
+      </div>
+
+      <!-- 5단계 기상 표준 구름 시뮬레이션 컨트롤러 -->
+      <div class="cloud-deck-section">
+        <div class="cloud-header-row">
+          <div class="cloud-title">
+            <span>☁️ 구름 낀 정도 (Cloud Cover):</span>
+            <span id="cloudLevelBadge" class="cloud-level-badge">800 (맑음)</span>
+          </div>
+          <span id="cloudDescText" class="cloud-desc-text">구름이 전혀 없는 맑고 투명한 하늘. 별빛과 은하수가 100% 선명하게 보입니다 (운량 0%).</span>
+        </div>
+        <div class="cloud-slider-track">
+          <div class="cloud-gradient-bar"></div>
+          <input
+            type="range"
+            id="cloudSlider"
+            class="cloud-slider"
+            min="800"
+            max="804"
+            step="0.01"
+            value="800"
+            aria-label="구름 낀 정도 조절 (800~804단계)"
+          />
+        </div>
+        <!-- 5단계 기상 표준 퀵 프리셋 칩 스트립 -->
+        <div class="cloud-presets-scroll" id="cloudPresetsContainer"></div>
+      </div>
+    </main>
+
+    <!-- 4. 우측 사이드 천문 제어 및 텔레메트리 드로어 -->
+    <aside id="sideDrawer" class="side-drawer glass-panel">
+      <div class="drawer-header">
+        <span class="drawer-title">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none" />
+            <path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="2" />
+          </svg>
+          OBSERVATORY CONSOLE
+        </span>
+        <button id="btnCloseDrawer" class="btn-icon" style="width: 28px; height: 28px;" title="닫기">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- 날짜 및 계절 선택 -->
+      <div class="telemetry-card">
+        <div class="card-title">
+          <span>📅 시뮬레이션 일자 및 절기</span>
+        </div>
+        <div class="form-group">
+          <div style="display: flex; gap: 6px;">
+            <button id="btnPrevDay" class="btn-action" style="padding: 6px 10px;" title="어제 (-1일)">◀</button>
+            <input type="date" id="datePickerInput" class="form-input" style="flex: 1;" />
+            <button id="btnNextDay" class="btn-action" style="padding: 6px 10px;" title="내일 (+1일)">▶</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">천문 이벤트 / 절기 프리셋</label>
+          <select id="datePresetSelect" class="form-input">
+            <option value="today">오늘 (Today)</option>
+            <option value="summer">하지 (Summer Solstice 6/21 - 태양 최고 고도)</option>
+            <option value="winter">동지 (Winter Solstice 12/21 - 태양 최저 고도)</option>
+            <option value="spring">춘분 (Spring Equinox 3/20)</option>
+            <option value="autumn">추분 (Autumn Equinox 9/23)</option>
+            <option value="fullmoon">보름달 (Full Moon 🌕)</option>
+            <option value="newmoon">신월 / 그믐 (New Moon 🌑)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 태양 실시간 텔레메트리 -->
+      <div class="telemetry-card">
+        <div class="card-title">
+          <span>☀️ 태양 (Solar Telemetry)</span>
+        </div>
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <span class="item-label">현재 고도</span>
+            <span id="telSunAlt" class="item-value">+0.0°</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">일출 / 일몰</span>
+            <span id="telSunTimes" class="item-value">06:20 / 18:30</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">태양 적위 (Decl)</span>
+            <span id="telSunDecl" class="item-value">+0.0°</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">남중 최대 고도</span>
+            <span id="telSunMaxAlt" class="item-value">53.5°</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 달 실시간 텔레메트리 -->
+      <div class="telemetry-card">
+        <div class="card-title">
+          <span>🌙 달 (Lunar Telemetry)</span>
+        </div>
+        <div class="telemetry-grid">
+          <div class="telemetry-item" style="grid-column: span 2;">
+            <span class="item-label">월상 (Phase) & 광휘도</span>
+            <span id="telMoonPhase" class="item-value">🌕 보름달 (100%)</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">월령 (Age)</span>
+            <span id="telMoonAge" class="item-value">15.0일</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">달 고도</span>
+            <span id="telMoonAlt" class="item-value">+0.0°</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">이각 (Elongation)</span>
+            <span id="telMoonElong" class="item-value">180.0°</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 하늘 및 항성계 텔레메트리 -->
+      <div class="telemetry-card">
+        <div class="card-title">
+          <span>🌌 하늘 & 은하수 (Sidereal & Atmosphere)</span>
+        </div>
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <span class="item-label">지방항성시 (LST)</span>
+            <span id="telLst" class="item-value">00h 00m</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">은하수 회전각</span>
+            <span id="telStarRot" class="item-value">0.0°</span>
+          </div>
+          <div class="telemetry-item" style="grid-column: span 2;">
+            <span class="item-label">별빛 가시도 (황혼 마스킹)</span>
+            <span id="telStarOpacity" class="item-value">100%</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">천정 (Zenith)</span>
+            <div class="item-value">
+              <span id="zenithColorChip" class="color-preview-box"></span>
+              <span id="telSkyZenith" style="font-size: 11px;">rgb(...)</span>
+            </div>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">지평선 (Horizon)</span>
+            <div class="item-value">
+              <span id="horizonColorChip" class="color-preview-box"></span>
+              <span id="telSkyHorizon" style="font-size: 11px;">rgb(...)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 구름 & 대기 조명 텔레메트리 -->
+      <div class="telemetry-card">
+        <div class="card-title">
+          <span>☁️ 구름 상태 (Cloud & Occlusion)</span>
+        </div>
+        <div class="telemetry-grid">
+          <div class="telemetry-item" style="grid-column: span 2;">
+            <span class="item-label">운형 (Genera)</span>
+            <span id="telCloudName" class="item-value">0단계 청명 (Clear Sky)</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">총 운량</span>
+            <span id="telCloudCover" class="item-value">0%</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">태양 차폐율</span>
+            <span id="telSunOcc" class="item-value">0%</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">달 차폐율</span>
+            <span id="telMoonOcc" class="item-value">0%</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="item-label">별빛 차폐율</span>
+            <span id="telStarOcc" class="item-value">0%</span>
+          </div>
+        </div>
+
+        <!-- 풍속 및 풍향 조절 -->
+        <div style="display: flex; gap: 8px; margin-top: 6px;">
+          <div class="form-group" style="flex: 1;">
+            <div class="form-label">
+              <span>풍속 (Wind Speed)</span>
+              <span id="windSpeedVal" style="color: #fff; font-weight: 600;">1.0x</span>
+            </div>
+            <input type="range" id="windSpeedSlider" min="0" max="4" step="0.1" value="1.0" />
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label">풍향 (Wind Dir)</label>
+            <select id="windDirSelect" class="form-input" style="padding: 4px 6px; font-size: 11px;">
+              <option value="45" selected>북동 (NE 45°)</option>
+              <option value="90">동 (E 90°)</option>
+              <option value="135">남동 (SE 135°)</option>
+              <option value="180">남 (S 180°)</option>
+              <option value="225">남서 (SW 225°)</option>
+              <option value="270">서 (W 270°)</option>
+              <option value="315">북서 (NW 315°)</option>
+              <option value="0">북 (N 0°)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 관측지 위치 설정 -->
+      <div class="telemetry-card">
+        <div class="card-title">
+          <span>📍 관측지 좌표 (Latitude & Longitude)</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label">위도 (°N)</label>
+            <input type="number" id="inputLat" class="form-input" value="36.4674" step="0.0001" />
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label">경도 (°E)</label>
+            <input type="number" id="inputLon" class="form-input" value="127.1292" step="0.0001" />
+          </div>
+        </div>
+        <button id="btnApplyCoords" class="btn-action" style="justify-content: center; width: 100%;">좌표 적용</button>
+        <div class="form-label" style="margin-top: 4px;">세계 주요 관측지 프리셋</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+          <button class="quick-chip loc-chip" data-lat="36.4674" data-lon="127.1292">충남과학고 (공주)</button>
+          <button class="quick-chip loc-chip" data-lat="37.5665" data-lon="126.9780">서울</button>
+          <button class="quick-chip loc-chip" data-lat="35.6762" data-lon="139.6503">도쿄</button>
+          <button class="quick-chip loc-chip" data-lat="51.4769" data-lon="-0.0005">그리니치</button>
+          <button class="quick-chip loc-chip" data-lat="0.0000" data-lon="100.0000">적도</button>
+          <button class="quick-chip loc-chip" data-lat="89.0000" data-lon="0.0000">북극</button>
+        </div>
+      </div>
+
+      <!-- 위성 및 레이어 테스트 도구 -->
+      <div class="telemetry-card">
+        <div class="card-title">
+          <span>🚀 인공위성 발사 & 레이어 제어</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnSpawnSat" class="btn-action" style="flex: 1; justify-content: center;" title="단축키 S">
+            🛰️ 위성 발사
+          </button>
+          <button id="btnSpawnStarlink" class="btn-action" style="flex: 1; justify-content: center;" title="단축키 L">
+            🛰️ 스타링크 편대
+          </button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
+          <div class="switch-row">
+            <span class="switch-label">구름 시뮬레이션 전체 (All Clouds)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleCloudsAll" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="switch-row">
+            <span class="switch-label" style="padding-left: 12px; font-size: 11px;">└ 상층운 (High Cirrus/Contrail)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleCloudsHigh" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="switch-row">
+            <span class="switch-label" style="padding-left: 12px; font-size: 11px;">└ 중/하층운 (Low Cumulus/Stratus)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleCloudsLow" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="switch-row">
+            <span class="switch-label">대기 산란광 (Atmosphere)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleAtmosphere" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="switch-row">
+            <span class="switch-label">별빛 및 은하수 (Milky Way)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleStars" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="switch-row">
+            <span class="switch-label">태양 및 렌즈 플레어 (Sun Flare)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleSun" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="switch-row">
+            <span class="switch-label">달 및 달무리 (Moon Aura)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleMoon" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="switch-row">
+            <span class="switch-label">인공위성 통과 (Satellites)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleSatellites" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="switch-row">
+            <span class="switch-label">필름 노이즈 그레인 (Film Grain)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleFilmGrain" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="switch-row">
+            <span class="switch-label" style="color: #fcc419;">저사양 최적화 모드 (Perf Mode)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="togglePerfMode" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size: 11px; color: var(--obs-text-muted); line-height: 1.5; padding: 4px;">
+        단축키: <strong>Space</strong> 재생/정지 | <strong>H</strong> UI 토글 | <strong>F</strong> 전체화면 | <strong>N</strong> 현재시각 | <strong>S</strong> 위성 | <strong>L</strong> 스타링크 | <strong>[ / ]</strong> 배속 조절
+      </div>
+    </aside>
+
+    <!-- Zen 모드 탈출 안내 -->
+    <div class="zen-hint">
+      UI 숨김 모드 중입니다. <strong>H</strong> 키를 누르면 컨트롤이 다시 나타납니다.
+    </div>
+
+    <!-- 스크립트 진입점 -->
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

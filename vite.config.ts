@@ -310,6 +310,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, "index.html"),
         brand: resolve(__dirname, "brand.html"),
+        astronomy: resolve(__dirname, "astronomy-test/index.html"),
       },
     },
   },
