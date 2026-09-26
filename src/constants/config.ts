@@ -2,7 +2,7 @@ import { TickerConfigItem } from "../types/market";
 import { DayOfWeek } from "../types/timetable";
 
 export const APP_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbxanKwIuGMmw15-sipt57hB8A8B5f73CNEhwAgau5Aweg_Hhw1OBkF7WwDMGlvP3RQXrA/exec";
+  "https://script.google.com/macros/s/AKfycbwZK7M4QDtx4O_lNUB47x0oMZkvvQp7941abKIFfm_JXhhfitNR9Xz315romQVRv3IE6A/exec";
 
 export const OPENWEATHER_API_KEY = "3e6298fcd99d3906fcfa480b13bee36c";
 

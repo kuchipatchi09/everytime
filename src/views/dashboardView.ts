@@ -1,38 +1,144 @@
-import { Chart, registerables } from "chart.js";
-Chart.register(...registerables);
-
 import { DAYS, DEFAULT_TIMETABLE } from "../constants/timetable";
 import { getRoutine } from "../constants/routines";
 import { fetchAfterschoolData } from "../services/afterschoolService";
 import { fetchCurrentWeather } from "../services/weatherService";
 import { fetchDailyMeal } from "../services/mealService";
 import { fetchNotices } from "../services/noticeService";
-import { fetchMarketData } from "../services/marketService";
 import { esc } from "../utils/escape";
 import { formatDateKey, toMinutes } from "../utils/time";
 import { $ } from "../utils/dom";
-import { getSavedClass, getSavedTickers } from "../utils/storage";
+import { getSavedClass, getSavedName } from "../utils/storage";
 import { DayOfWeek } from "../types/timetable";
-import { TickerConfigItem } from "../types/market";
+import { getWeatherGreeting, setCachedWeatherCode } from "../constants/weatherGreetings";
 
-let marketCharts: Record<string, Chart> = {};
-const TIMEOUT_SEC = 30; // 30초 쿨다운
-let cooldownTimer: number | null = null;
-let remainingSeconds = 0;
+let nowCardTicker: number | null = null;
+let showYearEndTimer = false;
+
+
+let isNowFullscreen = false;
+
+export function exitNowFullscreen(): void {
+  isNowFullscreen = false;
+  document.body.classList.remove("now-fullscreen-active");
+
+  if (document.fullscreenElement) {
+    document.exitFullscreen?.().catch(() => {});
+  }
+}
+
+export function enterNowFullscreen(): void {
+  isNowFullscreen = true;
+  document.body.classList.add("now-fullscreen-active");
+
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  }
+}
+
+
+export function stopNowCardContinuousTicker(): void {
+  if (nowCardTicker) {
+    clearInterval(nowCardTicker);
+    nowCardTicker = null;
+  }
+}
+
+function startNowCardContinuousTicker(
+  active: [string, string, string],
+  onReload: () => void
+): void {
+  stopNowCardContinuousTicker();
+
+  nowCardTicker = window.setInterval(() => {
+    const remEl = document.getElementById("now-card-remaining");
+    const percentEl = document.getElementById("now-card-percent");
+    const barEl = document.getElementById("now-card-progress-bar");
+
+    const fsClockEl = document.getElementById("now-fs-clock");
+    const fsRemEl = document.getElementById("now-fs-remaining");
+    const fsPercentEl = document.getElementById("now-fs-percent");
+    const fsBarEl = document.getElementById("now-fs-progress-bar");
+
+    if (!remEl && !percentEl && !barEl && !fsClockEl) {
+      stopNowCardContinuousTicker();
+      return;
+    }
+
+    const now = new Date();
+    const isAfterMidnight = now.getHours() === 0 && now.getMinutes() < 30;
+    const currentMs =
+      (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) * 1000 +
+      now.getMilliseconds() +
+      (isAfterMidnight ? 24 * 3600 * 1000 : 0);
+
+    const startMs = toMinutes(active[0]) * 60 * 1000;
+    const endMs = toMinutes(active[1]) * 60 * 1000;
+    const durationMs = Math.max(1, endMs - startMs);
+    const remainingMs = endMs - currentMs;
+    const elapsedMs = currentMs - startMs;
+
+    // 만약 현재 교시 범위를 벗어나면 다음 교시로 대시보드 갱신
+    if (!showYearEndTimer && (remainingMs <= 0 || currentMs < startMs)) {
+      stopNowCardContinuousTicker();
+      onReload();
+      return;
+    }
+
+    const remainingMin = Math.ceil(remainingMs / 60000);
+    const progress = Math.min(100, Math.max(0, (elapsedMs / durationMs) * 100));
+
+    const h = String(now.getHours()).padStart(2, "0");
+    const m = String(now.getMinutes()).padStart(2, "0");
+    const s = String(now.getSeconds()).padStart(2, "0");
+    const clockText = `${h}:${m}:${s}`;
+
+    if (fsClockEl) fsClockEl.textContent = clockText;
+
+    if (!showYearEndTimer) {
+      if (remEl) remEl.textContent = `종료까지 ${remainingMin}분`;
+      if (percentEl) percentEl.textContent = `${progress.toFixed(3)}%`;
+      if (barEl) barEl.style.width = `${progress.toFixed(3)}%`;
+      if (fsRemEl) fsRemEl.textContent = `종료까지 ${remainingMin}분`;
+      if (fsPercentEl) fsPercentEl.textContent = `${progress.toFixed(3)}%`;
+      if (fsBarEl) fsBarEl.style.width = `${progress.toFixed(3)}%`;
+    }
+
+    const theYear = new Date().getFullYear();
+    const theTime = new Date(theYear + 1, 1-1, 1, 0, 0, 0);
+    const oldTime = new Date(theYear, 3-1, 2, 0, 0, 0);
+    const thisTime = new Date();
+    const durationMS = theTime.getTime() - oldTime.getTime();
+    const remainingMS = theTime.getTime() - thisTime.getTime();
+    const remainingMin2 = Math.ceil(remainingMS / 60000);
+    const progress2 = Math.min(
+      100,
+      Math.max(0, (1 - (remainingMS / durationMS)) * 100)
+    );
+
+    if (showYearEndTimer && remainingMS <= 0) {
+      stopNowCardContinuousTicker();
+      onReload();
+      return;
+    }
+
+    if (showYearEndTimer) {
+      if (remEl) remEl.textContent = `종료까지 ${remainingMin2}분`;
+      if (percentEl) percentEl.textContent = `${progress2.toFixed(7)}%`;
+      if (barEl) barEl.style.width = `${progress2.toFixed(7)}%`;
+      if (fsRemEl) fsRemEl.textContent = `종료까지 ${remainingMin2}분`;
+      if (fsPercentEl) fsPercentEl.textContent = `${progress2.toFixed(7)}%`;
+      if (fsBarEl) fsBarEl.style.width = `${progress2.toFixed(7)}%`;
+    }
+  }, 50); // 50ms 주기 고정폭 셋째자리 정밀 틱
+}
+
+
 
 export async function renderDashboard(
   onNavigateTab: (tab: string) => void,
   onOpenNoticeDetail: (index: number) => void
 ): Promise<void> {
-  // 이전 차트 정리
-  Object.values(marketCharts).forEach((chart) => {
-    try {
-      chart.destroy();
-    } catch {}
-  });
-  marketCharts = {};
-
-  const marketItems = getSavedTickers();
+  stopNowCardContinuousTicker();
   const now = new Date();
   const { g, c } = getSavedClass();
   const dayIndex = now.getDay() - 1;
@@ -40,10 +146,13 @@ export async function renderDashboard(
   const today = currentDayOfWeek ? DEFAULT_TIMETABLE[g][c][currentDayOfWeek] : [];
 
   const isAfterMidnightRoutine = now.getHours() === 0 && now.getMinutes() < 30;
-  const minutes =
-    now.getHours() * 60 +
-    now.getMinutes() +
-    (isAfterMidnightRoutine ? 24 * 60 : 0);
+  const currentSec =
+    now.getHours() * 3600 +
+    now.getMinutes() * 60 +
+    now.getSeconds() +
+    (isAfterMidnightRoutine ? 24 * 3600 : 0);
+  const minutes = currentSec / 60;
+
   const routineDay = isAfterMidnightRoutine
     ? (now.getDay() + 6) % 7
     : now.getDay();
@@ -76,12 +185,16 @@ export async function renderDashboard(
     }
   }
 
-  const remaining = Math.max(0, toMinutes(active[1]) - minutes);
+  const startSec = toMinutes(active[0]) * 60;
+  const endSec = toMinutes(active[1]) * 60;
+  const durationSec = Math.max(1, endSec - startSec);
+  const remainingSec = Math.max(0, endSec - currentSec);
+  const remainingMin = Math.ceil(remainingSec / 60);
+
   const next = items[items.indexOf(active) + 1];
-  const duration = Math.max(1, toMinutes(active[1]) - toMinutes(active[0]));
   const progress = Math.min(
     100,
-    Math.max(3, ((minutes - toMinutes(active[0])) / duration) * 100)
+    Math.max(0, ((currentSec - startSec) / durationSec) * 100)
   );
   const times = [
     "08:40",
@@ -93,22 +206,78 @@ export async function renderDashboard(
     "15:30",
   ];
 
+  const theYear = new Date().getFullYear();
+  const theTime = new Date(theYear + 1, 1-1, 1, 0, 0, 0);
+  const oldTime = new Date(theYear, 3-1, 2, 0, 0, 0);
+  const thisTime = new Date();
+  const durationMS = theTime.getTime() - oldTime.getTime();
+  const remainingMS = theTime.getTime() - thisTime.getTime();
+  const remainingMin2 = Math.ceil(remainingMS / 60000);
+  const progress2 = Math.min(
+    100,
+    Math.max(0, (1 - (remainingMS / durationMS)) * 100)
+  );
+  const isYearEndTimer = showYearEndTimer;
+
   $("#content").innerHTML = `
     <section class="dashboard">
-      <article class="now-card">
-        <div class="now-top">
-          <span><i class="now-dot"></i>지금 ${activityType}</span>
-          <b>${remaining ? `종료까지 ${remaining}분` : "진행 중"}</b>
+      <!-- 전체화면 하단 진척도 & 실시간 텔레메트리 독 (클릭 시 전체화면 종료) -->
+      <div class="now-fullscreen-dock" id="now-fullscreen-dock" role="button" tabindex="0" title="전체화면 종료 (클릭)">
+        <div class="now-fs-header">
+          <div class="now-fs-badge" id="now-fs-exit-badge" title="전체화면 종료 (클릭)">
+            <i class="now-dot"></i>
+            <span>${isYearEndTimer ? "학년 현황" : `지금 ${activityType}`}</span>
+            <span class="now-fs-period-badge">${isYearEndTimer ? `${theYear}. 3. 2. – ${theYear}. 12. 31.` : `${active[2]} · ${active[0]}–${active[1]}`}</span>
+          </div>
+          <div class="now-fs-clock" id="now-fs-clock">--:--:--</div>
         </div>
-        <p>${active[2]} · ${active[0]}–${active[1]}</p>
-        <h2>${esc(activityName)}</h2>
+
+        <div class="now-fs-body">
+          <div class="now-fs-title-box">
+            <h1 class="now-fs-subject">${isYearEndTimer ? `${g}학년` : esc(activityName)}</h1>
+            <span class="now-fs-class">${g}학년 ${c}반</span>
+          </div>
+          <div class="now-fs-stats-box">
+            <strong class="now-fs-remaining" id="now-fs-remaining">${isYearEndTimer ? `종료까지 ${remainingMin2}분` : remainingSec > 0 ? `종료까지 ${remainingMin}분` : "진행 중"}</strong>
+            <span class="now-fs-percent" id="now-fs-percent">${isYearEndTimer ? `${progress2.toFixed(7)}%` : `${progress.toFixed(3)}%`}</span>
+          </div>
+        </div>
+
+        <!-- 작은 진척도 바 -->
+        <div class="now-fs-progress-track">
+          <div class="now-fs-progress-fill" id="now-fs-progress-bar" style="width:${isYearEndTimer ? progress2.toFixed(7) : progress.toFixed(3)}%;"></div>
+        </div>
+
+        <div class="now-fs-footer">
+          <span class="now-fs-next-label">
+            ${isYearEndTimer ? (g === "3" ? "다음 <strong>???</strong>" : `다음 <strong>${parseInt(g) + 1}학년</strong>`) : (next ? `다음 일과 <strong>${next[2]} · ${next[0]}</strong>` : "오늘 일과가 끝났습니다.")}
+          </span>
+        </div>
+      </div>
+
+
+      <article class="now-card" id="now-card" role="button" tabindex="0" title="전체화면으로 보기 (클릭)">
+        <div class="now-top">
+          <span><i class="now-dot"></i>${isYearEndTimer ? "학년 현황" : `지금 ${activityType}`}</span>
+          <div class="now-time-stat">
+            <b id="now-card-remaining">${isYearEndTimer ? `종료까지 ${remainingMin2}분` : remainingSec > 0 ? `종료까지 ${remainingMin}분` : "진행 중"}</b>
+            <span id="now-card-percent" class="now-card-percent">${isYearEndTimer ? `${progress2.toFixed(7)}%` : `${progress.toFixed(3)}%`}</span>
+          </div>
+        </div>
+        <p>${isYearEndTimer ? `${theYear}. 3. 2. – ${theYear}. 12. 31.` : `${active[2]} · ${active[0]}–${active[1]}`}</p>
+        <h2>${isYearEndTimer ? `${g}학년` : esc(activityName)}</h2>
         <small>${g}학년 ${c}반</small>
-        <div class="routine-progress"><span style="width:${progress}%"></span></div>
-        <div class="now-next">
-          ${next ? `다음 일과 <strong>${next[2]} · ${next[0]}</strong>` : "오늘 일과가 끝났습니다."}
+        <div class="routine-progress">
+          <span id="now-card-progress-bar" style="width:${isYearEndTimer ? progress2.toFixed(7) : progress.toFixed(3)}%;"></span>
+        </div>
+        <div class="now-card-bottom-row">
+          <div class="now-next">
+            ${isYearEndTimer ? (g === "3" ? "다음 <strong>???</strong>" : `다음 <strong>${parseInt(g) + 1}학년</strong>`) : (next ? `다음 일과 <strong>${next[2]} · ${next[0]}</strong>` : "오늘 일과가 끝났습니다.")}
+          </div>
+          <button type="button" class="now-timer-toggle" id="now-timer-toggle-btn">${isYearEndTimer ? "일과 타이머로" : "종업 타이머로"}</button>
         </div>
       </article>
-
+      
       <article class="dash-card weather-card" id="weather-card">
         <span class="eyebrow">LIVE WEATHER</span>
         <div class="weather-main"><strong>—°</strong></div>
@@ -145,336 +314,55 @@ export async function renderDashboard(
         </div>
       </article>
 
-      <!-- 관심 금융 지표 카드 섹션 (최대 3개) -->
-      <section class="dash-market-section">
-        <div class="market-section-head">
-          <div>
-            <span class="eyebrow-plain">asterisk* Finance Info</span>
-            <h3>
-              <a href="https://finance.knoblab.xyz/" target="_blank" rel="noopener noreferrer" class="market-heading-link">
-                글로벌 금융 시장 지표 <sup>↗</sup>
-              </a>
-            </h3>
-          </div>
-          <div>
-            <button class="market-refresh-btn" id="market-refresh-btn">새로고침</button>
-          </div>
-        </div>
-
-        ${
-          marketItems.length === 0
-            ? `
-          <div class="market-empty-box">
-            <p>설정된 관심 금융 지표가 없습니다.</p>
-            <small>우측 상단 프로필을 눌러 원하는 종목/티커를 추가해보세요.</small>
-          </div>
-        `
-            : `
-          <!-- 모바일 전용 1개씩 보기 세그먼트 탭 -->
-          <div class="market-mobile-tabs">
-            ${marketItems
-              .map(
-                (item, idx) => `
-              <button class="market-mob-tab ${idx === 0 ? "active" : ""}" data-target="market-card-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">
-                ${item.symbol}
-              </button>
-            `
-              )
-              .join("")}
-          </div>
-
-          <div class="market-cards-grid" style="grid-template-columns: repeat(${marketItems.length}, minmax(0, 1fr));">
-            ${marketItems
-              .map(
-                (item, idx) => `
-              <article class="market-card ${idx === 0 ? "mob-active" : ""}" id="market-card-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">
-                <div>
-                  <div class="market-card-header">
-                    <div class="market-title-wrap">
-                      <span class="market-series-name">${item.symbol}</span>
-                      <h4 class="market-card-title">${item.name}</h4>
-                    </div>
-                    <span class="market-status-badge status-loading" id="market-status-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">확인 중</span>
-                  </div>
-
-                  <div class="market-rate-box">
-                    <span class="market-current-rate" id="rate-val-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">로딩 중...</span>
-                    <div class="market-diff-box">
-                      <span class="market-diff-rate" id="rate-diff-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}"></span>
-                      <span class="market-date-label" id="rate-date-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}"></span>
-                    </div>
-                  </div>
-
-                  <div class="market-chart-container">
-                    <canvas id="chart-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}"></canvas>
-                  </div>
-                </div>
-
-                <div class="market-card-footer">
-                  <span id="rate-fetch-${item.code.replace(/[^a-zA-Z0-9]/g, '_')}">LAST FETCH -</span>
-                  <span>Intraday 1M</span>
-                </div>
-              </article>
-            `
-              )
-              .join("")}
-          </div>
-        `
-        }
-      </section>
     </section>`;
+
+  const nowCard = $("#now-card");
+  nowCard?.addEventListener("click", () => enterNowFullscreen());
+  const timerToggle = $("#now-timer-toggle-btn");
+  timerToggle?.addEventListener("mouseenter", () => nowCard?.removeAttribute("title"));
+  timerToggle?.addEventListener("mouseleave", () => nowCard?.setAttribute("title", "전체화면으로 보기 (클릭)"));
+  timerToggle?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    showYearEndTimer = !showYearEndTimer;
+    void renderDashboard(onNavigateTab, onOpenNoticeDetail);
+  });
+  $("#now-fullscreen-dock")?.addEventListener("click", () => exitNowFullscreen());
+
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement && isNowFullscreen) {
+      exitNowFullscreen();
+    }
+  });
+
 
   $("#dash-meal-btn")?.addEventListener("click", () => onNavigateTab("급식"));
   $("#dash-timetable-btn")?.addEventListener("click", () => onNavigateTab("시간표"));
-  $("#market-refresh-btn")?.addEventListener("click", () => handleMarketManualRefresh());
-
-  // 모바일 시장 지표 1개씩 전환 탭 이벤트
-  document.querySelectorAll<HTMLButtonElement>(".market-mob-tab").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll<HTMLButtonElement>(".market-mob-tab").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      const targetId = btn.dataset.target;
-      document.querySelectorAll<HTMLElement>(".market-card").forEach((card) => {
-        card.classList.toggle("mob-active", card.id === targetId);
-      });
-    });
-  });
 
   loadDashboardWeather();
   loadDashboardMeal(now);
   loadDashboardNotices(onNavigateTab, onOpenNoticeDetail);
 
-  // 최초 로드 및 30초 쿨다운 시작
-  if (marketItems.length > 0) {
-    loadAllMarketCards(marketItems);
-    startMarketCooldown();
-  }
+  // 실시간 연속 갱신 타이커 가동 (초 단위 정밀 계산 & 진행바 부드러운 애니메이션)
+  startNowCardContinuousTicker(active, () => renderDashboard(onNavigateTab, onOpenNoticeDetail));
 }
 
-async function handleMarketManualRefresh(): Promise<void> {
-  const marketItems = getSavedTickers();
-  if (marketItems.length === 0) return;
-  if (remainingSeconds > 0) return;
-  const btn = document.getElementById("market-refresh-btn") as HTMLButtonElement | null;
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = "불러오는 중...";
-  }
-  await loadAllMarketCards(marketItems);
-  startMarketCooldown();
-}
-
-function startMarketCooldown(): void {
-  const btn = document.getElementById("market-refresh-btn") as HTMLButtonElement | null;
-  if (cooldownTimer) clearInterval(cooldownTimer);
-
-  remainingSeconds = TIMEOUT_SEC;
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = `새로고침 (${remainingSeconds}s)`;
-  }
-
-  cooldownTimer = window.setInterval(() => {
-    remainingSeconds -= 1;
-    const currentBtn = document.getElementById("market-refresh-btn") as HTMLButtonElement | null;
-    if (remainingSeconds <= 0) {
-      if (cooldownTimer) clearInterval(cooldownTimer);
-      cooldownTimer = null;
-      if (currentBtn) {
-        currentBtn.disabled = false;
-        currentBtn.textContent = "새로고침";
-      }
-    } else {
-      if (currentBtn) {
-        currentBtn.textContent = `새로고침 (${remainingSeconds}s)`;
-      }
-    }
-  }, 1000);
-}
-
-async function loadAllMarketCards(items: TickerConfigItem[]): Promise<void> {
-  for (const item of items) {
-    loadSingleMarketCard(item);
-  }
-}
-
-async function loadSingleMarketCard(item: TickerConfigItem): Promise<void> {
-  const safeId = item.code.replace(/[^a-zA-Z0-9]/g, "_");
-  const rateValEl = document.getElementById(`rate-val-${safeId}`);
-  const rateDiffEl = document.getElementById(`rate-diff-${safeId}`);
-  const rateDateEl = document.getElementById(`rate-date-${safeId}`);
-  const rateFetchEl = document.getElementById(`rate-fetch-${safeId}`);
-  const statusEl = document.getElementById(`market-status-${safeId}`);
-  const canvas = document.getElementById(`chart-${safeId}`) as HTMLCanvasElement | null;
-
-  if (!rateValEl || !canvas) return;
-
-  try {
-    const json = await fetchMarketData(item.code);
-    if (json.error || !json.rows || json.rows.length === 0) {
-      rateValEl.textContent = json.error || "데이터 없음";
-      if (rateDiffEl) rateDiffEl.textContent = "";
-      if (statusEl) {
-        statusEl.className = "market-status-badge status-halted";
-        statusEl.textContent = "거래 중단";
-      }
-      return;
-    }
-
-    const rows = json.rows;
-    const prevClose = json.prevClose;
-    const latest = rows[rows.length - 1];
-
-    // 1. 현재가 표시
-    const valFormatted = latest.value.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-    rateValEl.innerHTML = `${valFormatted}<small>${item.unit}</small>`;
-
-    // 2. 전일 종가 대비 등락 계산
-    if (rateDiffEl && prevClose !== undefined && prevClose !== null && prevClose > 0) {
-      const diff = latest.value - prevClose;
-      const pct = (diff / prevClose) * 100;
-      const absDiff = Math.abs(diff).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      const absPct = Math.abs(pct).toFixed(2);
-
-      let sign = "-";
-      let className = "diff-even";
-      let plusMinus = "";
-
-      if (diff > 0) {
-        sign = "▲";
-        className = "diff-up";
-        plusMinus = "+";
-      } else if (diff < 0) {
-        sign = "▼";
-        className = "diff-down";
-        plusMinus = "-";
-      }
-
-      rateDiffEl.textContent = `${sign} ${absDiff} (${plusMinus}${absPct}%)`;
-      rateDiffEl.className = `market-diff-rate ${className}`;
-    }
-
-    // 3. 시장 상태 배지 표시 (장중 / 장 종료 / 프리마켓 / 거래 중단 등)
-    if (statusEl) {
-      const state = json.marketState || "CLOSED";
-      const text = json.marketStatusText || (state === "OPEN" ? "장중" : "장 종료");
-      statusEl.className = `market-status-badge status-${state.toLowerCase()}`;
-      if (state === "OPEN") {
-        statusEl.innerHTML = `<span class="market-status-dot"></span>${text}`;
-      } else {
-        statusEl.textContent = text;
-      }
-    }
-
-    // 4. 시간 레이블 및 갱신 시간
-    if (rateDateEl && latest.datetime) {
-      const dt = latest.datetime;
-      const timeStr = dt.length >= 4 ? `${dt.slice(0, 2)}:${dt.slice(2, 4)}` : dt;
-      const isClosed = json.marketState === "CLOSED";
-      rateDateEl.textContent = isClosed ? `(${timeStr} 마감)` : `(${timeStr} 기준)`;
-    }
-
-    if (rateFetchEl) {
-      const fetchTime = new Date().toLocaleTimeString("ko-KR", { hour12: false });
-      rateFetchEl.textContent = `FETCH ${fetchTime}`;
-    }
-
-    // 5. 차트 렌더링
-    const labels = rows.map((r) => {
-      const t = r.datetime;
-      return t.length >= 4 ? `${t.slice(0, 2)}:${t.slice(2, 4)}` : t;
-    });
-    const values = rows.map((r) => r.value);
-
-    renderCardChart(safeId, canvas, labels, values, item);
-  } catch (err) {
-    console.warn(`Failed to load market card for ${item.name}:`, err);
-    if (rateValEl) rateValEl.textContent = "조회 실패";
-    if (statusEl) {
-      statusEl.className = "market-status-badge status-halted";
-      statusEl.textContent = "거래 중단";
-    }
-  }
-}
-
-function renderCardChart(
-  safeId: string,
-  canvas: HTMLCanvasElement,
-  labels: string[],
-  values: number[],
-  item: TickerConfigItem
-): void {
-  if (marketCharts[safeId]) {
-    marketCharts[safeId].destroy();
-  }
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-
-  marketCharts[safeId] = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
-        {
-          data: values,
-          borderColor: "#000000",
-          backgroundColor: "rgba(0, 0, 0, 0.05)",
-          borderWidth: 1.5,
-          fill: true,
-          tension: 0.1,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          pointHoverBackgroundColor: "#000000",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          mode: "index",
-          intersect: false,
-          callbacks: {
-            label: (ctx) => `${(ctx.parsed.y ?? 0).toLocaleString()} ${item.unit}`,
-          },
-        },
-      },
-      scales: {
-        x: {
-          grid: { color: "#D1D1D6" },
-          ticks: {
-            color: "#48484A",
-            font: { family: "Asta Sans, Pretendard, monospace", size: 9 },
-            maxTicksLimit: 6,
-          },
-        },
-        y: {
-          grid: { color: "#D1D1D6" },
-          ticks: {
-            color: "#48484A",
-            font: { family: "Asta Sans, Pretendard, monospace", size: 9 },
-            callback: (v) => `${Number(v).toLocaleString()}`,
-          },
-        },
-      },
-    },
-  });
-}
 
 async function loadDashboardWeather(): Promise<void> {
   try {
     const data = await fetchCurrentWeather();
     const weatherCard = $("#weather-card");
     if (!weatherCard) return;
+
+    const weatherCode = data.weather[0]?.id;
+    if (weatherCode) {
+      setCachedWeatherCode(weatherCode);
+      const wrap = $("#welcome-name-wrap");
+      if (wrap) {
+        const savedName = getSavedName() || "학생";
+        wrap.textContent = getWeatherGreeting(weatherCode, savedName);
+      }
+    }
+
     weatherCard.innerHTML = `
       <span class="eyebrow">LIVE WEATHER</span>
       <div class="weather-main">

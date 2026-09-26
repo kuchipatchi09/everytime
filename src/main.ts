@@ -12,30 +12,47 @@ import {
 } from "./utils/storage";
 import { checkAuth, getAuthUser, loginWithKnoblab, logout, onAuthStateChange } from "./utils/auth";
 import { TickerConfigItem } from "./types/market";
-import { renderDashboard } from "./views/dashboardView";
+import { renderDashboard, stopNowCardContinuousTicker, exitNowFullscreen } from "./views/dashboardView";
 import { renderTimetable } from "./views/timetableView";
 import { renderAfterschool } from "./views/afterschoolView";
 import { renderMeals, setMealCode } from "./views/mealView";
 import { renderBoard, renderNoticeDetail } from "./views/noticeView";
 import { renderBrand } from "./views/brandView";
 import { renderTimer } from "./views/timerView";
+import { renderMarketView, stopMarketView } from "./views/marketView";
 import { ClassNumber, GradeNumber } from "./types/timetable";
 import { MealCode } from "./types/meal";
+import { getCachedWeatherCode, getWeatherGreeting } from "./constants/weatherGreetings";
+import { skyBackgroundService } from "./services/skyBackgroundService";
 
-export type TabName = "메인" | "시간표" | "방과후" | "급식" | "공지" | "타이머" | "브랜드";
+export type TabName = "메인" | "시간표" | "방과후" | "급식" | "공지" | "타이머" | "금융 지표" | "브랜드";
 
 let currentTab: TabName = "메인";
 
 export function switchTab(tab: TabName, updateUrl = true): void {
   currentTab = tab;
+  stopNowCardContinuousTicker();
+  stopMarketView();
+  exitNowFullscreen();
+
+
+  // 브랜드는 고정된 브랜드 캔버스를 사용하므로, 저장된 설정은 유지한 채 하늘만 숨긴다.
+  skyBackgroundService.setSuppressed(tab === "브랜드");
+  if (skyBackgroundService.getIsEnabled() && tab !== "브랜드") {
+    skyBackgroundService.resume();
+  }
+
   const pageTitle = $("#page-title");
+
+
   const titleContainer = document.querySelector<HTMLElement>(".title");
   const topClassBadge = document.querySelector<HTMLElement>("#top-class-badge");
   
   if (tab === "메인") {
     const savedName = getSavedName() || "학생";
+    const greetingText = getWeatherGreeting(getCachedWeatherCode(), savedName);
     pageTitle.innerHTML = `
-      <span class="welcome-name-wrap">${esc(savedName)}님, 오늘도 반가워요.</span>
+      <span class="welcome-name-wrap" id="welcome-name-wrap">${esc(greetingText)}</span>
       <button type="button" class="title-name-edit-btn" id="title-name-edit-btn" aria-label="환경설정" title="환경설정 열기">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -54,15 +71,20 @@ export function switchTab(tab: TabName, updateUrl = true): void {
 
   // 브랜드 탭일 때와 일반 탭일 때의 상단 타이틀 및 학년/반 배지 표시 제어
   if (titleContainer) {
-    titleContainer.style.display = tab === "브랜드" ? "none" : "flex";
+    titleContainer.classList.toggle("tab-hidden", tab === "브랜드");
   }
   if (topClassBadge) {
-    topClassBadge.style.display = (tab === "브랜드" || tab === "공지" || tab === "타이머") ? "none" : "flex";
+    topClassBadge.classList.toggle("tab-hidden", ["브랜드", "공지", "타이머", "금융 지표"].includes(tab));
   }
 
   // 데스크탑 네비게이션 및 모바일 드로어 탭 활성화 상태 동기화
   document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tab);
+  });
+  document.querySelectorAll<HTMLButtonElement>(".nav-dropdown-trigger").forEach((trigger) => {
+    const dropdown = trigger.closest<HTMLElement>(".nav-dropdown");
+    const containsActiveTab = !!dropdown?.querySelector(`[data-tab="${tab}"]`);
+    trigger.classList.toggle("active", containsActiveTab);
   });
 
   if (updateUrl) {
@@ -96,8 +118,19 @@ export function renderActiveView(): void {
     renderBoard();
   } else if (currentTab === "타이머") {
     renderTimer();
+  } else if (currentTab === "금융 지표") {
+    renderMarketView();
   } else if (currentTab === "브랜드") {
     renderBrand(() => switchTab("메인"));
+  }
+}
+
+export function updateMainGreeting(weatherCode?: number): void {
+  if (currentTab !== "메인") return;
+  const wrap = $("#welcome-name-wrap");
+  if (wrap) {
+    const savedName = getSavedName() || "학생";
+    wrap.textContent = getWeatherGreeting(weatherCode ?? getCachedWeatherCode(), savedName);
   }
 }
 
@@ -229,12 +262,13 @@ export function openProfileModal(): void {
   if (logoutBtn) {
     if (user) {
       logoutBtn.textContent = "로그아웃";
-      logoutBtn.className = "btn-danger";
+      logoutBtn.className = "btn-profile-auth-action is-logout";
     } else {
-      logoutBtn.textContent = "Knoblab 로그인";
-      logoutBtn.className = "btn-submit";
+      logoutBtn.textContent = "Knoblab 계정으로 로그인";
+      logoutBtn.className = "btn-profile-auth-action is-login";
     }
   }
+
 
   loadProfileStockData();
 
@@ -353,6 +387,16 @@ async function loadProfileStockData(): Promise<void> {
   if (ticker2Input && !ticker2Input.value && localTickers[1]) ticker2Input.value = localTickers[1].symbol;
   if (ticker3Input && !ticker3Input.value && localTickers[2]) ticker3Input.value = localTickers[2].symbol;
 
+  // 화면 효과 스위치 및 시간 오프셋 동기화
+  const skyBgToggle = $<HTMLInputElement>("#setting-sky-bg-toggle");
+  const skyPerfToggle = $<HTMLInputElement>("#setting-sky-perf-toggle");
+  const skyOffsetSelect = $<HTMLSelectElement>("#setting-sky-offset-select");
+  if (skyBgToggle) skyBgToggle.checked = skyBackgroundService.getIsEnabled();
+  if (skyPerfToggle) skyPerfToggle.checked = skyBackgroundService.getIsPerfMode();
+  if (skyOffsetSelect) skyOffsetSelect.value = String(skyBackgroundService.getTimeOffset());
+
+
+
   if (!user) {
     if (statusBadge) {
       statusBadge.textContent = "게스트 모드 (로컬 설정)";
@@ -461,7 +505,44 @@ function initProfileModal(): void {
     });
   });
 
+  // 1-1. 화면 효과 및 저사양 성능 모드 스위치 이벤트
+  const skyBgToggle = $<HTMLInputElement>("#setting-sky-bg-toggle");
+  const skyPerfToggle = $<HTMLInputElement>("#setting-sky-perf-toggle");
+
+  skyBgToggle?.addEventListener("change", () => {
+    const isChecked = skyBgToggle.checked;
+    skyBackgroundService.toggle(isChecked);
+    showToast(
+      isChecked
+        ? "실시간 천체 하늘 배경이 켜졌습니다."
+        : "천체 하늘 배경이 완전히 꺼졌습니다 (렌더링 루프 종료)."
+    );
+  });
+
+  skyPerfToggle?.addEventListener("change", () => {
+    const isChecked = skyPerfToggle.checked;
+    skyBackgroundService.setPerfMode(isChecked);
+    showToast(
+      isChecked
+        ? "저사양 성능 최적화 모드가 켜졌습니다."
+        : "저사양 성능 모드가 꺼졌습니다."
+    );
+  });
+
+  const skyOffsetSelect = $<HTMLSelectElement>("#setting-sky-offset-select");
+  skyOffsetSelect?.addEventListener("change", () => {
+    const offset = Number(skyOffsetSelect.value);
+    skyBackgroundService.setTimeOffset(offset);
+    showToast(
+      offset === 0
+        ? "실시간 로컬 시각(한국 기준)으로 동기화되었습니다."
+        : `배경 시뮬레이션 시간대가 ${offset > 0 ? `+${offset}` : offset}시간으로 변경되었습니다.`
+    );
+  });
+
+
   // 2. 입력창마다 인라인 자동완성 검색 드롭다운 연결
+
   const tickerSlots = [
     {
       input: ticker1Input,
@@ -708,7 +789,7 @@ export function updateAuthUI(): void {
   if (navContainer) {
     if (user) {
       navContainer.innerHTML = `
-        <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="계정 정보 (${esc(user.email || user.uid)})">
+        <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="환경설정 (${esc(user.email || user.uid)})">
           <span class="btn-nav-profile-dot"></span>
           <span>${esc(savedName)}</span>
         </button>
@@ -716,21 +797,20 @@ export function updateAuthUI(): void {
       $("#btn-nav-profile")?.addEventListener("click", () => openProfileModal());
     } else {
       navContainer.innerHTML = `
-        <button type="button" class="btn-nav-name-edit" id="btn-nav-name-edit" title="이름 변경">
+        <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="환경설정 (내 정보 / 관심 주식 / 화면 효과)">
+          <span class="btn-nav-profile-dot" style="background: var(--color-graphite);"></span>
           <span>${esc(savedName)}</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; opacity: 0.7;">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
         </button>
-        <button type="button" class="btn-nav-login" id="btn-nav-login" title="Knoblab 계정으로 로그인">
-          <span>로그인</span>
-        </button>
       `;
-      $("#btn-nav-name-edit")?.addEventListener("click", () => openNameChangeModal());
-      $("#btn-nav-login")?.addEventListener("click", () => loginWithKnoblab());
+      $("#btn-nav-profile")?.addEventListener("click", () => openProfileModal());
     }
   }
+
+
 
   // 모바일 드로어
   if (drawerContainer) {
@@ -812,8 +892,68 @@ function initNavigation(): void {
   document.querySelectorAll<HTMLButtonElement>(".desktop-nav [data-tab]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const tab = btn.dataset.tab as TabName;
-      if (tab) switchTab(tab);
+      if (tab) {
+        closeDesktopDropdowns();
+        switchTab(tab);
+      }
     });
+  });
+
+  const desktopDropdowns = document.querySelectorAll<HTMLElement>(".nav-dropdown");
+  const dropdownMenus = new Map<HTMLElement, HTMLElement>();
+  desktopDropdowns.forEach((dropdown) => {
+    const menu = dropdown.querySelector<HTMLElement>(".nav-dropdown-menu");
+    if (menu) dropdownMenus.set(dropdown, menu);
+  });
+
+  const closeDesktopDropdowns = () => {
+    desktopDropdowns.forEach((dropdown) => {
+      dropdown.classList.remove("is-open");
+      dropdown.querySelector<HTMLButtonElement>(".nav-dropdown-trigger")?.setAttribute("aria-expanded", "false");
+      const menu = dropdownMenus.get(dropdown);
+      menu?.classList.remove("is-open");
+      if (menu?.classList.contains("is-portaled")) {
+        menu.classList.remove("is-portaled");
+        menu.style.removeProperty("top");
+        menu.style.removeProperty("left");
+        dropdown.append(menu);
+      }
+    });
+  };
+
+  desktopDropdowns.forEach((dropdown) => {
+    const trigger = dropdown.querySelector<HTMLButtonElement>(".nav-dropdown-trigger");
+    const menu = dropdownMenus.get(dropdown);
+    menu?.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => {
+      link.addEventListener("click", closeDesktopDropdowns);
+    });
+    trigger?.addEventListener("click", () => {
+      const willOpen = !dropdown.classList.contains("is-open");
+      closeDesktopDropdowns();
+      dropdown.classList.toggle("is-open", willOpen);
+      trigger.setAttribute("aria-expanded", String(willOpen));
+      if (willOpen && menu) {
+        menu.classList.add("is-open");
+        if (document.body.classList.contains("sky-bg-active")) {
+          const rect = dropdown.getBoundingClientRect();
+          menu.classList.add("is-portaled");
+          document.body.append(menu);
+          menu.style.top = `${rect.bottom - 8}px`;
+          menu.style.left = `${rect.left}px`;
+        }
+      }
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    const clickedDropdown = target instanceof Node && (
+      Array.from(desktopDropdowns).some((dropdown) => dropdown.contains(target)) ||
+      Array.from(dropdownMenus.values()).some((menu) => menu.contains(target))
+    );
+    if (!clickedDropdown) {
+      closeDesktopDropdowns();
+    }
   });
 
   // 모바일 드로어 탭 클릭
@@ -844,6 +984,7 @@ function initNavigation(): void {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
+      closeDesktopDropdowns();
       if (!mobileDrawer?.classList.contains("hidden")) {
         closeMobileDrawer();
       }
@@ -873,7 +1014,7 @@ function handleUrlRoute(): void {
     switchTab("타이머", false);
   } else if (hash) {
     const decoded = decodeURIComponent(hash) as TabName;
-    if (["메인", "시간표", "방과후", "급식", "공지", "타이머", "브랜드"].includes(decoded)) {
+    if (["메인", "시간표", "방과후", "급식", "공지", "타이머", "금융 지표", "브랜드"].includes(decoded)) {
       switchTab(decoded, false);
       return;
     }
@@ -897,12 +1038,91 @@ function initDateDisplay(): void {
   setMealCode(defaultMealCode);
 }
 
+function preventAccidentalZoom(): void {
+
+  // 1. 트랙패드 핀치 줌 & 마우스 휠 줌(Ctrl+Wheel) 차단
+  window.addEventListener(
+    "wheel",
+    (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  // 2. 모바일 멀티 터치 핀치 줌 차단
+  window.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  // 3. iOS Safari 제스처 줌 차단
+  document.addEventListener(
+    "gesturestart",
+    (e) => {
+      e.preventDefault();
+    },
+    { passive: false }
+  );
+  document.addEventListener(
+    "gesturechange",
+    (e) => {
+      e.preventDefault();
+    },
+    { passive: false }
+  );
+  document.addEventListener(
+    "gestureend",
+    (e) => {
+      e.preventDefault();
+    },
+    { passive: false }
+  );
+
+  // 4. 모바일 더블 탭 확대 방지
+  let lastTouchEnd = 0;
+  document.addEventListener(
+    "touchend",
+    (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    },
+    { passive: false }
+  );
+
+  // 5. 키보드 줌 단축키 차단 (Ctrl + +, Ctrl + -, Ctrl + 0)
+  window.addEventListener("keydown", (e) => {
+    if (
+      e.ctrlKey &&
+      (e.key === "+" || e.key === "-" || e.key === "=" || e.key === "0")
+    ) {
+      e.preventDefault();
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  preventAccidentalZoom();
+
+  const skyContainer = document.getElementById("sky-background");
+  skyBackgroundService.setSuppressed(window.location.hash === "#brand" || window.location.pathname.endsWith("/brand") || window.location.pathname.endsWith("/brand.html"));
+  skyBackgroundService.init(skyContainer);
+
   initDateDisplay();
   initTopClassBadge();
   initWelcomeModal();
   initNameChangeModal();
   initProfileModal();
+
   updateAuthUI();
   onAuthStateChange(async (user) => {
     if (!getSavedName() && user?.email) {

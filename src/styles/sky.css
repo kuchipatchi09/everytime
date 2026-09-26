@@ -1,0 +1,258 @@
+:root {
+  --sun-x: 50vw;
+  --sun-y: 110vh;
+  --moon-x: 50vw;
+  --moon-y: 110vh;
+  --star-opacity: 0;
+  --star-rot: 0deg;
+  --star-mask-y: -50%;
+  --atm-opacity: 0;
+  --sun-opacity: 0;
+  --moon-opacity: 0;
+  --moon-earthshine-opacity: 1;
+  --moon-aura-opacity: 1;
+  --moon-crescent-glow: none;
+  --sky-zenith: rgb(5, 10, 25);
+  --sky-horizon: rgb(10, 20, 35);
+}
+
+/* 실시간 천체 하늘 고정 배경 컨테이너 */
+.sky-background-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  display: none;
+}
+
+body.sky-bg-active .sky-background-container {
+  display: block;
+}
+
+.sky-bg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.sky-base {
+  z-index: -2;
+  background: #050a19;
+}
+
+.sky-layer {
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  will-change: background;
+  background: linear-gradient(to bottom, var(--sky-zenith) 0%, var(--sky-horizon) 100%);
+}
+
+.sky-atmosphere {
+  z-index: 1;
+  background: radial-gradient(circle at var(--sun-x) var(--sun-y), 
+                  rgba(255, 245, 220, 0.6) 0%, 
+                  rgba(255, 190, 110, 0.3) 8%, 
+                  rgba(255, 140, 60, 0.15) 22%, 
+                  transparent 75%);
+  mix-blend-mode: screen;
+  opacity: var(--atm-opacity);
+  will-change: opacity;
+  transform: translate3d(0, 0, 0);
+}
+
+/* 비회전형 스타 필터 마스크 레이어 */
+.star-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  mask-image: radial-gradient(circle at var(--moon-x) var(--moon-y), transparent 15.5px, #fff 16px);
+  -webkit-mask-image: radial-gradient(circle at var(--moon-x) var(--moon-y), transparent 15.5px, #fff 16px);
+}
+
+/* ESO 360도 은하수 전천 파노라마 극좌표 투영 */
+.star-container {
+  position: absolute;
+  top: calc(50% - 35.67vmax);
+  left: 50%;
+  width: 245vmax;
+  height: 245vmax;
+  transform: translate(-50%, -50%) rotate(var(--star-rot)) translate3d(0, 0, 0);
+  opacity: var(--star-opacity);
+  background: url('/milky_way_all_sky.webp') no-repeat center center;
+  background-size: cover;
+  mix-blend-mode: screen;
+  mask-image: linear-gradient(to bottom, #fff calc(var(--star-mask-y) - 40%), transparent calc(var(--star-mask-y) + 40%));
+  -webkit-mask-image: linear-gradient(to bottom, #fff calc(var(--star-mask-y) - 40%), transparent calc(var(--star-mask-y) + 40%));
+  will-change: opacity, transform;
+}
+
+.satellite {
+  position: absolute;
+  width: 1.5px;
+  height: 1.5px;
+  z-index: 3;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 3px 1px rgba(255, 255, 255, 0.7);
+  will-change: transform;
+}
+
+.celestial {
+  z-index: 4;
+  transform: translate3d(0, 0, 0);
+}
+
+/* 태양 디스크 */
+.sun-disk {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 60px;
+  height: 60px;
+  z-index: 100;
+  transform: translate3d(var(--sun-x), var(--sun-y), 0) translate(-50%, -50%);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 60px 20px #fff, 
+              0 0 140px 50px rgba(255, 230, 150, 0.75), 
+              0 0 240px 90px rgba(255, 190, 90, 0.45);
+  will-change: transform;
+  opacity: var(--sun-opacity, 1);
+}
+
+/* 달 디스크 */
+.moon-disk {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 32px;
+  height: 32px;
+  z-index: 101;
+  transform: translate3d(var(--moon-x), var(--moon-y), 0) translate(-50%, -50%);
+  will-change: transform;
+  opacity: var(--moon-opacity, 1);
+}
+
+.moon-earthshine {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 3px -1px 8px rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+  opacity: var(--moon-earthshine-opacity, 1);
+}
+
+.moon-crescent {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: var(--moon-crescent-glow, none);
+  opacity: var(--moon-opacity, 1);
+}
+
+.moon-aura {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 80vmax;
+  height: 80vmax;
+  z-index: 90;
+  transform: translate3d(var(--moon-x), var(--moon-y), 0) translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(160, 205, 255, 0.15) 0%, transparent 60%);
+  mix-blend-mode: screen;
+  will-change: transform;
+  opacity: calc(var(--moon-opacity, 1) * var(--moon-aura-opacity, 1));
+}
+
+.lens-flare-container,
+.moon-flare-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: opacity;
+}
+
+.flare-ghost {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate3d(50vw, 50vh, 0) translate(-50%, -50%);
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.flare-halo {
+  background: radial-gradient(circle, transparent 63%, rgba(255, 140, 80, 0.15) 66%, rgba(255, 210, 120, 0.1) 68%, rgba(100, 180, 255, 0.08) 71%, transparent 74%);
+  filter: blur(8px);
+}
+
+.ghost-hex {
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle, rgba(0, 180, 255, 0.03) 0%, rgba(255, 130, 70, 0.02) 65%, rgba(255, 255, 255, 0.14) 100%);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  filter: blur(2.5px);
+}
+
+.ghost-rainbow {
+  background: radial-gradient(circle, transparent 38%, rgba(255, 90, 90, 0.07) 43%, rgba(255, 190, 70, 0.06) 48%, rgba(90, 255, 130, 0.05) 53%, rgba(90, 160, 255, 0.07) 58%, transparent 64%);
+  filter: blur(12px);
+}
+
+.sun-streak {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 200vw;
+  height: 4px;
+  transform: translate3d(var(--sun-x), var(--sun-y), 0) translate(-50%, -50%) rotate(-3deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 230, 180, 0.45), rgba(255, 255, 255, 0.95), rgba(255, 230, 180, 0.45), transparent);
+  filter: blur(5px);
+  will-change: transform;
+}
+
+.sky-film-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  opacity: 0.04;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* 저사양 모드 경량화 */
+body.perf-active .sky-film-grain {
+  display: none;
+}
+
+body.perf-active .sun-disk {
+  box-shadow: 0 0 30px 10px #fff, 0 0 70px 25px rgba(255, 230, 150, 0.6);
+}
+
+body.perf-active .ghost-rainbow {
+  display: none;
+}
+
+body.perf-active .flare-halo {
+  filter: blur(3px);
+}
+
+body.perf-active .sun-streak {
+  filter: blur(2px);
+}
