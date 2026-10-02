@@ -126,6 +126,38 @@
           <button class="quick-chip" data-target="sunset">🌇 일몰 (Sunset)</button>
           <button class="quick-chip" data-target="dusk">🌌 황혼 (Dusk)</button>
           <button class="quick-chip" data-target="midnight">🌙 자정 (Midnight)</button>
+      <!-- 실시간 달의 위상 및 월령(0~29.5일) 천문 컨트롤러 -->
+      <div class="moon-deck-section">
+        <div class="moon-header-row">
+          <div class="moon-title">
+            <span>🌙 달의 위상 및 월령 (Lunar Phase):</span>
+            <span id="deckMoonPhaseBadge" class="moon-phase-badge">🌕 보름달 (100%)</span>
+          </div>
+          <span id="deckMoonDescText" class="moon-desc-text">월령: 14.8일 | 이각: 180.0°</span>
+        </div>
+        <div class="moon-slider-track">
+          <div class="moon-gradient-bar"></div>
+          <input
+            type="range"
+            id="moonAgeSlider"
+            class="moon-slider"
+            min="0"
+            max="29.53"
+            step="0.05"
+            value="14.76"
+            aria-label="달의 위상 및 월령 조절 (0~29.5일)"
+          />
+        </div>
+        <!-- 8대 달의 위상 퀵 프리셋 칩 스트립 -->
+        <div class="moon-presets-scroll" id="moonPresetsContainer">
+          <button class="moon-chip" data-phase="newmoon">🌑 삭 (0%)</button>
+          <button class="moon-chip" data-phase="waxing_crescent">🌒 초승달 (15%)</button>
+          <button class="moon-chip" data-phase="first_quarter">🌓 상현달 (50%)</button>
+          <button class="moon-chip" data-phase="waxing_gibbous">🌔 차오름 (85%)</button>
+          <button class="moon-chip" data-phase="fullmoon">🌕 보름달 (100%)</button>
+          <button class="moon-chip" data-phase="waning_gibbous">🌖 기울음 (85%)</button>
+          <button class="moon-chip" data-phase="last_quarter">🌗 하현달 (50%)</button>
+          <button class="moon-chip" data-phase="waning_crescent">🌘 그믐달 (15%)</button>
         </div>
       </div>
 
@@ -193,8 +225,16 @@
             <option value="winter">동지 (Winter Solstice 12/21 - 태양 최저 고도)</option>
             <option value="spring">춘분 (Spring Equinox 3/20)</option>
             <option value="autumn">추분 (Autumn Equinox 9/23)</option>
-            <option value="fullmoon">보름달 (Full Moon 🌕)</option>
-            <option value="newmoon">신월 / 그믐 (New Moon 🌑)</option>
+            <optgroup label="달의 8대 위상 (Lunar Phases)">
+              <option value="newmoon">1. 신월 / 삭 (New Moon 🌑)</option>
+              <option value="waxing_crescent">2. 초승달 (Waxing Crescent 🌒)</option>
+              <option value="first_quarter">3. 상현달 (First Quarter 🌓)</option>
+              <option value="waxing_gibbous">4. 차오르는 달 (Waxing Gibbous 🌔)</option>
+              <option value="fullmoon">5. 보름달 / 만월 (Full Moon 🌕)</option>
+              <option value="waning_gibbous">6. 이지러지는 달 (Waning Gibbous 🌖)</option>
+              <option value="last_quarter">7. 하현달 (Last Quarter 🌗)</option>
+              <option value="waning_crescent">8. 그믐달 (Waning Crescent 🌘)</option>
+            </optgroup>
           </select>
         </div>
       </div>

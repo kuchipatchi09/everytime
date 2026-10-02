@@ -90,6 +90,24 @@ const sideDrawer = document.getElementById('sideDrawer') as HTMLElement;
 const btnToggleZen = document.getElementById('btnToggleZen') as HTMLButtonElement;
 const btnFullscreen = document.getElementById('btnFullscreen') as HTMLButtonElement;
 
+// 실시간 달의 위상 덱 컨트롤
+const moonAgeSlider = document.getElementById('moonAgeSlider') as HTMLInputElement;
+const deckMoonPhaseBadge = document.getElementById('deckMoonPhaseBadge') as HTMLElement;
+const deckMoonDescText = document.getElementById('deckMoonDescText') as HTMLElement;
+const moonPresetChips = document.querySelectorAll<HTMLButtonElement>('.moon-chip');
+let isDraggingMoonSlider = false;
+
+const LUNAR_PHASE_TARGETS: Record<string, { age: number; autoTime: boolean }> = {
+  newmoon: { age: 0.0, autoTime: true },
+  waxing_crescent: { age: 3.69, autoTime: true },
+  first_quarter: { age: 7.382, autoTime: true },
+  waxing_gibbous: { age: 11.07, autoTime: true },
+  fullmoon: { age: 14.765, autoTime: true },
+  waning_gibbous: { age: 18.456, autoTime: true },
+  last_quarter: { age: 22.148, autoTime: true },
+  waning_crescent: { age: 25.839, autoTime: true },
+};
+
 // 날짜 조작
 const btnPrevDay = document.getElementById('btnPrevDay') as HTMLButtonElement;
 const btnNextDay = document.getElementById('btnNextDay') as HTMLButtonElement;
@@ -235,6 +253,34 @@ engine.onTelemetry((data: AstronomyTelemetry) => {
       clockSpeedBadge.style.background = 'rgba(252, 196, 25, 0.18)';
     }
   }
+
+  // 실시간 달 덱 컨트롤러 갱신
+  if (deckMoonPhaseBadge) {
+    deckMoonPhaseBadge.textContent = `${data.moonPhase.icon} ${data.moonPhase.name} (${data.moonPhase.percent}%)`;
+  }
+  if (deckMoonDescText) {
+    const altStr = `${data.moonCoords.altitude >= 0 ? '+' : ''}${data.moonCoords.altitude.toFixed(1)}°`;
+    deckMoonDescText.textContent = `월령: ${data.moonAge.toFixed(1)}일 | 이각: ${data.moonElongation.toFixed(1)}° | 고도: ${altStr}`;
+  }
+  if (!isDraggingMoonSlider && moonAgeSlider) {
+    moonAgeSlider.value = data.moonAge.toFixed(2);
+  }
+
+  // 달 프리셋 칩 하이라이트 동기화
+  const currentPhaseNorm = (((data.moonAge % 29.53058867) + 29.53058867) % 29.53058867) / 29.53058867;
+  let activePhaseKey = 'fullmoon';
+  if (currentPhaseNorm < 0.03 || currentPhaseNorm >= 0.97) activePhaseKey = 'newmoon';
+  else if (currentPhaseNorm < 0.22) activePhaseKey = 'waxing_crescent';
+  else if (currentPhaseNorm < 0.28) activePhaseKey = 'first_quarter';
+  else if (currentPhaseNorm < 0.47) activePhaseKey = 'waxing_gibbous';
+  else if (currentPhaseNorm < 0.53) activePhaseKey = 'fullmoon';
+  else if (currentPhaseNorm < 0.72) activePhaseKey = 'waning_gibbous';
+  else if (currentPhaseNorm < 0.78) activePhaseKey = 'last_quarter';
+  else activePhaseKey = 'waning_crescent';
+
+  moonPresetChips.forEach((c) => {
+    c.classList.toggle('active', c.getAttribute('data-phase') === activePhaseKey);
+  });
 
   // 구름 요약 배지
   if (cloudLevelBadge) {
@@ -396,6 +442,7 @@ datePresetSelect?.addEventListener('change', () => {
   const val = datePresetSelect.value;
   const currentYear = new Date().getFullYear();
   let targetDate = new Date();
+  let targetMinutes: number | null = null;
 
   switch (val) {
     case 'summer':
@@ -410,11 +457,37 @@ datePresetSelect?.addEventListener('change', () => {
     case 'autumn':
       targetDate = new Date(currentYear, 8, 23); // 추분 9월 23일
       break;
-    case 'fullmoon':
-      targetDate = new Date(2026, 8, 26);
-      break;
     case 'newmoon':
-      targetDate = new Date(2026, 8, 11);
+      targetDate = new Date(2026, 9, 11); // 삭 (0%)
+      targetMinutes = 12 * 60; // 정오 (태양과 합)
+      break;
+    case 'waxing_crescent':
+      targetDate = new Date(2026, 8, 15); // 초승달 (14%)
+      targetMinutes = 19 * 60 + 30; // 저녁 서남쪽 하늘
+      break;
+    case 'first_quarter':
+      targetDate = new Date(2026, 8, 19); // 상현달 (53%)
+      targetMinutes = 20 * 60 + 30; // 저녁 남쪽 하늘 (오른쪽 반달)
+      break;
+    case 'waxing_gibbous':
+      targetDate = new Date(2026, 8, 23); // 차오르는 달 (90%)
+      targetMinutes = 21 * 60 + 30; // 밤 남동쪽 하늘
+      break;
+    case 'fullmoon':
+      targetDate = new Date(2026, 8, 26); // 보름달 (100%)
+      targetMinutes = 23 * 60 + 30; // 심야 남쪽 하늘 한가운데
+      break;
+    case 'waning_gibbous':
+      targetDate = new Date(2026, 8, 29); // 이지러지는 달 (90%)
+      targetMinutes = 1 * 60 + 30; // 심야 남동쪽 하늘
+      break;
+    case 'last_quarter':
+      targetDate = new Date(2026, 9, 3); // 하현달 (52%)
+      targetMinutes = 4 * 60; // 새벽 남쪽 하늘 (왼쪽 반달)
+      break;
+    case 'waning_crescent':
+      targetDate = new Date(2026, 9, 6); // 그믐달 (21%)
+      targetMinutes = 5 * 60 + 30; // 여명 동남쪽 하늘
       break;
     case 'today':
     default:
@@ -423,6 +496,10 @@ datePresetSelect?.addEventListener('change', () => {
   }
 
   engine.setDate(targetDate);
+  if (targetMinutes !== null) {
+    engine.setTime(targetMinutes);
+    if (timelineSlider) timelineSlider.value = String(targetMinutes);
+  }
 });
 
 // 14. 위치 좌표 설정 & 프리셋

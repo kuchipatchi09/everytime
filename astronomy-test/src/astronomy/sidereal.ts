@@ -17,7 +17,7 @@ export function getSiderealTime(simDate: Date, lon = LON): number {
   return lst;
 }
 
-// Serge Brunier 전천 이미지의 방향성을 한국의 실시간 밤하늘과 일치시키기 위한 보정값 (357도)
+// 남향 뷰(지평선 아래 피벗) 기준: LST 증가 시 시계 방향(동->남->서)으로 일주운동
 export function getStarRotation(lst: number): number {
-  return (357 - lst) % 360;
+  return ((lst + 177) % 360 + 360) % 360;
 }

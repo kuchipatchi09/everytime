@@ -68,12 +68,12 @@ export async function checkAuth(): Promise<KnoblabUser | null> {
  * Knoblab 통합 로그인 페이지(https://login.knoblab.xyz/)로 이동하여 로그인을 요청합니다.
  * cnsh.life 등 크로스 도메인 서비스의 경우 POST를 수신하는 /api/auth-callback 엔드포인트로 redirect를 설정합니다.
  * @param callbackUrl 인증 완료 후 POST 데이터를 수신할 서버 엔드포인트 URL (기본값: 현재 오리진 + "/api/auth-callback")
- * @param serviceName 로그인 페이지에 표시할 서비스명 (기본값: "asterisk")
+ * @param serviceName 로그인 페이지에 표시할 서비스명 (기본값: "CNSH")
  */
-export function loginWithKnoblab(callbackUrl?: string, serviceName: string = "asterisk"): void {
+export function loginWithKnoblab(callbackUrl?: string, serviceName: string = "CNSH"): void {
   const origin = window.location.origin;
   const targetCallback = callbackUrl || `${origin}/api/auth-callback`;
-  const loginEndpoint = `https://login.knoblab.xyz/?service=${encodeURIComponent(serviceName)}&redirect=${encodeURIComponent(targetCallback)}`;
+  const loginEndpoint = `https://login.knoblab.xyz/?redirect=${encodeURIComponent(targetCallback)}&service=${encodeURIComponent(serviceName)}`;
   window.location.href = loginEndpoint;
 }
 
@@ -96,7 +96,6 @@ export async function logout(): Promise<void> {
     await fetch("https://login.knoblab.xyz/api/clear-session", {
       method: "POST",
       credentials: "include",
-      mode: "no-cors",
     });
   } catch (e) {
     console.error("SSO clear-session failed:", e);

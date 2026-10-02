@@ -78,7 +78,7 @@
 /* ESO 360도 은하수 전천 파노라마 극좌표 투영 */
 .star-container {
   position: absolute;
-  top: calc(50% - 35.67vmax);
+  top: calc(50% + 47.6vmax);
   left: 50%;
   width: 245vmax;
   height: 245vmax;
