@@ -52,29 +52,49 @@ function authDevMiddleware(req: any, res: any, next: any) {
           }
         }
 
-        // ticket이 제공된 경우 중앙 서버에 검증 요청
+        // ticket이 제공된 경우 로컬 HMAC 검증 우선 수행, 실패 시 중앙 서버 호출
         if (ticket) {
           try {
-            const verifyRes = await fetch("https://login.knoblab.xyz/api/verify-sso-ticket", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Origin": "https://cnsh.life",
-              },
-              body: JSON.stringify({
-                ticket,
-                targetOrigin: "https://cnsh.life",
-              }),
-            });
-            if (verifyRes.ok) {
-              const data = (await verifyRes.json()) as any;
-              if (data?.valid && data?.uid) {
-                uid = data.uid;
-                email = data.email || "";
+            const [payloadB64, sigHex] = ticket.split(".");
+            if (payloadB64 && sigHex) {
+              const sharedSecret = process.env.SESSION_SECRET || "knoblab_shared_sso_secret_2026_default_prod";
+              const crypto = await import("crypto");
+              const expectedSig = crypto.createHmac("sha256", sharedSecret).update(payloadB64).digest("hex");
+              if (expectedSig === sigHex) {
+                const payload = JSON.parse(Buffer.from(payloadB64, "base64").toString("utf-8"));
+                if (payload.exp && Date.now() <= payload.exp && payload.uid) {
+                  uid = payload.uid;
+                  email = payload.email || "";
+                }
               }
             }
-          } catch (e) {
-            console.warn("Dev ticket verification warning:", e);
+          } catch (localErr) {
+            console.warn("Dev local ticket verification warning:", localErr);
+          }
+
+          if (!uid) {
+            try {
+              const verifyRes = await fetch("https://login.knoblab.xyz/api/verify-sso-ticket", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Origin": "https://cnsh.life",
+                },
+                body: JSON.stringify({
+                  ticket,
+                  targetOrigin: "https://cnsh.life",
+                }),
+              });
+              if (verifyRes.ok) {
+                const data = (await verifyRes.json()) as any;
+                if (data?.valid && data?.uid) {
+                  uid = data.uid;
+                  email = data.email || "";
+                }
+              }
+            } catch (e) {
+              console.warn("Dev ticket verification warning:", e);
+            }
           }
         }
 
