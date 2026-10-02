@@ -1,9 +1,9 @@
 import { getSunTimes, calcSunCoords } from './astronomy/sun';
-import { getMoonAge, getMoonPath, calcMoonCoords, getMoonPhaseName } from './astronomy/moon';
+import { getMoonAge, getMoonPath, calcMoonCoords, getMoonPhaseName, getDateForMoonAge } from './astronomy/moon';
 import { getSiderealTime, getStarRotation } from './astronomy/sidereal';
 import { calcSkyColors, calcTwilight } from './astronomy/sky';
 import { setupSatelliteLoops, type SatelliteController } from './astronomy/satellite';
-import { DEFAULT_LAT, DEFAULT_LON } from './astronomy/constants';
+import { DEFAULT_LAT, DEFAULT_LON, SYNODIC_MONTH } from './astronomy/constants';
 import type { FlareElements, SunTimes, ScreenCoords } from './astronomy/types';
 import { WebGLCloudRenderer } from './clouds/webglCloudRenderer';
 import type { CloudStageProfile, CloudLightingContext } from './clouds/types';
@@ -110,7 +110,7 @@ export class PlanetariumEngine {
 
   constructor() {
     const now = new Date();
-    this.simDate = new Date(now.getTime());
+    this.simDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     this.currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
 
     // 바운드 루프 함수를 생성자에서 1회만 바인딩 (매 프레임 .bind() 호출 제거)
@@ -176,7 +176,7 @@ export class PlanetariumEngine {
         this.satLayerEl,
         () => this.isPerfMode,
         () => this.currentMinutes,
-        () => this.simDate
+        () => this.getCurrentSimDate()
       );
     }
 
@@ -322,19 +322,58 @@ export class PlanetariumEngine {
     return this.currentMinutes;
   }
 
+  /**
+   * simDate(년/월/일)와 currentMinutes(시/분/초)를 결합한
+   * 정밀한 현재 시뮬레이션 Date 객체를 반환합니다.
+   */
+  public getCurrentSimDate(): Date {
+    const y = this.simDate.getFullYear();
+    const m = this.simDate.getMonth();
+    const d = this.simDate.getDate();
+    const totalMinutes = ((this.currentMinutes % 1440) + 1440) % 1440;
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = Math.floor(totalMinutes % 60);
+    const secs = Math.floor((totalMinutes * 60) % 60);
+    const ms = Math.floor((totalMinutes * 60000) % 1000);
+    return new Date(y, m, d, hours, mins, secs, ms);
+  }
+
   public setDate(date: Date): void {
-    this.simDate = new Date(date.getTime());
+    // 날짜(년/월/일)를 갱신
+    this.simDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     this.lastSkyKey = -1; // 강제 더티
     this.updateSky();
   }
 
   public getDate(): Date {
-    return this.simDate;
+    return this.getCurrentSimDate();
+  }
+
+  /**
+   * 원하는 특정 월령(0~29.53일)으로 시뮬레이션 일자를 즉각 이동시킵니다.
+   * autoTime이 true이면 해당 위상을 관측하기 가장 좋은 시각으로 자동 이동합니다.
+   */
+  public setMoonAge(targetAge: number, autoTime = false): void {
+    const currentSim = this.getCurrentSimDate();
+    const newDate = getDateForMoonAge(currentSim, targetAge);
+    this.setDate(newDate);
+
+    if (autoTime) {
+      const phase = (((targetAge % SYNODIC_MONTH) + SYNODIC_MONTH) % SYNODIC_MONTH) / SYNODIC_MONTH;
+      let optimalMinutes = 23 * 60 + 30; // 기본 심야
+      if (phase < 0.05 || phase > 0.95) optimalMinutes = 12 * 60; // 삭: 정오
+      else if (phase < 0.25) optimalMinutes = 19 * 60 + 30; // 초승달: 일몰 직후 저녁 서남쪽
+      else if (phase < 0.35) optimalMinutes = 20 * 60 + 30; // 상현달: 저녁 남쪽 하늘
+      else if (phase < 0.65) optimalMinutes = 23 * 60 + 30; // 보름달: 심야 남쪽 하늘
+      else if (phase < 0.85) optimalMinutes = 4 * 60; // 하현달: 새벽 남쪽 하늘
+      else optimalMinutes = 5 * 60 + 30; // 그믐달: 여명 동남쪽 하늘
+      this.setTime(optimalMinutes);
+    }
   }
 
   public syncWithRealTime(): void {
     const now = new Date();
-    this.simDate = new Date(now.getTime());
+    this.simDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     this.currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
     this.speedMultiplier = 1;
     this.isPlaying = true;
@@ -504,7 +543,8 @@ export class PlanetariumEngine {
 
   private updateSky(): void {
     const mG = ((this.currentMinutes % 1440) + 1440) % 1440;
-    const solar = getSunTimes(this.simDate, this.lat, this.lon);
+    const currentSimDate = this.getCurrentSimDate();
+    const solar = getSunTimes(currentSimDate, this.lat, this.lon);
     const { zenith, horizon, zenithRgb, horizonRgb, brightness } = calcSkyColors(mG, solar);
 
     // 구름 차폐 파라미터 가져오기
@@ -547,7 +587,7 @@ export class PlanetariumEngine {
     if (this.moonCrescentEl) {
       this.moonCrescentEl.style.filter = (brightness > 30 || moonOcc > 0.6)
         ? 'none'
-        : 'drop-shadow(0 0 5px rgba(255, 245, 220, 0.85)) drop-shadow(0 0 15px rgba(200, 225, 255, 0.4))';
+        : 'drop-shadow(0 0 2px rgba(255, 245, 220, 0.95)) drop-shadow(0 0 6px rgba(200, 225, 255, 0.45))';
     }
 
     // 1. 태양 좌표 및 직접 DOM 렌더링
@@ -589,8 +629,15 @@ export class PlanetariumEngine {
     }
 
     // 2. 달 좌표 및 직접 DOM 렌더링
-    const moonAge = getMoonAge(this.simDate);
+    const moonAge = getMoonAge(currentSimDate);
     const { coords: moonCoords, elongation } = calcMoonCoords(mG, solar, moonAge, this.lat);
+
+    // 달의 위상 SVG 패스는 지평선 출몰 여부와 관계없이 항상 최신화
+    const moonPath = getMoonPath(moonAge);
+    if (this.moonCrescentPathEl && moonPath !== this.lastMoonPath) {
+      this.moonCrescentPathEl.setAttribute('d', moonPath);
+      this.lastMoonPath = moonPath;
+    }
 
     const rawMoonOpacity = Math.max(0, Math.min(1, (moonCoords.altitude - -2) / 7));
     const moonOpacity = rawMoonOpacity * (1 - moonOcc);
@@ -610,10 +657,11 @@ export class PlanetariumEngine {
         this.starWrapperEl.style.webkitMaskImage = maskVal;
       }
 
-      const moonPath = getMoonPath(moonAge);
-      if (this.moonCrescentPathEl && moonPath !== this.lastMoonPath) {
-        this.moonCrescentPathEl.setAttribute('d', moonPath);
-        this.lastMoonPath = moonPath;
+      if (this.moonCrescentEl && this.moonCrescentEl.style.transform) {
+        this.moonCrescentEl.style.transform = '';
+      }
+      if (this.moonEarthshineEl && this.moonEarthshineEl.style.transform) {
+        this.moonEarthshineEl.style.transform = '';
       }
 
       const moonGlowFactor = Math.max(0, Math.min(1, 1 - (brightness - 21.67) / 20));
@@ -632,7 +680,7 @@ export class PlanetariumEngine {
 
     // 3. 밤하늘 은하수 / 황혼 페이딩 직접 DOM 렌더링
     const { starOpacity: rawStarOpacity, starMaskY } = calcTwilight(mG, solar);
-    const lst = getSiderealTime(this.simDate, this.lon);
+    const lst = getSiderealTime(currentSimDate, this.lon);
     const starRot = getStarRotation(lst);
     const starOpacity = rawStarOpacity * (1 - starOcc);
 
@@ -683,9 +731,9 @@ export class PlanetariumEngine {
 
       const tel = this._telemetryCache;
       tel.currentMinutes = mG;
-      tel.simDate = this.simDate;
+      tel.simDate = currentSimDate;
       tel.formattedTime = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
-      tel.formattedDate = this.simDate.toLocaleDateString('ko-KR', {
+      tel.formattedDate = currentSimDate.toLocaleDateString('ko-KR', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -760,7 +808,8 @@ export class PlanetariumEngine {
     // ===== Phase 1 전략 1: 시간 기반 더티 플래그 =====
     // 천문 상태가 실제로 변한 경우에만 updateSky() 풀 재계산
     // 3초 해상도(0.05분) — 1x 재생 시 updateSky 호출 60fps → ~0.33fps (180배 감소)
-    const skyKey = Math.floor(this.currentMinutes * 20);
+    const dayIndex = Math.floor(this.simDate.getTime() / 86400000);
+    const skyKey = dayIndex * 100000 + Math.floor(this.currentMinutes * 20);
 
     if (skyKey !== this.lastSkyKey) {
       this.lastSkyKey = skyKey;

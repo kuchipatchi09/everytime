@@ -20,7 +20,8 @@ function authDevMiddleware(req: any, res: any, next: any) {
     if (req.method === "POST") {
       let body = "";
       req.on("data", (chunk: any) => { body += chunk; });
-      req.on("end", () => {
+      req.on("end", async () => {
+        let ticket = "";
         let token = "";
         let uid = "";
         let email = "";
@@ -28,6 +29,7 @@ function authDevMiddleware(req: any, res: any, next: any) {
         const contentType = req.headers["content-type"] || "";
         if (contentType.includes("application/x-www-form-urlencoded")) {
           const params = new URLSearchParams(body);
+          ticket = params.get("ticket") || "";
           token = params.get("token") || "";
           uid = params.get("uid") || "";
           email = params.get("email") || "";
@@ -41,6 +43,7 @@ function authDevMiddleware(req: any, res: any, next: any) {
               if (nameMatch) {
                 const name = nameMatch[1];
                 const content = part.split("\r\n\r\n")[1]?.split("\r\n--")[0]?.trim() || "";
+                if (name === "ticket") ticket = content;
                 if (name === "token") token = content;
                 if (name === "uid") uid = content;
                 if (name === "email") email = content;
@@ -49,12 +52,38 @@ function authDevMiddleware(req: any, res: any, next: any) {
           }
         }
 
-        if (token || uid) {
-          const cookieOpts = "Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax";
+        // ticket이 제공된 경우 중앙 서버에 검증 요청
+        if (ticket) {
+          try {
+            const verifyRes = await fetch("https://login.knoblab.xyz/api/verify-sso-ticket", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Origin": "https://cnsh.life",
+              },
+              body: JSON.stringify({
+                ticket,
+                targetOrigin: "https://cnsh.life",
+              }),
+            });
+            if (verifyRes.ok) {
+              const data = (await verifyRes.json()) as any;
+              if (data?.valid && data?.uid) {
+                uid = data.uid;
+                email = data.email || "";
+              }
+            }
+          } catch (e) {
+            console.warn("Dev ticket verification warning:", e);
+          }
+        }
+
+        if (uid || token) {
+          const cookieOpts = "Path=/; Max-Age=604800; HttpOnly; SameSite=Lax";
           res.setHeader("Set-Cookie", [
-            `session_token=${encodeURIComponent(token)}; ${cookieOpts}`,
-            `session_uid=${encodeURIComponent(uid)}; ${cookieOpts}`,
+            `session_uid=${encodeURIComponent(uid || "dev_user")}; ${cookieOpts}`,
             `session_email=${encodeURIComponent(email)}; ${cookieOpts}`,
+            `session_token=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax`,
           ]);
         }
 
@@ -73,20 +102,20 @@ function authDevMiddleware(req: any, res: any, next: any) {
 
   if (url.pathname === "/api/me") {
     const cookies = parseCookies(req.headers.cookie);
-    const token = cookies["session_token"];
     const uid = cookies["session_uid"];
     const email = cookies["session_email"];
+    const token = cookies["session_token"];
 
     res.setHeader("Content-Type", "application/json");
     res.setHeader("Cache-Control", "no-store");
 
-    if (uid || token) {
+    if (uid) {
       res.statusCode = 200;
       res.end(JSON.stringify({
         authenticated: true,
-        token: decodeURIComponent(token || ""),
-        uid: decodeURIComponent(uid || ""),
+        uid: decodeURIComponent(uid),
         email: decodeURIComponent(email || ""),
+        token: token ? decodeURIComponent(token) : "",
       }));
     } else {
       res.statusCode = 401;

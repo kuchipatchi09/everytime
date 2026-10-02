@@ -617,6 +617,148 @@ body.zen-mode .zen-hint {
     top: 76px;
     max-height: calc(100vh - 210px);
   }
+/* Moon Controls & Lunar Phase Deck Extensions */
+.moon-deck-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.moon-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.moon-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.moon-phase-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: rgba(255, 212, 59, 0.2);
+  color: #ffd43b;
+  border: 1px solid rgba(255, 212, 59, 0.4);
+}
+
+.moon-desc-text {
+  font-size: 11px;
+  color: var(--obs-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 480px;
+}
+
+.moon-slider-track {
+  position: relative;
+  width: 100%;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.moon-gradient-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    #101524 0%,     /* 0: 삭 (신월) */
+    #3b4866 15%,    /* 초승 */
+    #ffd43b 50%,    /* 보름 */
+    #3b4866 85%,    /* 그믐 */
+    #101524 100%    /* 29.5: 삭 */
+  );
+  opacity: 0.9;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+}
+
+input[type="range"].moon-slider {
+  position: relative;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 24px;
+  background: transparent;
+  outline: none;
+  margin: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+input[type="range"].moon-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 20px;
+  border-radius: 4px;
+  background: #fff;
+  border: 2px solid #ffd43b;
+  box-shadow: 0 0 10px rgba(255, 212, 59, 0.8), 0 2px 5px rgba(0, 0, 0, 0.6);
+  cursor: grab;
+  transition: transform 0.1s ease;
+}
+
+input[type="range"].moon-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.moon-presets-scroll {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+  scrollbar-width: thin;
+}
+
+.moon-presets-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+.moon-presets-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.moon-chip {
+  padding: 3px 8px;
+  font-size: 10.5px;
+  font-weight: 500;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--obs-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.moon-chip:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.moon-chip.active {
+  background: rgba(255, 212, 59, 0.25);
+  color: #ffd43b;
+  border-color: #ffd43b;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(255, 212, 59, 0.3);
 }
 
 /* Cloud Controls & Telemetry HUD Extensions */

@@ -66,6 +66,10 @@ export async function getFreshIdToken(): Promise<string> {
     return cachedUser.token;
   }
 
+  if (cachedUser?.uid || updatedUser?.uid) {
+    return (cachedUser?.uid || updatedUser?.uid) as string;
+  }
+
   // 3. 토큰 획득 실패
   throw new Error("인증 토큰이 만료되었거나 유효하지 않습니다.");
 }
