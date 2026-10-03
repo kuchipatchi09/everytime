@@ -52,49 +52,31 @@ function authDevMiddleware(req: any, res: any, next: any) {
           }
         }
 
-        // ticket이 제공된 경우 로컬 HMAC 검증 우선 수행, 실패 시 중앙 서버 호출
+        // 중앙 인증 서버로 티켓 검증 요청
+        let emailVerified = false;
         if (ticket) {
           try {
-            const [payloadB64, sigHex] = ticket.split(".");
-            if (payloadB64 && sigHex) {
-              const sharedSecret = process.env.SESSION_SECRET || "knoblab_shared_sso_secret_2026_default_prod";
-              const crypto = await import("crypto");
-              const expectedSig = crypto.createHmac("sha256", sharedSecret).update(payloadB64).digest("hex");
-              if (expectedSig === sigHex) {
-                const payload = JSON.parse(Buffer.from(payloadB64, "base64").toString("utf-8"));
-                if (payload.exp && Date.now() <= payload.exp && payload.uid) {
-                  uid = payload.uid;
-                  email = payload.email || "";
-                }
+            const verifyRes = await fetch("https://login.knoblab.xyz/api/verify-sso-ticket", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Origin": "https://cnsh.life",
+              },
+              body: JSON.stringify({
+                ticket,
+                targetOrigin: "https://cnsh.life",
+              }),
+            });
+            if (verifyRes.ok) {
+              const data = (await verifyRes.json()) as any;
+              if (data?.valid && data?.uid) {
+                uid = data.uid;
+                email = data.email || "";
+                emailVerified = data.emailVerified === true;
               }
             }
-          } catch (localErr) {
-            console.warn("Dev local ticket verification warning:", localErr);
-          }
-
-          if (!uid) {
-            try {
-              const verifyRes = await fetch("https://login.knoblab.xyz/api/verify-sso-ticket", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Origin": "https://cnsh.life",
-                },
-                body: JSON.stringify({
-                  ticket,
-                  targetOrigin: "https://cnsh.life",
-                }),
-              });
-              if (verifyRes.ok) {
-                const data = (await verifyRes.json()) as any;
-                if (data?.valid && data?.uid) {
-                  uid = data.uid;
-                  email = data.email || "";
-                }
-              }
-            } catch (e) {
-              console.warn("Dev ticket verification warning:", e);
-            }
+          } catch (e) {
+            console.warn("Dev ticket verification warning:", e);
           }
         }
 
@@ -103,6 +85,7 @@ function authDevMiddleware(req: any, res: any, next: any) {
           res.setHeader("Set-Cookie", [
             `session_uid=${encodeURIComponent(uid || "dev_user")}; ${cookieOpts}`,
             `session_email=${encodeURIComponent(email)}; ${cookieOpts}`,
+            `session_email_verified=${emailVerified ? "true" : "false"}; ${cookieOpts}`,
             `session_token=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax`,
           ]);
         }
@@ -124,6 +107,7 @@ function authDevMiddleware(req: any, res: any, next: any) {
     const cookies = parseCookies(req.headers.cookie);
     const uid = cookies["session_uid"];
     const email = cookies["session_email"];
+    const emailVerified = cookies["session_email_verified"] === "true";
     const token = cookies["session_token"];
 
     res.setHeader("Content-Type", "application/json");
@@ -135,6 +119,7 @@ function authDevMiddleware(req: any, res: any, next: any) {
         authenticated: true,
         uid: decodeURIComponent(uid),
         email: decodeURIComponent(email || ""),
+        emailVerified,
         token: token ? decodeURIComponent(token) : "",
       }));
     } else {
@@ -150,6 +135,7 @@ function authDevMiddleware(req: any, res: any, next: any) {
       `session_token=; ${clearOpts}`,
       `session_uid=; ${clearOpts}`,
       `session_email=; ${clearOpts}`,
+      `session_email_verified=; ${clearOpts}`,
     ]);
     res.setHeader("Content-Type", "application/json");
     res.statusCode = 200;

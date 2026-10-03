@@ -2,6 +2,7 @@ export interface KnoblabUser {
   token?: string;
   uid: string;
   email: string;
+  emailVerified?: boolean;
 }
 
 type AuthChangeCallback = (user: KnoblabUser | null) => void;
@@ -43,6 +44,7 @@ export async function checkAuth(): Promise<KnoblabUser | null> {
           token: data.token || "",
           uid: data.uid,
           email: data.email || "",
+          emailVerified: data.emailVerified === true,
         };
       } else {
         currentUser = null;

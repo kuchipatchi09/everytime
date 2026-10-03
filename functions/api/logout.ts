@@ -11,6 +11,7 @@ const clearSession = () => {
   headers.append("Set-Cookie", `session_token=; ${clearOpts}`);
   headers.append("Set-Cookie", `session_uid=; ${clearOpts}`);
   headers.append("Set-Cookie", `session_email=; ${clearOpts}`);
+  headers.append("Set-Cookie", `session_email_verified=; ${clearOpts}`);
 
   return new Response(JSON.stringify({ success: true }), {
     status: 200,
