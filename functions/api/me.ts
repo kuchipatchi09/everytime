@@ -16,6 +16,7 @@ export const onRequestGet = async (context: { request: Request; env: Env }) => {
   const cookies = parseCookies(context.request.headers.get("Cookie") || "");
   const uid = cookies["session_uid"];
   const email = cookies["session_email"];
+  const emailVerified = cookies["session_email_verified"] === "true";
   const token = cookies["session_token"];
 
   if (!uid) {
@@ -33,6 +34,7 @@ export const onRequestGet = async (context: { request: Request; env: Env }) => {
       authenticated: true,
       uid: decodeURIComponent(uid),
       email: decodeURIComponent(email || ""),
+      emailVerified,
       token: token ? decodeURIComponent(token) : "",
     }),
     {
