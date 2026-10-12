@@ -9,7 +9,7 @@ const SCHOOL_CODE = 34089; // 충남과학고등학교
 
 let cachedTimetable: any = null;
 let cacheTimestamp = 0;
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5분 캐시
+const CACHE_TTL_MS = 60 * 1000; // 1분 인메모리 캐시
 
 async function fetchTcpData(path: string): Promise<string> {
   const socket = connect({ hostname: COMCIGAN_HOST, port: COMCIGAN_PORT });
@@ -37,7 +37,6 @@ async function fetchTcpData(path: string): Promise<string> {
     offset += c.length;
   }
 
-  // latin1 for binary/header scanning, utf-8 for json body
   return new TextDecoder('utf-8').decode(combined);
 }
 
@@ -50,6 +49,7 @@ function parseComciganJson(json: any) {
   const DAYS = ['월', '화', '수', '목', '금'];
   const 분리 = json.분리 || 100;
   const subjects: string[] = json.자료492 || [];
+  const teachers: string[] = json.자료446 || [];
   const rawDefault = json.자료481;
   const rawDaily = json.자료147;
 
@@ -116,6 +116,39 @@ function parseComciganJson(json: any) {
     return '';
   }
 
+  // 1단계: 학년별/전교 과목당 담당 교사 집합 수집 (수탐구, AP선대 등 교사가 2명 이상인 과목 판별용)
+  const gradeSubjectTeachers = new Map<string, Set<string>>();
+  const schoolWideSubjectTeachers = new Map<string, Set<string>>();
+
+  for (let grade = 1; grade <= 3; grade++) {
+    const classCount = Math.min(4, json.학급수?.[grade] || 4);
+    for (let cls = 1; cls <= classCount; cls++) {
+      for (let day = 1; day <= 5; day++) {
+        for (let per = 1; per <= 7; per++) {
+          const rawVal = rawDaily?.[grade]?.[cls]?.[day]?.[per] ??
+                         rawDefault?.[grade]?.[cls]?.[day]?.[per] ?? 0;
+          if (!rawVal) continue;
+          const numPart = typeof rawVal === 'string' && rawVal.startsWith('>') ? rawVal.substring(1) : rawVal;
+          const ma = splitData(numPart);
+          const th = ma[0] || 0;
+          let sb = (ma[1] || 0) + Number(ma[2] || 0) * 1000;
+          sb = sb % 분리;
+          const subjectName = subjects[sb] || '';
+          const teacherName = teachers[th] || '';
+          if (subjectName && teacherName) {
+            const key = `${grade}_${subjectName}`;
+            if (!gradeSubjectTeachers.has(key)) gradeSubjectTeachers.set(key, new Set());
+            gradeSubjectTeachers.get(key)!.add(teacherName);
+
+            if (!schoolWideSubjectTeachers.has(subjectName)) schoolWideSubjectTeachers.set(subjectName, new Set());
+            schoolWideSubjectTeachers.get(subjectName)!.add(teacherName);
+          }
+        }
+      }
+    }
+  }
+
+  // 2단계: 학급별 주간 시간표 빌드
   for (let grade = 1; grade <= 3; grade++) {
     const classCount = Math.min(4, json.학급수?.[grade] || 4);
     for (let cls = 1; cls <= classCount; cls++) {
@@ -152,9 +185,25 @@ function parseComciganJson(json: any) {
 
           let prefix = mTime(sb, 분리);
           sb = sb % 분리;
-          const subjectName = subjects[sb] || '';
+          let subjectName = subjects[sb] || '';
+          const teacherName = teachers[th] || '';
+
           if (prefix === '') {
             prefix = 동시그룹코드(json, grade, cls, sb, dayNumber, period);
+          }
+
+          // 창체 제외, 과목명이 같으나 담당 교사가 2명 이상인 경우 괄호치고 선생님 성 표시: 예: AP선대(정), 수탐구(김)
+          const key = `${grade}_${subjectName}`;
+          const isMultiTeacher =
+            !subjectName.startsWith('창체') &&
+            ((gradeSubjectTeachers.get(key)?.size || 0) >= 2 ||
+              (schoolWideSubjectTeachers.get(subjectName)?.size || 0) >= 2);
+
+          if (isMultiTeacher && teacherName) {
+            const surname = teacherName.replace(/[^가-힣a-zA-Z]/g, '')[0] || teacherName[0] || '';
+            if (surname) {
+              subjectName = `${subjectName}(${surname})`;
+            }
           }
 
           const fullSubject = prefix + subjectName;
@@ -169,9 +218,12 @@ function parseComciganJson(json: any) {
   return result;
 }
 
-export const onRequest = async () => {
+export const onRequest = async (context: any) => {
+  const url = new URL(context.request.url);
+  const force = url.searchParams.has('force') || url.searchParams.has('t');
   const now = Date.now();
-  if (cachedTimetable && (now - cacheTimestamp < CACHE_TTL_MS)) {
+
+  if (!force && cachedTimetable && (now - cacheTimestamp < CACHE_TTL_MS)) {
     return jsonResponse({ success: true, cached: true, updatedAt: new Date(cacheTimestamp).toISOString(), timetable: cachedTimetable }, 200);
   }
 
@@ -256,7 +308,7 @@ function jsonResponse(obj: any, status: number) {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=300',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',

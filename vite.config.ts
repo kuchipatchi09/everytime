@@ -345,6 +345,7 @@ function parseComciganJsonDev(json: any) {
   const DAYS = ["월", "화", "수", "목", "금"];
   const 분리 = json.분리 || 100;
   const subjects: string[] = json.자료492 || [];
+  const teachers: string[] = json.자료446 || [];
   const rawDefault = json.자료481;
   const rawDaily = json.자료147;
 
@@ -411,6 +412,38 @@ function parseComciganJsonDev(json: any) {
     return "";
   }
 
+  // 1단계: 학년별/전교 과목당 담당 교사 집합 수집 (수탐구, AP선대 등 교사 2인 이상 과목 판별)
+  const gradeSubjectTeachers = new Map<string, Set<string>>();
+  const schoolWideSubjectTeachers = new Map<string, Set<string>>();
+
+  for (let grade = 1; grade <= 3; grade++) {
+    const classCount = Math.min(4, json.학급수?.[grade] || 4);
+    for (let cls = 1; cls <= classCount; cls++) {
+      for (let day = 1; day <= 5; day++) {
+        for (let per = 1; per <= 7; per++) {
+          const rawVal = rawDaily?.[grade]?.[cls]?.[day]?.[per] ??
+                         rawDefault?.[grade]?.[cls]?.[day]?.[per] ?? 0;
+          if (!rawVal) continue;
+          const numPart = typeof rawVal === "string" && rawVal.startsWith(">") ? rawVal.substring(1) : rawVal;
+          const ma = splitData(numPart);
+          const th = ma[0] || 0;
+          let sb = (ma[1] || 0) + Number(ma[2] || 0) * 1000;
+          sb = sb % 분리;
+          const subjectName = subjects[sb] || "";
+          const teacherName = teachers[th] || "";
+          if (subjectName && teacherName) {
+            const key = `${grade}_${subjectName}`;
+            if (!gradeSubjectTeachers.has(key)) gradeSubjectTeachers.set(key, new Set());
+            gradeSubjectTeachers.get(key)!.add(teacherName);
+
+            if (!schoolWideSubjectTeachers.has(subjectName)) schoolWideSubjectTeachers.set(subjectName, new Set());
+            schoolWideSubjectTeachers.get(subjectName)!.add(teacherName);
+          }
+        }
+      }
+    }
+  }
+
   for (let grade = 1; grade <= 3; grade++) {
     const classCount = Math.min(4, json.학급수?.[grade] || 4);
     for (let cls = 1; cls <= classCount; cls++) {
@@ -447,9 +480,25 @@ function parseComciganJsonDev(json: any) {
 
           let prefix = mTime(sb, 분리);
           sb = sb % 분리;
-          const subjectName = subjects[sb] || "";
+          let subjectName = subjects[sb] || "";
+          const teacherName = teachers[th] || "";
+
           if (prefix === "") {
             prefix = 동시그룹코드(json, grade, cls, sb, dayNumber, period);
+          }
+
+          // 창체 제외, 과목명이 같으나 담당 교사가 2명 이상인 경우 괄호치고 선생님 성 표시: 예: AP선대(정), 수탐구(김)
+          const key = `${grade}_${subjectName}`;
+          const isMultiTeacher =
+            !subjectName.startsWith("창체") &&
+            ((gradeSubjectTeachers.get(key)?.size || 0) >= 2 ||
+              (schoolWideSubjectTeachers.get(subjectName)?.size || 0) >= 2);
+
+          if (isMultiTeacher && teacherName) {
+            const surname = teacherName.replace(/[^가-힣a-zA-Z]/g, "")[0] || teacherName[0] || "";
+            if (surname) {
+              subjectName = `${subjectName}(${surname})`;
+            }
           }
 
           const fullSubject = prefix + subjectName;
@@ -468,9 +517,10 @@ function timetableProxyMiddleware(req: any, res: any, next: any) {
   if (req.url?.startsWith("/api/timetable")) {
     (async () => {
       const now = Date.now();
-      if (devCachedTimetable && (now - devCacheTimestamp < DEV_CACHE_TTL_MS)) {
+      const force = req.url?.includes("force") || req.url?.includes("t=");
+      if (!force && devCachedTimetable && (now - devCacheTimestamp < DEV_CACHE_TTL_MS)) {
         res.setHeader("Content-Type", "application/json");
-        res.setHeader("Cache-Control", "public, max-age=300");
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.end(JSON.stringify({
           success: true,
           cached: true,

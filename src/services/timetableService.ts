@@ -1,9 +1,9 @@
 import { DEFAULT_TIMETABLE } from "../constants/timetable";
 import { ClassNumber, GradeNumber, SchoolTimetable, WeeklyTimetable } from "../types/timetable";
 
-const STORAGE_KEY_TIMETABLE = "comcigan_timetable_cache_v1";
-const STORAGE_KEY_TIMESTAMP = "comcigan_timetable_time_v1";
-const CLIENT_CACHE_TTL_MS = 5 * 60 * 1000; // 5분 클라이언트 캐시
+const STORAGE_KEY_TIMETABLE = "comcigan_timetable_cache_v2";
+const STORAGE_KEY_TIMESTAMP = "comcigan_timetable_time_v2";
+const CLIENT_CACHE_TTL_MS = 60 * 1000; // 1분 클라이언트 캐시
 
 let memoryTimetable: SchoolTimetable | null = null;
 let lastFetchTime: number = 0;
@@ -83,7 +83,8 @@ export async function fetchSchoolTimetable(forceRefresh = false): Promise<Timeta
 
   // 3. API 요청 (/api/timetable)
   try {
-    const res = await fetch("/api/timetable", {
+    const url = forceRefresh ? `/api/timetable?t=${now}` : "/api/timetable";
+    const res = await fetch(url, {
       cache: forceRefresh ? "no-store" : "default",
     });
 

@@ -236,7 +236,7 @@ export async function renderDashboard(
 
         <div class="now-fs-body">
           <div class="now-fs-title-box">
-            <h1 class="now-fs-subject">${isYearEndTimer ? `${g}학년` : esc(activityName)}</h1>
+            <h1 class="now-fs-subject" id="now-fs-activity-name">${isYearEndTimer ? `${g}학년` : esc(activityName)}</h1>
             <span class="now-fs-class">${g}학년 ${c}반</span>
           </div>
           <div class="now-fs-stats-box">
@@ -267,7 +267,7 @@ export async function renderDashboard(
           </div>
         </div>
         <p>${isYearEndTimer ? `${theYear}. 3. 2. – ${theYear}. 12. 31.` : `${active[2]} · ${active[0]}–${active[1]}`}</p>
-        <h2>${isYearEndTimer ? `${g}학년` : esc(activityName)}</h2>
+        <h2 id="now-card-activity-name">${isYearEndTimer ? `${g}학년` : esc(activityName)}</h2>
         <small>${g}학년 ${c}반</small>
         <div class="routine-progress">
           <span id="now-card-progress-bar" style="width:${isYearEndTimer ? progress2.toFixed(7) : progress.toFixed(3)}%;"></span>
@@ -302,7 +302,7 @@ export async function renderDashboard(
           <div><span class="eyebrow">TODAY'S SCHEDULE</span><h3>오늘 시간표</h3></div>
           <button class="dash-link" id="dash-timetable-btn">전체 시간표 →</button>
         </div>
-        <div class="today-lines">
+        <div class="today-lines" id="today-schedule-lines">
           ${
             today.length
               ? today
@@ -343,10 +343,67 @@ export async function renderDashboard(
   loadDashboardWeather();
   loadDashboardMeal(now);
   loadDashboardNotices(onNavigateTab, onOpenNoticeDetail);
-  fetchSchoolTimetable().catch(() => {});
+  loadDashboardTimetable(now);
 
   // 실시간 연속 갱신 타이커 가동 (초 단위 정밀 계산 & 진행바 부드러운 애니메이션)
   startNowCardContinuousTicker(active, () => renderDashboard(onNavigateTab, onOpenNoticeDetail));
+}
+
+async function loadDashboardTimetable(now: Date): Promise<void> {
+  try {
+    const res = await fetchSchoolTimetable();
+    const { g, c } = getSavedClass();
+    const liveSchedule = res.timetable[g]?.[c];
+    if (!liveSchedule) return;
+
+    const dayIndex = now.getDay() - 1;
+    const currentDayOfWeek: DayOfWeek | null = dayIndex >= 0 && dayIndex < 5 ? DAYS[dayIndex] : null;
+    const liveToday = currentDayOfWeek ? liveSchedule[currentDayOfWeek] : [];
+
+    const linesContainer = document.getElementById("today-schedule-lines");
+    if (linesContainer && liveToday.length > 0) {
+      const times = [
+        "08:40",
+        "09:40",
+        "10:40",
+        "11:40",
+        now.getDay() === 3 ? "13:50" : "13:30",
+        now.getDay() === 3 ? "14:40" : "14:30",
+        "15:30",
+      ];
+      const isAfterMidnightRoutine = now.getHours() === 0 && now.getMinutes() < 30;
+      const currentSec =
+        now.getHours() * 3600 +
+        now.getMinutes() * 60 +
+        now.getSeconds() +
+        (isAfterMidnightRoutine ? 24 * 3600 : 0);
+      const minutes = currentSec / 60;
+      const routineDay = isAfterMidnightRoutine ? (now.getDay() + 6) % 7 : now.getDay();
+      const items = getRoutine(routineDay);
+      const active =
+        items.find((item) => minutes >= toMinutes(item[0]) && minutes < toMinutes(item[1])) || items[0];
+      const period = /^(\d)교시/.exec(active[2]);
+
+      linesContainer.innerHTML = liveToday
+        .map(
+          (x: string, i: number) =>
+            `<p class="today-line ${period && Number(period[1]) === i + 1 ? "current" : ""}"><span>${i + 1}</span><time>${times[i]}</time><b>${esc(x)}</b></p>`
+        )
+        .join("");
+
+      if (!showYearEndTimer && period) {
+        const liveSubject = liveToday[Number(period[1]) - 1];
+        if (liveSubject) {
+          const nowCardH2 = document.getElementById("now-card-activity-name");
+          if (nowCardH2) nowCardH2.textContent = liveSubject;
+          const nowFsH1 = document.getElementById("now-fs-activity-name");
+          if (nowFsH1) nowFsH1.textContent = liveSubject;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("대시보드 실시간 시간표 동기화 실패:", err);
+  }
 }
 
 
