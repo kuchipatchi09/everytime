@@ -1,4 +1,5 @@
-import { DAYS, DEFAULT_TIMETABLE } from "../constants/timetable";
+import { DAYS } from "../constants/timetable";
+import { fetchSchoolTimetable, getClassTimetableSync } from "../services/timetableService";
 import { getRoutine } from "../constants/routines";
 import { fetchAfterschoolData } from "../services/afterschoolService";
 import { fetchCurrentWeather } from "../services/weatherService";
@@ -143,7 +144,8 @@ export async function renderDashboard(
   const { g, c } = getSavedClass();
   const dayIndex = now.getDay() - 1;
   const currentDayOfWeek: DayOfWeek | null = dayIndex >= 0 && dayIndex < 5 ? DAYS[dayIndex] : null;
-  const today = currentDayOfWeek ? DEFAULT_TIMETABLE[g][c][currentDayOfWeek] : [];
+  const classSchedule = getClassTimetableSync(g, c);
+  const today = currentDayOfWeek ? classSchedule[currentDayOfWeek] : [];
 
   const isAfterMidnightRoutine = now.getHours() === 0 && now.getMinutes() < 30;
   const currentSec =
@@ -341,6 +343,7 @@ export async function renderDashboard(
   loadDashboardWeather();
   loadDashboardMeal(now);
   loadDashboardNotices(onNavigateTab, onOpenNoticeDetail);
+  fetchSchoolTimetable().catch(() => {});
 
   // 실시간 연속 갱신 타이커 가동 (초 단위 정밀 계산 & 진행바 부드러운 애니메이션)
   startNowCardContinuousTicker(active, () => renderDashboard(onNavigateTab, onOpenNoticeDetail));
