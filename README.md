@@ -6,19 +6,31 @@
   <img alt="asterisk" src="public/Concept.svg" width="120">
 </picture>
 
-# asterisk cnsh.life
+# cnsh.life
 
-**충남과학고등학교 통합 학교생활 포털**
+**충남과학고등학교 학교생활 정보 포털 — Part of the `asterisk*` Ecosystem**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6-646cff?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
-[![Deploy](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-222?style=flat-square&logo=githubpages&logoColor=white)](https://cnsh.life)
+[![Deploy](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-F38020?style=flat-square&logo=cloudflarepages&logoColor=white)](https://cnsh.life)
 [![PWA](https://img.shields.io/badge/PWA-Installable-5a0fc8?style=flat-square&logo=pwa&logoColor=white)](#pwa-설치)
 
 [**cnsh.life**](https://cnsh.life)
 
 </div>
+
+---
+
+## Brand Architecture
+
+`asterisk*`는 충남과학고등학교의 디지털 학내 생태계를 아우르는 최상위 브랜드이며, `cnsh.life`는 그 산하에서 일상적인 학교생활 정보를 전담하는 코어 서비스입니다.
+
+| Tier | Service | Role |
+| :--- | :--- | :--- |
+| **Umbrella Brand** | **asterisk (`*`)** | 교내 디지털 서비스 통합 브랜드 및 디자인·계정 생태계 |
+| **Life Portal** | **`cnsh.life`** *(현재 리포지토리)* | 시간표, 급식, 공지사항, 방과후 등 학교생활 정보 제공 |
+| **Community** | **`asterisk community`** | 재학생 소통 및 학내 커뮤니티 플랫폼 |
 
 ---
 
@@ -28,7 +40,7 @@ GitHub이나 메신저에서 링크 공유 시 아래 메타데이터가 렌더�
 
 | Property | Value |
 | :--- | :--- |
-| `og:title` | asterisk |
+| `og:title` | cnsh.life — asterisk |
 | `og:description` | 시간표, 방과후, 급식, 공지까지 충곽의 하루를 한곳에서 확인하세요. |
 | `og:image` | [`/asterisk-logo.png`](public/asterisk-logo.png) (1200px PNG) |
 | `og:type` | website |
@@ -41,7 +53,7 @@ GitHub이나 메신저에서 링크 공유 시 아래 메타데이터가 렌더�
 
 ## Overview
 
-asterisk\*는 충남과학고등학교 학생들이 시간표, 급식, 공지사항, 방과후 수업 등 교내 정보를 단일 인터페이스에서 조회할 수 있도록 설계된 SPA 기반 웹 포털이다. 서버 없이 클라이언트 사이드에서 외부 API를 직접 호출하며, PWA로 설치하여 네이티브 앱과 동일한 UX를 제공한다.
+**cnsh.life**는 `asterisk*` 프로젝트의 일환으로, 충남과학고등학교 학생들이 시간표, 급식, 공지사항, 방과후 수업 등 교내 정보를 단일 인터페이스에서 조회할 수 있도록 설계된 SPA 기반 웹 포털이다. 별도 백엔드 서버 없이 클라이언트 사이드에서 외부 API를 직접 호출하며, PWA로 설치하여 네이티브 앱과 동일한 UX를 제공한다.
 
 ---
 
@@ -62,9 +74,9 @@ asterisk\*는 충남과학고등학교 학생들이 시간표, 급식, 공지사
 ## Architecture
 
 ```text
-asterisk/
+cnsh.life/
 ├── index.html                 # SPA 엔트리 + OG/Twitter 메타 태그
-├── brand.html                 # 브랜드 스토리 페이지 엔트리 (index.html#brand로 리다이렉트)
+├── brand.html                 # asterisk 브랜드 스토리 페이지 엔트리 (index.html#brand로 리다이렉트)
 ├── vite.config.ts             # Vite 설정 + Yahoo Finance 프록시 미들웨어
 ├── tsconfig.json
 ├── package.json
@@ -72,11 +84,11 @@ asterisk/
 ├── public/
 │   ├── manifest.webmanifest   # PWA 매니페스트
 │   ├── afterschool.json       # 방과후 정적 데이터
-│   ├── Concept.svg            # 로고 SVG
-│   ├── Concept-dark.svg       # 로고 SVG (다크 모드용)
+│   ├── Concept.svg            # asterisk 로고 SVG
+│   ├── Concept-dark.svg       # asterisk 로고 SVG (다크 모드용)
 │   ├── asterisk-logo.png      # OG 이미지
 │   ├── favicon.svg
-│   └── CNAME                  # GitHub Pages 커스텀 도메인
+│   └── CNAME                  # 커스텀 도메인 설정 (cnsh.life)
 │
 └── src/
     ├── main.ts                # 앱 부트스트랩, 라우팅, 이벤트 바인딩
@@ -131,7 +143,7 @@ asterisk/
 | UI (Brand) | React 18 | `brandView.tsx` 단일 페이지에만 사용 |
 | Charting | Chart.js 4 | 시장 지표 인트라데이 차트 |
 | Font | Pretendard, Asta Sans | CDN 로드 |
-| Hosting | GitHub Pages | 커스텀 도메인 `asteris.kro.kr` |
+| Hosting | Cloudflare Pages | 커스텀 도메인 `cnsh.life` |
 | PWA | Web App Manifest + 홈 화면 설치 | `manifest.webmanifest` |
 
 ---
@@ -159,7 +171,7 @@ npm run preview
 
 ### 빌드 출력
 
-`dist/` 디렉토리에 정적 파일이 생성되며, GitHub Pages로 직접 배포 가능.
+`dist/` 디렉토리에 정적 파일이 생성되며, Cloudflare Pages로 배포된다.
 
 ---
 
@@ -169,20 +181,22 @@ npm run preview
 
 | Platform | Method |
 | :--- | :--- |
-| iOS Safari | 공유 > 홈 화면에 추가 |
-| Android Chrome | 메뉴(⋮) > 홈 화면에 추가 / 앱 설치 |
+| iOS Safari | 공유 - 홈 화면에 추가 |
+| Android Chrome | 메뉴(⋮) - 홈 화면에 추가 / 앱 설치 |
 | Desktop Chrome / Edge | 주소창 우측 설치 아이콘 클릭 |
 
 ---
 
-## Naming
+## Brand Identity (`asterisk*`)
 
-`*` (asterisk)는 ASCII 코드 `42`에 해당한다. 이 숫자는 《은하수를 여행하는 히치하이커를 위한 안내서》에서 "삶, 우주, 그리고 모든 것에 대한 궁극적 해답"으로 제시된 값이다. 동시에 SQL/정규식에서 모든 것을 매칭하는 와일드카드 기호이기도 하다. 학교생활에 필요한 모든 정보를 하나로 모은다는 의미를 담았다.
+`*` (asterisk)는 ASCII 코드 `42`에 해당한다. 이 숫자는 《은하수를 여행하는 히치하이커를 위한 안내서》에서 "삶, 우주, 그리고 모든 것에 대한 궁극적 해답"으로 제시된 값이다. 동시에 SQL/정규식에서 모든 것을 매칭하는 와일드카드 기호이기도 하다. 
+
+충남과학고등학교 학생들의 일상 정보(`cnsh.life`)부터 소통(`community`)까지 학교생활에 필요한 모든 경험을 하나의 생태계로 연결한다는 의미를 담았다.
 
 ---
 
 <div align="center">
 
-`cnsh.life` · 충남과학고등학교
+**asterisk\*** · `cnsh.life` · 충남과학고등학교
 
 </div>
