@@ -143,7 +143,7 @@ cnsh.life/
 | Bundler | Vite 6 | HMR dev server + Rollup production build |
 | UI (Brand) | React 18 | `brandView.tsx` 단일 페이지에만 사용 |
 | Charting | Chart.js 4 | 시장 지표 인트라데이 차트 |
-| Font | Pretendard, Asta Sans | CDN 로드 |
+| Font | Pretendard, Asta Sans | SIL OFL 1.1 (CDN 로드) |
 | Hosting | Cloudflare Pages | 커스텀 도메인 `cnsh.life` |
 | PWA | Web App Manifest + 홈 화면 설치 | `manifest.webmanifest` |
 
@@ -200,9 +200,12 @@ npm run preview
 
 이 프로젝트의 소스코드는 **[GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE)** 하에 공개되어 있습니다.
 
-- **카피레프트:** 이 프로젝트의 코드를 포크하거나 수정하여 배포하는 경우, 수정된 작업물 전체 역시 반드시 동일한 AGPL-3.0 라이선스로 소스코드를 공개해야 합니다.
-- **네트워크 서비스 제공 의무 (Section 13):** 본 소프트웨어를 수정하여 웹 서버나 네트워크를 통해 서비스 형태로 호스팅하는 경우, 해당 서비스를 이용하는 사용자에게 수정된 전체 소스코드를 다운로드할 수 있는 수단을 무상으로 제공해야 합니다.
-- **상표 및 고유 자산 제외:** "asterisk" 브랜드 명칭, 독자 로고 에셋, 그리고 학교 고유 정적 데이터셋(`public/afterschool.json`)에 대한 권리는 프로젝트 기여자들에게 있으며 라이선스 범위에서 제외됩니다.
+- **카피레프트 (Copyleft):** 이 프로젝트의 코드를 포크하거나 수정하여 배포하는 경우, 수정된 작업물 전체 역시 반드시 동일한 AGPL-3.0 라이선스로 소스코드를 공개해야 합니다.
+- **네트워크 서비스 제공 의무 (Section 13):** 본 소프트웨어를 수정하여 웹 서버나 네트워크를 통해 서비스(SaaS) 형태로 호스팅하는 경우, 해당 서비스를 이용하는 사용자에게 수정된 전체 소스코드를 다운로드할 수 있는 수단을 무상으로 제공해야 합니다.
+- **상표 및 고유 자산 제외:** "asterisk" 브랜드 명칭, 독자 로고 에셋(`public/Concept*.svg`, `public/asterisk-logo.png`), 그리고 학교 고유 정적 데이터셋(`public/afterschool.json`)에 대한 권리는 프로젝트 기여자들에게 귀속되며 AGPL-3.0 라이선스 범위에서 제외됩니다.
+- **서체 라이선스 고지 (Font Licenses):**
+  - **Asta Sans** — Copyright (c) 2024 The Asta Sans Project Authors ([42dot/Asta-Sans](https://github.com/42dot/Asta-Sans)), licensed under [SIL Open Font License 1.1](https://openfontlicense.org).
+  - **Pretendard** — Copyright (c) 2021 Kil Hyung-jin ([orioncactus/pretendard](https://github.com/orioncactus/pretendard)), licensed under [SIL Open Font License 1.1](https://openfontlicense.org).
 
 ---
 
