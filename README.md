@@ -15,6 +15,7 @@
 [![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![Deploy](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-F38020?style=flat-square&logo=cloudflarepages&logoColor=white)](https://cnsh.life)
 [![PWA](https://img.shields.io/badge/PWA-Installable-5a0fc8?style=flat-square&logo=pwa&logoColor=white)](#pwa-설치)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg?style=flat-square)](LICENSE)
 
 [**cnsh.life**](https://cnsh.life)
 
@@ -192,6 +193,16 @@ npm run preview
 `*` (asterisk)는 ASCII 코드 `42`에 해당한다. 이 숫자는 《은하수를 여행하는 히치하이커를 위한 안내서》에서 "삶, 우주, 그리고 모든 것에 대한 궁극적 해답"으로 제시된 값이다. 동시에 SQL/정규식에서 모든 것을 매칭하는 와일드카드 기호이기도 하다. 
 
 충남과학고등학교 학생들의 일상 정보(`cnsh.life`)부터 소통(`community`)까지 학교생활에 필요한 모든 경험을 하나의 생태계로 연결한다는 의미를 담았다.
+
+---
+
+## License
+
+이 프로젝트의 소스코드는 **[GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE)** 하에 공개되어 있습니다.
+
+- **카피레프트:** 이 프로젝트의 코드를 포크하거나 수정하여 배포하는 경우, 수정된 작업물 전체 역시 반드시 동일한 AGPL-3.0 라이선스로 소스코드를 공개해야 합니다.
+- **네트워크 서비스 제공 의무 (Section 13):** 본 소프트웨어를 수정하여 웹 서버나 네트워크를 통해 서비스 형태로 호스팅하는 경우, 해당 서비스를 이용하는 사용자에게 수정된 전체 소스코드를 다운로드할 수 있는 수단을 무상으로 제공해야 합니다.
+- **상표 및 고유 자산 제외:** "asterisk" 브랜드 명칭, 독자 로고 에셋, 그리고 학교 고유 정적 데이터셋(`public/afterschool.json`)에 대한 권리는 프로젝트 기여자들에게 있으며 라이선스 범위에서 제외됩니다.
 
 ---
 
