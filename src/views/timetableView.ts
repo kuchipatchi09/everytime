@@ -25,11 +25,11 @@ export function renderTimetable(forceFetch = false): void {
               <h2>${g}학년 ${c}반 주간 시간표</h2>
             </div>
             <div class="comci-badge-wrap">
-              <span class="comci-live-badge" id="comci-status-badge" title="컴시간알리미(컴시간학생.kr) 실시간 시간표 연동">
+              <span class="comci-live-badge" id="comci-status-badge" title="실시간 학급 시간표 연동">
                 <span class="comci-dot" id="comci-status-dot"></span>
-                <span id="comci-status-text">컴시간 연동 중...</span>
+                <span id="comci-status-text">시간표 동기화 중...</span>
               </span>
-              <button type="button" class="comci-refresh-btn" id="comci-refresh-btn" aria-label="시간표 새로고침" title="컴시간 실시간 시간표 새로고침">
+              <button type="button" class="comci-refresh-btn" id="comci-refresh-btn" aria-label="시간표 새로고침" title="실시간 시간표 새로고침">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
                 </svg>
@@ -79,7 +79,7 @@ export function renderTimetable(forceFetch = false): void {
   bindRoutineTabs();
   bindRefreshButton();
 
-  // 비동기 실시간 컴시간 시간표 로드 및 UI 갱신
+  // 비동기 실시간 시간표 로드 및 UI 갱신
   loadLiveTimetable(forceFetch);
 }
 
@@ -103,7 +103,7 @@ async function loadLiveTimetable(forceFetch = false): Promise<void> {
     // 상태 배지 업데이트
     if (badgeText && badgeDot) {
       if (res.isLive) {
-        badgeText.textContent = "컴시간 실시간 연동";
+        badgeText.textContent = "실시간 연동됨";
         badgeDot.className = "comci-dot";
       } else if (res.isFallback) {
         badgeText.textContent = "기본 시간표 모드";
@@ -151,7 +151,7 @@ function bindRefreshButton(): void {
     if (isRefreshing) return;
     isRefreshing = true;
     btn.classList.add("spinning");
-    showToast("컴시간알리미에서 최신 시간표를 불러옵니다...");
+    showToast("최신 시간표를 동기화하는 중...");
     await loadLiveTimetable(true);
     showToast("✓ 시간표가 최신 상태로 갱신되었습니다!");
   });
