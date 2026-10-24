@@ -6,7 +6,7 @@
   <img alt="asterisk" src="public/Concept.svg" width="120">
 </picture>
 
-# asterisk\*
+# asterisk cnsh.life
 
 **충남과학고등학교 통합 학교생활 포털**
 
