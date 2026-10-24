@@ -13,7 +13,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6-646cff?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
-[![Deploy](https://img.shields.io/badge/Deploy-GitHub%20Pages-222?style=flat-square&logo=githubpages&logoColor=white)](https://asteris.kro.kr)
+[![Deploy](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-222?style=flat-square&logo=githubpages&logoColor=white)](https://cnsh.life)
 [![PWA](https://img.shields.io/badge/PWA-Installable-5a0fc8?style=flat-square&logo=pwa&logoColor=white)](#pwa-설치)
 
 [**cnsh.life**](https://cnsh.life)
