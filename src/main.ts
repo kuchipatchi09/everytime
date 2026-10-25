@@ -885,8 +885,19 @@ export function closeMobileDrawer(): void {
 }
 
 function initNavigation(): void {
-  const brandButton = $(".asterisk-brand");
-  brandButton?.addEventListener("click", () => switchTab("메인"));
+  // 브랜드 서비스 배지 (cnsh.life) 클릭 시 메인 탭 전환
+  document.querySelectorAll<HTMLElement>(".brand-community-badge").forEach((badge) => {
+    badge.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeDesktopDropdowns();
+      switchTab("메인");
+    });
+  });
+
+  // 모바일 헤더 프로필/설정 버튼
+  $("#mobile-profile-toggle")?.addEventListener("click", () => {
+    openProfileModal();
+  });
 
   // 데스크탑 탭 클릭
   document.querySelectorAll<HTMLButtonElement>(".desktop-nav [data-tab]").forEach((btn) => {
