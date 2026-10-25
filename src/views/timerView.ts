@@ -137,7 +137,7 @@ export function renderTimer(): void {
             </button>
             ${
               !isStopwatch
-                ? `<button class="secondary timer-btn-sub" id="btn-timer-skip" title="다음 단계로 건너뛰기">건너뛰기 ➔</button>`
+                ? `<button class="secondary timer-btn-sub" id="btn-timer-skip" title="다음 단계로 건너뛰기">건너뛰기 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" style="margin-left: 3px;"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>`
                 : ""
             }
             <button class="secondary timer-btn-sub ${isZenMode ? "active" : ""}" id="btn-timer-zen" title="몰입 모드">

@@ -153,7 +153,7 @@ function bindRefreshButton(): void {
     btn.classList.add("spinning");
     showToast("최신 시간표를 동기화하는 중...");
     await loadLiveTimetable(true);
-    showToast("✓ 시간표가 최신 상태로 갱신되었습니다!");
+    showToast("시간표가 최신 상태로 갱신되었습니다.");
   });
 }
 

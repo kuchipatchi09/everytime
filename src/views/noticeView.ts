@@ -57,7 +57,7 @@ export function renderBoardList(): void {
             <p>전체 공지 ${boardPosts.length}건 · ${boardFilter} 보기 (${filteredPosts.length}건)</p>
           </div>
         </div>
-        <button class="primary" id="write-post-btn">✎ 공지 작성</button>
+        <button class="primary" id="write-post-btn" style="display: inline-flex; align-items: center; gap: 5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg><span>공지 작성</span></button>
       </div>
 
       <!-- 학년별 필터 탭 (전체 / 1학년 / 2학년 / 3학년) -->
