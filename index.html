@@ -64,16 +64,31 @@
     <div class="shell">
 
       <header>
-        <div class="head">
-          <button class="brand asterisk-brand" aria-label="asterisk 메인으로 이동">
-            <img
-              class="asterisk-logo"
-              src="/Concept.svg"
-              alt="asterisk"
-              decoding="async"
-              fetchpriority="high"
-            />
-          </button>
+        <!-- Desktop Header (>= 768px) -->
+        <div class="head head-desktop">
+          <div class="brand-group">
+            <a
+              href="https://asterisk.knoblab.xyz"
+              class="brand asterisk-brand"
+              title="asterisk* 홈으로 이동"
+            >
+              <div class="asterisk-wordmark">
+                <div>aste</div>
+                <div class="asterisk-wordmark-bottom">
+                  <span>risk</span>
+                  <span class="asterisk-wordmark-star">*</span>
+                </div>
+              </div>
+            </a>
+            <button
+              type="button"
+              class="brand-community-badge"
+              data-tab="메인"
+              title="cnsh.life 대시보드로 이동"
+            >
+              cnsh.life
+            </button>
+          </div>
           <nav class="desktop-nav">
             <button data-tab="메인">메인</button>
             <button data-tab="공지">공지</button>
@@ -98,17 +113,48 @@
                 <button type="button" data-tab="브랜드" role="menuitem">브랜드</button>
               </div>
             </div>
-            <a href="https://asterisk-community.knoblab.xyz/" target="_blank" rel="noopener noreferrer">커뮤니티 <sup>↗</sup></a>
+            <a href="https://cnsh.space/" target="_blank" rel="noopener noreferrer">커뮤니티 <sup>↗</sup></a>
             <div class="nav-divider"></div>
             <div id="nav-auth-container" class="nav-auth-container"></div>
           </nav>
-          <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="메뉴 열기">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </button>
+        </div>
+
+        <!-- Mobile Header (< 768px) -->
+        <div class="head head-mobile">
+          <div class="head-mobile-left">
+            <button
+              type="button"
+              class="btn-nav-profile-mobile-icon"
+              id="mobile-profile-toggle"
+              aria-label="프로필 및 설정 열기"
+              title="프로필 및 설정"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </button>
+          </div>
+          <div class="head-mobile-center">
+            <a
+              href="https://asterisk.knoblab.xyz"
+              class="brand asterisk-brand-mobile"
+              title="asterisk* 홈으로 이동"
+            >
+              <span class="asterisk-wordmark-inline">
+                asterisk<span class="asterisk-wordmark-star">*</span>
+              </span>
+            </a>
+          </div>
+          <div class="head-mobile-right">
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="메뉴 열기">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -179,7 +225,7 @@
 
             <div class="drawer-section-label" style="margin-top: 24px;">EXTERNAL SERVICES</div>
             <div class="drawer-ext-links">
-              <a href="https://asterisk-community.knoblab.xyz/" target="_blank" rel="noopener noreferrer" class="drawer-ext-item">
+              <a href="https://cnsh.space/" target="_blank" rel="noopener noreferrer" class="drawer-ext-item">
                 <span>커뮤니티</span>
                 <span class="drawer-arrow">↗</span>
               </a>
