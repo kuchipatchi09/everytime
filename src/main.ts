@@ -313,7 +313,7 @@ export async function syncUserDataFromServer(): Promise<void> {
     try {
       await submitStudentStock(pending);
       setPendingStockSubmission(null);
-      showToast("✓ 로그인 완료: 저장 대기 중이던 설정이 서버에 성공적으로 동기화되었습니다!");
+      showToast("로그인 완료: 저장 대기 중이던 설정이 서버에 성공적으로 동기화되었습니다.");
     } catch (err: any) {
       console.warn("대기 중인 설정 동기화 실패:", err);
     }
@@ -431,8 +431,8 @@ async function loadProfileStockData(): Promise<void> {
 
       if (statusBadge) {
         statusBadge.textContent = data.updated_at
-          ? `✓ 서버 로드 완료 (${new Date(data.updated_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })})`
-          : "✓ 서버 데이터 로드됨";
+          ? `서버 로드 완료 (${new Date(data.updated_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })})`
+          : "서버 데이터 로드됨";
         statusBadge.className = "profile-stock-status-badge status-ok";
       }
 
@@ -749,7 +749,7 @@ function initProfileModal(): void {
 
       const statusBadge = $("#profile-stock-status-badge");
       if (statusBadge) {
-        statusBadge.textContent = `✓ 저장 완료 (${new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })})`;
+        statusBadge.textContent = `저장 완료 (${new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })})`;
         statusBadge.className = "profile-stock-status-badge status-ok";
       }
     } catch (err: any) {
@@ -782,35 +782,63 @@ function initProfileModal(): void {
 export function updateAuthUI(): void {
   const user = getAuthUser();
   const savedName = getSavedName() || "학생";
+  const initial = (savedName || user?.email || "U").trim()[0].toUpperCase();
   const navContainer = document.getElementById("nav-auth-container");
   const drawerContainer = document.getElementById("drawer-auth-container");
+  const mobToggle = document.getElementById("mobile-profile-toggle");
 
-  // 데스크탑 네비게이션
+  // 모바일 헤더 좌측 프로필/로그인 아이콘 업데이트
+  if (mobToggle) {
+    if (user) {
+      mobToggle.innerHTML = `
+        <span class="user-avatar-fallback" style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-black); color: var(--color-paper); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;">
+          ${esc(initial)}
+        </span>
+      `;
+    } else {
+      mobToggle.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      `;
+    }
+  }
+
+  // 데스크탑 네비게이션: chating-main과 100% 동일한 디자인 적용
   if (navContainer) {
     if (user) {
       navContainer.innerHTML = `
-        <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="환경설정 (${esc(user.email || user.uid)})">
-          <span class="btn-nav-profile-dot"></span>
-          <span>${esc(savedName)}</span>
+        <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="프로필 및 설정 열기">
+          <span class="user-avatar-fallback" style="width: 22px; height: 22px; border-radius: 50%; background: var(--color-black); color: var(--color-paper); display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;">
+            ${esc(initial)}
+          </span>
+          <span class="btn-nav-profile-name">${esc(savedName)}</span>
         </button>
       `;
       $("#btn-nav-profile")?.addEventListener("click", () => openProfileModal());
     } else {
       navContainer.innerHTML = `
-        <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="환경설정 (내 정보 / 관심 주식 / 화면 효과)">
-          <span class="btn-nav-profile-dot" style="background: var(--color-graphite);"></span>
-          <span>${esc(savedName)}</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; opacity: 0.7;">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-          </svg>
-        </button>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" id="btn-nav-settings" class="btn-icon-nav" title="설정 (화면 효과 및 환경설정)" aria-label="설정">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+          <button type="button" id="btn-nav-login" class="primary" style="padding: 6px 14px; height: 36px; display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; border-radius: 2px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>로그인</span>
+          </button>
+        </div>
       `;
-      $("#btn-nav-profile")?.addEventListener("click", () => openProfileModal());
+      $("#btn-nav-settings")?.addEventListener("click", () => openProfileModal());
+      $("#btn-nav-login")?.addEventListener("click", () => loginWithKnoblab());
     }
   }
-
-
 
   // 모바일 드로어
   if (drawerContainer) {
@@ -818,13 +846,15 @@ export function updateAuthUI(): void {
       drawerContainer.innerHTML = `
         <div class="drawer-auth-user-card" id="drawer-user-card" role="button" tabindex="0" title="내 프로필 및 티커 설정">
           <div class="drawer-auth-user-info">
-            <div class="user-name">
-              <span class="btn-nav-profile-dot"></span>
+            <div class="user-name" style="display: flex; align-items: center; gap: 6px;">
+              <span class="user-avatar-fallback" style="width: 20px; height: 20px; border-radius: 50%; background: var(--color-black); color: var(--color-paper); display: inline-flex; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;">
+                ${esc(initial)}
+              </span>
               <strong>${esc(savedName)}</strong>
             </div>
             <div class="user-email">${esc(user.email || user.uid)}</div>
           </div>
-          <span class="drawer-profile-arrow">설정 →</span>
+          <span class="drawer-profile-arrow" style="display: inline-flex; align-items: center; gap: 4px;">설정 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span>
         </div>
         <div class="drawer-auth-actions">
           <button type="button" class="btn-drawer-primary" id="drawer-btn-profile">
@@ -847,7 +877,7 @@ export function updateAuthUI(): void {
             <div class="user-name">${esc(savedName)}님 (게스트)</div>
             <div class="user-email">프로필 및 티커를 자유롭게 설정하세요.</div>
           </div>
-          <span class="drawer-profile-arrow">설정 →</span>
+          <span class="drawer-profile-arrow" style="display: inline-flex; align-items: center; gap: 4px;">설정 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span>
         </div>
         <div class="drawer-auth-actions">
           <button type="button" class="btn-drawer-secondary" id="drawer-btn-profile">프로필 & 티커 설정</button>

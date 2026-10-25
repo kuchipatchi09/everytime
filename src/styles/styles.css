@@ -2457,22 +2457,34 @@ footer {
 }
 
 .btn-nav-profile {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 12.5px;
-  line-height: 1.15;
-  font-weight: 500;
-  padding: 6px 12px;
-  height: 32px;
-  background: var(--color-vellum);
-  border: var(--border-main);
-  border-radius: 2px;
+  font-weight: 600;
+  height: 36px;
+  padding: 0 14px 0 6px;
+  background: var(--color-paper);
+  border: 1px solid var(--color-silver);
   color: var(--color-black);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   transition: all 0.15s ease;
+  border-radius: 9999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.btn-nav-profile:hover {
+  background: var(--color-vellum);
+  border-color: var(--color-black);
+}
+
+.btn-nav-profile-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -2483,30 +2495,49 @@ footer {
   width: 36px;
   height: 36px;
   background: var(--color-paper);
-  border: var(--border-main);
-  border-radius: 2px;
+  border: 1px solid var(--color-silver);
   color: var(--color-black);
   cursor: pointer;
+  border-radius: 9999px;
   transition: all 0.15s ease;
   padding: 0;
   flex-shrink: 0;
 }
 
 .btn-nav-profile-mobile-icon:hover {
+  background: var(--color-vellum);
+  border-color: var(--color-black);
+}
+
+.btn-icon-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-silver);
+  background: var(--color-paper);
+  color: var(--color-black);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-icon-nav:hover {
+  background: var(--color-vellum);
+  border-color: var(--color-black);
+}
+
+.user-avatar-fallback {
+  border-radius: 50%;
   background: var(--color-black);
   color: var(--color-paper);
-}
-
-.btn-nav-profile:hover {
-  background: #dedcd4;
-}
-
-.btn-nav-profile-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #2e7d32;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  user-select: none;
 }
 
 /* Mobile Drawer Auth Box */

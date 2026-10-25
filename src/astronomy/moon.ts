@@ -54,14 +54,14 @@ export function getMoonPhaseName(age: number): { name: string; icon: string; per
   const phase = (((age % SYNODIC_MONTH) + SYNODIC_MONTH) % SYNODIC_MONTH) / SYNODIC_MONTH; // 0 to 1
   const percent = Math.round(((1 - Math.cos(phase * 2 * Math.PI)) / 2) * 100);
 
-  if (phase < 0.03 || phase >= 0.97) return { name: '삭 (신월, New Moon)', icon: '🌑', percent };
-  if (phase < 0.22) return { name: '초승달 (Waxing Crescent)', icon: '🌒', percent };
-  if (phase < 0.28) return { name: '상현달 (First Quarter)', icon: '🌓', percent };
-  if (phase < 0.47) return { name: '차오르는 달 (Waxing Gibbous)', icon: '🌔', percent };
-  if (phase < 0.53) return { name: '보름달 (만월, Full Moon)', icon: '🌕', percent };
-  if (phase < 0.72) return { name: '이지러지는 달 (Waning Gibbous)', icon: '🌖', percent };
-  if (phase < 0.78) return { name: '하현달 (Last Quarter)', icon: '🌗', percent };
-  return { name: '그믐달 (Waning Crescent)', icon: '🌘', percent };
+  if (phase < 0.03 || phase >= 0.97) return { name: '삭 (신월, New Moon)', icon: '', percent };
+  if (phase < 0.22) return { name: '초승달 (Waxing Crescent)', icon: '', percent };
+  if (phase < 0.28) return { name: '상현달 (First Quarter)', icon: '', percent };
+  if (phase < 0.47) return { name: '차오르는 달 (Waxing Gibbous)', icon: '', percent };
+  if (phase < 0.53) return { name: '보름달 (만월, Full Moon)', icon: '', percent };
+  if (phase < 0.72) return { name: '이지러지는 달 (Waning Gibbous)', icon: '', percent };
+  if (phase < 0.78) return { name: '하현달 (Last Quarter)', icon: '', percent };
+  return { name: '그믐달 (Waning Crescent)', icon: '', percent };
 }
 
 export function calcMoonCoords(

@@ -100,7 +100,7 @@
                 <button type="button" data-tab="시간표" role="menuitem">시간표</button>
                 <button type="button" data-tab="방과후" role="menuitem">방과후</button>
                 <button type="button" data-tab="급식" role="menuitem">급식</button>
-                <a href="https://kuchipatchi09.github.io/reserve/" target="_blank" rel="noopener noreferrer" role="menuitem">예약 <sup>↗</sup></a>
+                <a href="https://kuchipatchi09.github.io/reserve/" target="_blank" rel="noopener noreferrer" role="menuitem" style="display: inline-flex; align-items: center; gap: 3px;"><span>예약</span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M7 17L17 7"></path><path d="M7 7h10v10"></path></svg></a>
               </div>
             </div>
             <div class="nav-dropdown">
@@ -113,7 +113,7 @@
                 <button type="button" data-tab="브랜드" role="menuitem">브랜드</button>
               </div>
             </div>
-            <a href="https://cnsh.space/" target="_blank" rel="noopener noreferrer">커뮤니티 <sup>↗</sup></a>
+            <a href="https://cnsh.space/" style="display: inline-flex; align-items: center; gap: 3px;"><span>커뮤니티</span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M7 17L17 7"></path><path d="M7 7h10v10"></path></svg></a>
           </nav>
           <div class="nav-controls-right">
             <div id="nav-auth-container" class="nav-auth-container"></div>
@@ -226,13 +226,13 @@
 
             <div class="drawer-section-label" style="margin-top: 24px;">EXTERNAL SERVICES</div>
             <div class="drawer-ext-links">
-              <a href="https://cnsh.space/" target="_blank" rel="noopener noreferrer" class="drawer-ext-item">
+              <a href="https://cnsh.space/" class="drawer-ext-item" style="display: flex; align-items: center; justify-content: space-between;">
                 <span>커뮤니티</span>
-                <span class="drawer-arrow">↗</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M7 17L17 7"></path><path d="M7 7h10v10"></path></svg>
               </a>
-              <a href="https://www.cnshstudy.kro.kr/" target="_blank" rel="noopener noreferrer" class="drawer-ext-item">
+              <a href="https://www.cnshstudy.kro.kr/" target="_blank" rel="noopener noreferrer" class="drawer-ext-item" style="display: flex; align-items: center; justify-content: space-between;">
                 <span>학습실 예약</span>
-                <span class="drawer-arrow">↗</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M7 17L17 7"></path><path d="M7 7h10v10"></path></svg>
               </a>
             </div>
           </div>
@@ -307,7 +307,7 @@
         <div class="modal-card">
           <div class="modal-header">
             <span class="eyebrow">NAME SETTINGS</span>
-            <button type="button" class="modal-close-btn" id="name-modal-close" aria-label="닫기">✕</button>
+            <button type="button" class="modal-close-btn" id="name-modal-close" aria-label="닫기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
           </div>
           <h2>이름 변경</h2>
           <p>메인 화면과 서비스에서 나를 부를 이름을 설정합니다.</p>
@@ -329,7 +329,7 @@
         <div class="modal-card profile-modal-card">
           <div class="modal-header">
             <span class="eyebrow">SETTINGS</span>
-            <button type="button" class="modal-close-btn" id="profile-modal-close" aria-label="닫기">✕</button>
+            <button type="button" class="modal-close-btn" id="profile-modal-close" aria-label="닫기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
           </div>
           <h2>환경설정</h2>
 
@@ -563,7 +563,7 @@
                     font-weight: 600;
                     cursor: pointer;
                   ">
-                    <option value="0">⚡ 실시간 로컬 시간 (기본값 / GMT+9 한국)</option>
+                    <option value="0">실시간 로컬 시간 (기본값 / GMT+9 한국)</option>
                     <option value="1">+1시간 (GMT+10 / 시드니 등)</option>
                     <option value="2">+2시간 (GMT+11)</option>
                     <option value="3">+3시간 (GMT+12 / 오클랜드 등)</option>
