@@ -145,12 +145,27 @@ header {
     display: none !important;
   }
   .head-desktop {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     height: 64px;
     padding: 0 24px;
   }
+  .head-desktop > :first-child {
+    justify-self: start;
+  }
+  .head-desktop > .desktop-nav {
+    justify-self: center;
+  }
+  .head-desktop > .nav-controls-right {
+    justify-self: end;
+  }
+}
+
+.nav-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .brand-group {
