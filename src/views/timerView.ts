@@ -504,7 +504,7 @@ function updateTimerUI(): void {
   if (isRunning) {
     document.title = `(${timeStr}) asterisk* 자습 타이머`;
   } else {
-    document.title = "asterisk";
+    document.title = "asterisk* cnsh.life";
   }
 }
 
