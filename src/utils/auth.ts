@@ -74,7 +74,8 @@ export async function checkAuth(): Promise<KnoblabUser | null> {
  */
 export function loginWithKnoblab(callbackUrl?: string, serviceName: string = "CNSH"): void {
   const origin = window.location.origin;
-  const targetCallback = callbackUrl || `${origin}/api/auth-callback`;
+  const currentPath = window.location.pathname + window.location.search;
+  const targetCallback = callbackUrl || (currentPath && currentPath !== "/" ? `${origin}${currentPath}` : `${origin}/api/auth-callback`);
   const loginEndpoint = `https://login.knoblab.xyz/?redirect=${encodeURIComponent(targetCallback)}&service=${encodeURIComponent(serviceName)}`;
   window.location.href = loginEndpoint;
 }
