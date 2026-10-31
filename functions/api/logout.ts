@@ -1,3 +1,6 @@
+// functions/api/logout.ts
+// cnsh.life (cnsh-eta) 세션 쿠키 일괄 파기 핸들러
+
 interface Env {
   // Cloudflare bindings
 }
@@ -12,6 +15,7 @@ const clearSession = () => {
   headers.append("Set-Cookie", `session_uid=; ${clearOpts}`);
   headers.append("Set-Cookie", `session_email=; ${clearOpts}`);
   headers.append("Set-Cookie", `session_email_verified=; ${clearOpts}`);
+  headers.append("Set-Cookie", `session_sig=; ${clearOpts}`);
 
   return new Response(JSON.stringify({ success: true }), {
     status: 200,
