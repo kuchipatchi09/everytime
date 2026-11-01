@@ -16,6 +16,8 @@ import {
   loginWithKnoblab,
   logout,
   onAuthStateChange,
+  hasAgreedTerms,
+  setTermsAgreement,
   updateUserProfileOnServer,
 } from "./utils/auth";
 import { TickerConfigItem } from "./types/market";
@@ -163,6 +165,93 @@ function initTopClassBadge(): void {
   });
 }
 
+
+function updateProfileTermsUI(): void {
+  const statusEl = $("#profile-terms-status");
+  const dateEl = $("#profile-terms-date");
+  const user = getAuthUser();
+  const agreed = hasAgreedTerms();
+
+  if (statusEl) {
+    if (agreed) {
+      statusEl.textContent = "동의 완료";
+      statusEl.style.color = "#10b981";
+    } else {
+      statusEl.textContent = "미동의 (이용 제한)";
+      statusEl.style.color = "#cf222e";
+    }
+  }
+
+  if (dateEl) {
+    let dateVal = user?.agreedAt;
+    if (!dateVal) {
+      try {
+        const saved = localStorage.getItem("asterisk_agreed_at");
+        if (saved) dateVal = Number(saved);
+      } catch (_) {}
+    }
+    if (dateVal) {
+      const d = new Date(dateVal);
+      dateEl.textContent = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+    } else {
+      dateEl.textContent = agreed ? "동의됨" : "-";
+    }
+  }
+}
+
+function initTermsModal(): void {
+  const modal = $("#terms-modal");
+  const checkAll = $<HTMLInputElement>("#terms-check-all");
+  const checkService = $<HTMLInputElement>("#terms-check-service");
+  const checkPrivacy = $<HTMLInputElement>("#terms-check-privacy");
+  const submitBtn = $<HTMLButtonElement>("#terms-agree-submit");
+
+  if (!modal || !checkService || !checkPrivacy || !submitBtn) return;
+
+  const updateSubmitState = () => {
+    const valid = checkService.checked && checkPrivacy.checked;
+    submitBtn.disabled = !valid;
+    if (checkAll) {
+      checkAll.checked = valid;
+    }
+  };
+
+  checkAll?.addEventListener("change", () => {
+    const checked = checkAll.checked;
+    checkService.checked = checked;
+    checkPrivacy.checked = checked;
+    submitBtn.disabled = !checked;
+  });
+
+  checkService.addEventListener("change", updateSubmitState);
+  checkPrivacy.addEventListener("change", updateSubmitState);
+
+  submitBtn.addEventListener("click", async () => {
+    if (!checkService.checked || !checkPrivacy.checked) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = "저장 중...";
+    try {
+      await setTermsAgreement(true, true);
+      modal.classList.add("hidden");
+      showToast("약관 및 개인정보 처리방침에 동의하였습니다.");
+      updateProfileTermsUI();
+    } catch (e) {
+      console.error(e);
+      showToast("동의 상태 저장 중 오류가 발생했습니다.", 3000);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "동의하고 시작하기";
+    }
+  });
+
+  // 초기 상태 검사: 미동의 시 모달 열기
+  if (!hasAgreedTerms()) {
+    modal.classList.remove("hidden");
+  } else {
+    modal.classList.add("hidden");
+  }
+}
+
 function initWelcomeModal(): void {
   const welcomeModal = $("#welcome");
   const nameInput = $<HTMLInputElement>("#name-input");
@@ -260,6 +349,7 @@ import { searchTickers } from "./services/marketService";
 import { StudentStockSubmission } from "./types/studentStock";
 
 export function openProfileModal(): void {
+  updateProfileTermsUI();
   const modal = $("#profile-modal");
   const user = getAuthUser();
   const savedName = getSavedName() || "학생";
@@ -481,6 +571,27 @@ async function loadProfileStockData(): Promise<void> {
 }
 
 function initProfileModal(): void {
+  // 약관 동의 해제 버튼 리스너
+  $("#profile-btn-revoke-terms")?.addEventListener("click", async () => {
+    if (!window.confirm("정말 이용약관 및 개인정보 처리방침 동의를 해제하시겠습니까?\n해제 시 서비스 이용이 즉시 제한되며, 다시 동의해야 이용할 수 있습니다.")) {
+      return;
+    }
+    await setTermsAgreement(false, false);
+    updateProfileTermsUI();
+    closeProfileModal();
+    const termsModal = $("#terms-modal");
+    termsModal?.classList.remove("hidden");
+    const checkAll = $<HTMLInputElement>("#terms-check-all");
+    const checkService = $<HTMLInputElement>("#terms-check-service");
+    const checkPrivacy = $<HTMLInputElement>("#terms-check-privacy");
+    const submitBtn = $<HTMLButtonElement>("#terms-agree-submit");
+    if (checkAll) checkAll.checked = false;
+    if (checkService) checkService.checked = false;
+    if (checkPrivacy) checkPrivacy.checked = false;
+    if (submitBtn) submitBtn.disabled = true;
+    showToast("약관 동의가 해제되었습니다.");
+  });
+
   const modal = $("#profile-modal");
   const closeBtn = $("#profile-modal-close");
   const logoutBtn = $("#profile-btn-logout");
@@ -1190,6 +1301,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initDateDisplay();
   initTopClassBadge();
+  initTermsModal();
   initWelcomeModal();
   initNameChangeModal();
   initProfileModal();

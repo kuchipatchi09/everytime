@@ -7,6 +7,9 @@ export interface KnoblabUser {
   photoURL?: string | null;
   schoolGrade?: string | null;
   schoolClass?: string | null;
+  agreedTerms?: boolean;
+  agreedPrivacy?: boolean;
+  agreedAt?: number | null;
 }
 
 type AuthChangeCallback = (user: KnoblabUser | null) => void;
@@ -54,7 +57,20 @@ export async function checkAuth(): Promise<KnoblabUser | null> {
           photoURL: data.photoURL || null,
           schoolGrade: data.schoolGrade ? String(data.schoolGrade) : null,
           schoolClass: data.schoolClass ? String(data.schoolClass) : null,
+          agreedTerms: data.agreedTerms === true,
+          agreedPrivacy: data.agreedPrivacy === true,
+          agreedAt: data.agreedAt ? Number(data.agreedAt) : null,
         };
+        // 백엔드 동의 상태가 있으면 로컬 스토리지도 함께 동기화
+        if (currentUser.agreedTerms && currentUser.agreedPrivacy) {
+          try {
+            localStorage.setItem("asterisk_agreed_terms", "true");
+            localStorage.setItem("asterisk_agreed_privacy", "true");
+            if (currentUser.agreedAt) {
+              localStorage.setItem("asterisk_agreed_at", String(currentUser.agreedAt));
+            }
+          } catch (_) {}
+        }
       } else {
         currentUser = null;
       }
@@ -83,6 +99,9 @@ export async function updateUserProfileOnServer(params: {
   photoURL?: string;
   schoolGrade?: string | null;
   schoolClass?: string | null;
+  agreedTerms?: boolean;
+  agreedPrivacy?: boolean;
+  agreedAt?: number | null;
 }): Promise<{ success: boolean; error?: string }> {
   try {
     const res = await fetch("/api/profile", {
@@ -107,6 +126,9 @@ export async function updateUserProfileOnServer(params: {
         ...(params.photoURL !== undefined ? { photoURL: params.photoURL } : {}),
         ...(params.schoolGrade !== undefined ? { schoolGrade: params.schoolGrade } : {}),
         ...(params.schoolClass !== undefined ? { schoolClass: params.schoolClass } : {}),
+        ...(params.agreedTerms !== undefined ? { agreedTerms: params.agreedTerms } : {}),
+        ...(params.agreedPrivacy !== undefined ? { agreedPrivacy: params.agreedPrivacy } : {}),
+        ...(params.agreedAt !== undefined ? { agreedAt: params.agreedAt } : {}),
       };
       notifyAuthChange(currentUser);
     }
@@ -115,6 +137,50 @@ export async function updateUserProfileOnServer(params: {
   } catch (err: any) {
     console.error("updateUserProfileOnServer error:", err);
     return { success: false, error: err.message || "네트워크 오류가 발생했습니다." };
+  }
+}
+
+/**
+ * 서비스 이용약관 및 개인정보 처리방침에 모두 동의했는지 확인합니다.
+ */
+export function hasAgreedTerms(): boolean {
+  if (currentUser) {
+    if (currentUser.agreedTerms === true && currentUser.agreedPrivacy === true) return true;
+  }
+  try {
+    const terms = localStorage.getItem("asterisk_agreed_terms") === "true";
+    const privacy = localStorage.getItem("asterisk_agreed_privacy") === "true";
+    return terms && privacy;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 이용약관 및 개인정보 처리방침 동의 상태를 저장하고 백엔드에 동기화합니다.
+ */
+export async function setTermsAgreement(agreedTerms: boolean, agreedPrivacy: boolean): Promise<void> {
+  const agreedAt = (agreedTerms && agreedPrivacy) ? Date.now() : null;
+  try {
+    localStorage.setItem("asterisk_agreed_terms", String(agreedTerms));
+    localStorage.setItem("asterisk_agreed_privacy", String(agreedPrivacy));
+    if (agreedAt) {
+      localStorage.setItem("asterisk_agreed_at", String(agreedAt));
+    } else {
+      localStorage.removeItem("asterisk_agreed_at");
+    }
+  } catch (_) {}
+
+  if (currentUser) {
+    currentUser.agreedTerms = agreedTerms;
+    currentUser.agreedPrivacy = agreedPrivacy;
+    currentUser.agreedAt = agreedAt;
+    notifyAuthChange(currentUser);
+    await updateUserProfileOnServer({
+      agreedTerms,
+      agreedPrivacy,
+      agreedAt,
+    });
   }
 }
 

@@ -261,11 +261,53 @@
           <b>asterisk · 충남과학고등학교</b>
           <span>학교생활에 필요한 모든 것을 한곳에</span>
         </div>
-        <button class="brand-story-link" id="footer-brand-btn">
-          브랜드 스토리 <span aria-hidden="true">→</span>
-        </button>
+        <div class="footer-links-group" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <a href="https://asterisk.knoblab.xyz/terms" target="_blank" rel="noopener noreferrer" class="footer-legal-link" style="color: var(--color-telemetry, #8e8e93); text-decoration: underline; text-underline-offset: 3px; font-size: 11.5px;">이용약관</a>
+          <a href="https://asterisk.knoblab.xyz/privacy" target="_blank" rel="noopener noreferrer" class="footer-legal-link" style="color: var(--color-telemetry, #8e8e93); text-decoration: underline; text-underline-offset: 3px; font-size: 11.5px;">개인정보처리방침</a>
+          <button class="brand-story-link" id="footer-brand-btn">
+            브랜드 스토리 <span aria-hidden="true">→</span>
+          </button>
+        </div>
       </footer>
       <div id="toast" class="toast hidden"></div>
+      <!-- 서비스 이용약관 및 개인정보 동의 모달 (미동의 시 이용 불가) -->
+      <div id="terms-modal" class="modal-overlay hidden" aria-modal="true" role="dialog" style="z-index: 9999;">
+        <div class="modal-card terms-modal-card" style="max-width: 440px;">
+          <div class="modal-header">
+            <span class="eyebrow">TERMS & PRIVACY</span>
+          </div>
+          <h2 style="font-size: 18px; margin-bottom: 6px;">서비스 이용 동의</h2>
+          <p class="terms-modal-desc" style="font-size: 13px; color: var(--color-graphite, #48484a); line-height: 1.6; margin-bottom: 16px;">
+            asterisk* 및 cnsh.life 서비스의 안전하고 원활한 이용을 위해 필수 약관에 동의해 주세요.
+          </p>
+
+          <div class="terms-agree-box" style="background: var(--color-vellum, #ebe9e1); border: 1px solid var(--color-silver, #d1d1d6); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+            <label class="terms-check-item terms-all-item" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" id="terms-check-all" />
+              <span class="terms-check-title"><strong>전체 약관 및 방침에 동의합니다</strong></span>
+            </label>
+            <div style="border-top: 1px solid var(--color-silver, #d1d1d6); margin: 2px 0;"></div>
+            <label class="terms-check-item" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px;">
+              <input type="checkbox" id="terms-check-service" class="terms-required-check" />
+              <span class="terms-check-label">
+                <strong style="color: #cf222e;">[필수]</strong> <a href="https://asterisk.knoblab.xyz/terms" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; text-underline-offset: 2px;">asterisk 서비스 이용약관</a>에 동의합니다
+              </span>
+            </label>
+            <label class="terms-check-item" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px;">
+              <input type="checkbox" id="terms-check-privacy" class="terms-required-check" />
+              <span class="terms-check-label">
+                <strong style="color: #cf222e;">[필수]</strong> <a href="https://asterisk.knoblab.xyz/privacy" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; text-underline-offset: 2px;">asterisk 개인정보 처리방침</a>에 동의합니다
+              </span>
+            </label>
+          </div>
+
+          <div class="modal-actions" style="margin-top: 20px;">
+            <button type="button" class="btn-submit" id="terms-agree-submit" disabled style="width: 100%; padding: 11px; font-weight: 700;">
+              동의하고 시작하기
+            </button>
+          </div>
+        </div>
+      </div>
       <!-- 첫 접속 온보딩 모달 (Knoblab 로그인 / 게스트 모드) -->
       <div id="welcome" class="welcome hidden">
         <div class="welcome-card">
@@ -416,6 +458,33 @@
                 </div>
                 <div style="margin-top: 12px;">
                   <button type="button" class="btn-profile-auth-action is-login" id="profile-btn-logout">Knoblab 계정으로 로그인</button>
+                </div>
+              </div>
+
+              <div class="profile-section-divider"></div>
+
+              <!-- 약관 및 개인정보 처리방침 동의 관리 -->
+              <div class="profile-info-box">
+                <div class="settings-section-header" style="margin-bottom: 8px;">
+                  <span class="eyebrow-plain">LEGAL & PRIVACY</span>
+                  <h3 style="font-size: 13px; margin: 0;">이용약관 및 개인정보 처리방침</h3>
+                </div>
+                <div class="profile-row">
+                  <span class="profile-label">동의 상태</span>
+                  <span class="profile-val" id="profile-terms-status" style="font-weight: 600; color: #10b981;">동의 완료</span>
+                </div>
+                <div class="profile-row">
+                  <span class="profile-label">동의 일시</span>
+                  <span class="profile-val" id="profile-terms-date">-</span>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                  <a href="https://asterisk.knoblab.xyz/terms" target="_blank" rel="noopener noreferrer" class="btn-cancel" style="flex: 1; font-size: 11px; text-decoration: none; text-align: center; padding: 6px 8px;">이용약관 ↗</a>
+                  <a href="https://asterisk.knoblab.xyz/privacy" target="_blank" rel="noopener noreferrer" class="btn-cancel" style="flex: 1; font-size: 11px; text-decoration: none; text-align: center; padding: 6px 8px;">개인정보처리방침 ↗</a>
+                </div>
+                <div style="margin-top: 10px;">
+                  <button type="button" class="btn-cancel" id="profile-btn-revoke-terms" style="width: 100%; color: #cf222e; border-color: rgba(207, 34, 46, 0.3); font-size: 11.5px; padding: 6px 10px;">
+                    약관 동의 해제 (서비스 이용 제한)
+                  </button>
                 </div>
               </div>
             </div>
