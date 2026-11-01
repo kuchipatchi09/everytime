@@ -3,6 +3,10 @@ export interface KnoblabUser {
   uid: string;
   email: string;
   emailVerified?: boolean;
+  displayName?: string | null;
+  photoURL?: string | null;
+  schoolGrade?: string | null;
+  schoolClass?: string | null;
 }
 
 type AuthChangeCallback = (user: KnoblabUser | null) => void;
@@ -21,6 +25,7 @@ export function getAuthUser(): KnoblabUser | null {
 
 /**
  * 서버(/api/me)를 호출하여 현재 로그인 상태를 확인하고 캐시를 갱신합니다.
+ * chating-main 프로필(닉네임, 학년/반)을 함께 반환받아 클라이언트에 동기화합니다.
  */
 export async function checkAuth(): Promise<KnoblabUser | null> {
   if (checkAuthPromise) return checkAuthPromise;
@@ -45,6 +50,10 @@ export async function checkAuth(): Promise<KnoblabUser | null> {
           uid: data.uid,
           email: data.email || "",
           emailVerified: data.emailVerified === true,
+          displayName: data.displayName || null,
+          photoURL: data.photoURL || null,
+          schoolGrade: data.schoolGrade ? String(data.schoolGrade) : null,
+          schoolClass: data.schoolClass ? String(data.schoolClass) : null,
         };
       } else {
         currentUser = null;
@@ -64,6 +73,49 @@ export async function checkAuth(): Promise<KnoblabUser | null> {
   })();
 
   return checkAuthPromise;
+}
+
+/**
+ * 서버(/api/profile)에 프로필(닉네임, 학년, 반) 변경을 요청하고 chating-main과 양방향 동기화합니다.
+ */
+export async function updateUserProfileOnServer(params: {
+  displayName?: string;
+  photoURL?: string;
+  schoolGrade?: string | null;
+  schoolClass?: string | null;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch("/api/profile", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+    });
+
+    const data: any = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data?.success) {
+      return { success: false, error: data?.error || `프로필 동기화 실패 (${res.status})` };
+    }
+
+    if (currentUser) {
+      currentUser = {
+        ...currentUser,
+        ...(params.displayName !== undefined ? { displayName: params.displayName } : {}),
+        ...(params.photoURL !== undefined ? { photoURL: params.photoURL } : {}),
+        ...(params.schoolGrade !== undefined ? { schoolGrade: params.schoolGrade } : {}),
+        ...(params.schoolClass !== undefined ? { schoolClass: params.schoolClass } : {}),
+      };
+      notifyAuthChange(currentUser);
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error("updateUserProfileOnServer error:", err);
+    return { success: false, error: err.message || "네트워크 오류가 발생했습니다." };
+  }
 }
 
 /**

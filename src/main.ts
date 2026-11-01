@@ -10,7 +10,14 @@ import {
   setSavedName,
   setSavedTickers,
 } from "./utils/storage";
-import { checkAuth, getAuthUser, loginWithKnoblab, logout, onAuthStateChange } from "./utils/auth";
+import {
+  checkAuth,
+  getAuthUser,
+  loginWithKnoblab,
+  logout,
+  onAuthStateChange,
+  updateUserProfileOnServer,
+} from "./utils/auth";
 import { TickerConfigItem } from "./types/market";
 import { renderDashboard, stopNowCardContinuousTicker, exitNowFullscreen } from "./views/dashboardView";
 import { renderTimetable } from "./views/timetableView";
@@ -224,7 +231,7 @@ function initNameChangeModal(): void {
     if (e.target === modal) closeNameChangeModal();
   });
 
-  form?.addEventListener("submit", (e) => {
+  form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const newName = input.value.trim();
     if (!newName) return;
@@ -234,6 +241,13 @@ function initNameChangeModal(): void {
     updateAuthUI();
     if (currentTab === "메인") {
       switchTab("메인", false);
+    }
+
+    const authUser = getAuthUser();
+    if (authUser) {
+      updateUserProfileOnServer({ displayName: newName }).catch((err) => {
+        console.warn("chating-main 이름 동기화 오류:", err);
+      });
     }
   });
 }
@@ -325,8 +339,9 @@ export async function syncUserDataFromServer(): Promise<void> {
     if (!data) return;
 
     if (data.grade && data.class_num) {
-      const g = String(data.grade) as GradeNumber;
-      const c = String(data.class_num) as ClassNumber;
+      // chating-main에 설정된 학년/반이 있다면 최우선 적용, 없을 때만 워커 데이터 폴백
+      const g = (user.schoolGrade || String(data.grade)) as GradeNumber;
+      const c = (user.schoolClass || String(data.class_num)) as ClassNumber;
       setSavedClass({ g, c });
 
       // 상단 바 학년/반 텍스트 배지 동기화
@@ -414,17 +429,17 @@ async function loadProfileStockData(): Promise<void> {
     const data = await fetchMyStock();
 
     if (data) {
-      if (gradeSelect && data.grade) gradeSelect.value = String(data.grade);
-      if (classInput && data.class_num) classInput.value = String(data.class_num);
+      const g = (user.schoolGrade || (data.grade ? String(data.grade) : "")) as GradeNumber;
+      const c = (user.schoolClass || (data.class_num ? String(data.class_num) : "")) as ClassNumber;
+      if (gradeSelect && g) gradeSelect.value = String(g);
+      if (classInput && c) classInput.value = String(c);
       if (numInput && data.student_num) numInput.value = String(data.student_num);
       if (ticker1Input && data.ticker_1) ticker1Input.value = data.ticker_1.toUpperCase();
       if (ticker2Input && data.ticker_2) ticker2Input.value = data.ticker_2.toUpperCase();
       if (ticker3Input && data.ticker_3) ticker3Input.value = data.ticker_3.toUpperCase();
 
       // 상단 바 및 로컬 스토리지도 즉시 동기화
-      if (data.grade && data.class_num) {
-        const g = String(data.grade) as GradeNumber;
-        const c = String(data.class_num) as ClassNumber;
+      if (g && c) {
         setSavedClass({ g, c });
         updateTopClassBadge();
       }
@@ -686,8 +701,8 @@ function initProfileModal(): void {
     const t2 = ticker2Input?.value.trim().toUpperCase() || "";
     const t3 = ticker3Input?.value.trim().toUpperCase() || "";
 
-    if (!nameVal || !gradeVal || !classVal || !numVal || !t1 || !t2 || !t3) {
-      showToast("이름, 학년, 반, 번호 및 티커 3개를 모두 입력해주세요.");
+    if (!nameVal || !gradeVal || !classVal) {
+      showToast("이름, 학년, 반을 입력해주세요.");
       return;
     }
 
@@ -701,29 +716,19 @@ function initProfileModal(): void {
     });
     updateTopClassBadge();
 
-    // 3. 로컬 스토리지에 티커 동기화
-    const newTickers: TickerConfigItem[] = [
-      { name: t1, symbol: t1, code: t1, unit: "pt" },
-      { name: t2, symbol: t2, code: t2, unit: "pt" },
-      { name: t3, symbol: t3, code: t3, unit: "pt" },
-    ];
-    setSavedTickers(newTickers);
+    // 3. 로컬 스토리지에 티커 동기화 (티커가 입력된 경우)
+    if (t1 || t2 || t3) {
+      const newTickers: TickerConfigItem[] = [
+        { name: t1 || "코스피", symbol: t1 || "KOSPI", code: t1 || "KOSPI", unit: "pt" },
+        { name: t2 || "나스닥", symbol: t2 || "NASDAQ", code: t2 || "NAS@IXIC", unit: "pt" },
+        { name: t3 || "원/달러", symbol: t3 || "USD/KRW", code: t3 || "FX_USDKRW", unit: "원" },
+      ];
+      setSavedTickers(newTickers);
+    }
 
     // 4. 화면 및 인증 UI 즉시 갱신
     updateAuthUI();
     renderActiveView();
-
-    const payload: StudentStockSubmission = {
-      grade: gradeVal,
-      class_num: classVal,
-      student_num: numVal,
-      ticker_1: t1,
-      ticker_2: t2,
-      ticker_3: t3,
-    };
-
-    // 토큰 만료 등으로 재로그인이 필요할 때 복귀 후 자동 반영되도록 대기 큐에 우선 저장
-    setPendingStockSubmission(payload);
 
     if (submitBtn) {
       submitBtn.disabled = true;
@@ -740,12 +745,33 @@ function initProfileModal(): void {
     }
 
     try {
-      await submitStudentStock(payload);
+      // 5. chating-main 프로필 양방향 동기화
+      const profileSyncRes = await updateUserProfileOnServer({
+        displayName: nameVal,
+        schoolGrade: String(gradeVal),
+        schoolClass: String(classVal),
+      });
 
-      // 서버 저장 성공 시 대기 큐 제거
-      setPendingStockSubmission(null);
+      if (!profileSyncRes.success) {
+        console.warn("chating-main 프로필 동기화 경고:", profileSyncRes.error);
+      }
 
-      showToast("환경설정(학생 정보 & 주식 티커)이 성공적으로 저장되었습니다!");
+      // 6. 주식 티커 및 학생 정보가 모두 갖춰진 경우 주식 워커에도 저장
+      if (numVal && t1 && t2 && t3) {
+        const payload: StudentStockSubmission = {
+          grade: gradeVal,
+          class_num: classVal,
+          student_num: numVal,
+          ticker_1: t1,
+          ticker_2: t2,
+          ticker_3: t3,
+        };
+        setPendingStockSubmission(payload);
+        await submitStudentStock(payload);
+        setPendingStockSubmission(null);
+      }
+
+      showToast("환경설정(학생 정보 및 프로필)이 성공적으로 저장되었습니다!");
 
       const statusBadge = $("#profile-stock-status-badge");
       if (statusBadge) {
@@ -1166,9 +1192,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   updateAuthUI();
   onAuthStateChange(async (user) => {
-    if (!getSavedName() && user?.email) {
-      const emailPrefix = user.email.split("@")[0];
-      setSavedName(emailPrefix);
+    if (user) {
+      // 1. chating-main 프로필 데이터(닉네임, 학년/반) 최우선 동기화
+      if (user.displayName) {
+        setSavedName(user.displayName);
+      } else if (!getSavedName() && user.email) {
+        const emailPrefix = user.email.split("@")[0];
+        setSavedName(emailPrefix);
+      }
+
+      if (user.schoolGrade && user.schoolClass) {
+        setSavedClass({
+          g: user.schoolGrade as GradeNumber,
+          c: user.schoolClass as ClassNumber,
+        });
+        updateTopClassBadge();
+      }
+
       const welcomeModal = $("#welcome");
       welcomeModal?.classList.add("hidden");
     }
