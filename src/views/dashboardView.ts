@@ -2,14 +2,15 @@ import { DAYS } from "../constants/timetable";
 import { fetchSchoolTimetable, getClassTimetableSync } from "../services/timetableService";
 import { getRoutine } from "../constants/routines";
 import { fetchAfterschoolData } from "../services/afterschoolService";
-import { fetchCurrentWeather } from "../services/weatherService";
-import { fetchDailyMeal } from "../services/mealService";
+import { fetchCurrentWeather, getCachedWeather } from "../services/weatherService";
+import { fetchDailyMeal, getCachedDailyMeal } from "../services/mealService";
 import { fetchNotices } from "../services/noticeService";
 import { esc } from "../utils/escape";
 import { formatDateKey, toMinutes } from "../utils/time";
 import { $ } from "../utils/dom";
 import { getSavedClass, getSavedName } from "../utils/storage";
 import { DayOfWeek } from "../types/timetable";
+import { MealCode } from "../types/meal";
 import { getWeatherGreeting, setCachedWeatherCode } from "../constants/weatherGreetings";
 
 let nowCardTicker: number | null = null;
@@ -221,6 +222,11 @@ export async function renderDashboard(
   );
   const isYearEndTimer = showYearEndTimer;
 
+  const cachedWeather = getCachedWeather();
+  const currentMealCode: MealCode = now.getHours() < 8 ? "1" : now.getHours() < 14 ? "2" : "3";
+  const currentMealLabel = currentMealCode === "1" ? "조식" : currentMealCode === "2" ? "중식" : "석식";
+  const cachedMeal = getCachedDailyMeal(now, currentMealCode);
+
   $("#content").innerHTML = `
     <section class="dashboard">
       <!-- 전체화면 하단 진척도 & 실시간 텔레메트리 독 (클릭 시 전체화면 종료) -->
@@ -282,13 +288,26 @@ export async function renderDashboard(
       
       <article class="dash-card weather-card" id="weather-card">
         <span class="eyebrow">LIVE WEATHER</span>
+        ${
+          cachedWeather
+            ? `
+        <div class="weather-main">
+          <img src="https://openweathermap.org/img/wn/${cachedWeather.weather[0]?.icon || "01d"}@2x.png" alt="">
+          <strong>${Math.round(cachedWeather.main.temp)}°</strong>
+        </div>
+        <h3>${esc(cachedWeather.weather[0]?.description || "")}</h3>
+        <p>체감 ${Math.round(cachedWeather.main.feels_like)}° · 습도 ${cachedWeather.main.humidity}%</p>
+        <small>Weather data © OpenWeather</small>`
+            : `
         <div class="weather-main"><strong>—°</strong></div>
-        <h3>날씨 확인 중</h3><p>공주 기준 실시간 날씨</p>
+        <h3>날씨 확인 중</h3><p>공주 기준 실시간 날씨</p>`
+        }
       </article>
 
       <article class="dash-card meal-card" id="today-meal">
         <span class="eyebrow">TODAY'S MEAL</span>
-        <h3>오늘의 급식</h3><p>급식 정보를 불러오는 중입니다.</p>
+        <h3>오늘의 ${currentMealLabel}</h3>
+        <p>${cachedMeal ? esc(cachedMeal) : "급식 정보를 불러오는 중입니다."}</p>
         <button class="dash-link" id="dash-meal-btn">주간 급식 보기 →</button>
       </article>
 
@@ -423,19 +442,32 @@ async function loadDashboardWeather(): Promise<void> {
       }
     }
 
+    const currentTemp = Math.round(data.main.temp);
+    const currentDesc = esc(data.weather[0].description);
+    const currentFeels = Math.round(data.main.feels_like);
+    const currentHum = data.main.humidity;
+    const icon = data.weather[0].icon;
+
+    // 만약 이미 동일한 날씨/온도가 표시되어 있다면 DOM 교체하지 않고 깜빡임 방지
+    const tempStrong = weatherCard.querySelector(".weather-main strong");
+    const h3El = weatherCard.querySelector("h3");
+    if (tempStrong && tempStrong.textContent === `${currentTemp}°` && h3El && h3El.textContent === currentDesc) {
+      return;
+    }
+
     weatherCard.innerHTML = `
       <span class="eyebrow">LIVE WEATHER</span>
       <div class="weather-main">
-        <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="">
-        <strong>${Math.round(data.main.temp)}°</strong>
+        <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="">
+        <strong>${currentTemp}°</strong>
       </div>
-      <h3>${esc(data.weather[0].description)}</h3>
-      <p>체감 ${Math.round(data.main.feels_like)}° · 습도 ${data.main.humidity}%</p>
+      <h3>${currentDesc}</h3>
+      <p>체감 ${currentFeels}° · 습도 ${currentHum}%</p>
       <small>Weather data © OpenWeather</small>`;
   } catch (error) {
     console.error("날씨 로딩 실패:", error);
     const weatherCard = $("#weather-card");
-    if (weatherCard) {
+    if (weatherCard && !getCachedWeather()) {
       weatherCard.innerHTML =
         '<span class="eyebrow">LIVE WEATHER</span><h3>날씨를 불러오지 못했습니다.</h3><p>잠시 후 다시 확인해주세요.</p>';
     }
@@ -450,6 +482,14 @@ async function loadDashboardMeal(now: Date): Promise<void> {
 
   try {
     const menu = await fetchDailyMeal(now, code);
+    const pEl = mealCard.querySelector("p");
+    const h3El = mealCard.querySelector("h3");
+    if (h3El && h3El.textContent !== `오늘의 ${label}`) {
+      h3El.textContent = `오늘의 ${label}`;
+    }
+    if (pEl && pEl.textContent === menu) {
+      return; // 메뉴 텍스트가 이미 동일하면 DOM을 건드리지 않음 (Flicker Zero)
+    }
     mealCard.innerHTML = `
       <span class="eyebrow">TODAY'S MEAL</span><h3>오늘의 ${label}</h3>
       <p>${menu}</p><button class="dash-link" id="dash-meal-sub-btn">주간 급식 보기 →</button>`;
@@ -459,7 +499,9 @@ async function loadDashboardMeal(now: Date): Promise<void> {
     });
   } catch {
     const p = mealCard.querySelector("p");
-    if (p) p.textContent = "급식을 불러오지 못했습니다.";
+    if (p && !getCachedDailyMeal(now, code)) {
+      p.textContent = "급식을 불러오지 못했습니다.";
+    }
   }
 }
 
@@ -498,4 +540,26 @@ async function loadDashboardNotices(
     noticeCard.innerHTML =
       '<span class="eyebrow">LATEST NOTICE</span><h3>최신 공지</h3><p>공지를 불러오지 못했습니다.</p>';
   }
+}
+
+/**
+ * 학년/반 또는 시간표 변경 시 날씨/급식 카드를 건드리지 않고
+ * 시간표와 상단 카드만 정밀하게 부분 업데이트합니다. (Flicker Zero)
+ */
+export function updateDashboardClassAndTimetable(): void {
+  const { g, c } = getSavedClass();
+  const now = new Date();
+
+  // 상단 바 학년/반 배지
+  const topBadgeText = document.getElementById("top-class-text");
+  if (topBadgeText) topBadgeText.textContent = `${g}학년 ${c}반`;
+
+  // 대시보드 카드 학년/반 텍스트
+  const nowFsClass = document.querySelector(".now-fs-class");
+  if (nowFsClass) nowFsClass.textContent = `${g}학년 ${c}반`;
+  const nowCardSmall = document.querySelector("#now-card small");
+  if (nowCardSmall) nowCardSmall.textContent = `${g}학년 ${c}반`;
+
+  // 실시간 시간표만 재조회
+  void loadDashboardTimetable(now);
 }

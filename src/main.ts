@@ -19,7 +19,7 @@ import {
   updateUserProfileOnServer,
 } from "./utils/auth";
 import { TickerConfigItem } from "./types/market";
-import { renderDashboard, stopNowCardContinuousTicker, exitNowFullscreen } from "./views/dashboardView";
+import { renderDashboard, stopNowCardContinuousTicker, exitNowFullscreen, updateDashboardClassAndTimetable } from "./views/dashboardView";
 import { renderTimetable } from "./views/timetableView";
 import { renderAfterschool } from "./views/afterschoolView";
 import { renderMeals, setMealCode } from "./views/mealView";
@@ -373,7 +373,11 @@ export async function syncUserDataFromServer(): Promise<void> {
     if (ticker2Input && data.ticker_2) ticker2Input.value = data.ticker_2.toUpperCase();
     if (ticker3Input && data.ticker_3) ticker3Input.value = data.ticker_3.toUpperCase();
 
-    renderActiveView();
+    if (currentTab === "메인") {
+      updateDashboardClassAndTimetable();
+    } else {
+      renderActiveView();
+    }
   } catch (err: any) {
     console.warn("서버 데이터 동기화 실패:", err);
   }
@@ -1215,9 +1219,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateAuthUI();
     if (user) {
       await syncUserDataFromServer();
-    }
-    if (currentTab === "메인") {
-      switchTab("메인", false);
     }
   });
   checkAuth();
