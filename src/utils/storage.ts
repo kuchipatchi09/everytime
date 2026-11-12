@@ -83,6 +83,16 @@ export function setSavedSkyPerf(enabled: boolean): void {
 }
 
 const SKY_TIME_OFFSET_STORAGE_KEY = "asterisk_sky_time_offset";
+const SKY_CLOUDS_STORAGE_KEY = "asterisk_sky_clouds";
+
+export function getSavedSkyClouds(): boolean {
+  const val = localStorage.getItem(SKY_CLOUDS_STORAGE_KEY);
+  return val !== null ? val === "true" : true; // 기본값: 활성화
+}
+
+export function setSavedSkyClouds(enabled: boolean): void {
+  localStorage.setItem(SKY_CLOUDS_STORAGE_KEY, String(enabled));
+}
 
 export function getSavedSkyTimeOffset(): number {
   const val = localStorage.getItem(SKY_TIME_OFFSET_STORAGE_KEY);

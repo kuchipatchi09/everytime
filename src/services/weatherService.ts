@@ -5,6 +5,50 @@ let cachedWeather: WeatherResponse | null = null;
 let lastWeatherFetchTime = 0;
 const WEATHER_CACHE_TTL = 10 * 60 * 1000; // 10분
 
+const weatherListeners: Array<(weather: WeatherResponse) => void> = [];
+let autoRefreshTimer: number | null = null;
+
+export function onWeatherUpdate(callback: (weather: WeatherResponse) => void): () => void {
+  weatherListeners.push(callback);
+  if (cachedWeather) {
+    callback(cachedWeather);
+  }
+  return () => {
+    const idx = weatherListeners.indexOf(callback);
+    if (idx !== -1) weatherListeners.splice(idx, 1);
+  };
+}
+
+function notifyWeatherListeners(data: WeatherResponse): void {
+  for (const listener of weatherListeners) {
+    try {
+      listener(data);
+    } catch (err) {
+      console.warn("날씨 리스너 콜백 에러:", err);
+    }
+  }
+}
+
+export function startWeatherAutoRefresh(): void {
+  if (autoRefreshTimer !== null) return;
+  autoRefreshTimer = window.setInterval(async () => {
+    try {
+      if (!document.hidden) {
+        await fetchCurrentWeather(true);
+      }
+    } catch (e) {
+      console.warn("자동 날씨 갱신 실패:", e);
+    }
+  }, WEATHER_CACHE_TTL);
+}
+
+export function stopWeatherAutoRefresh(): void {
+  if (autoRefreshTimer !== null) {
+    clearInterval(autoRefreshTimer);
+    autoRefreshTimer = null;
+  }
+}
+
 export function getCachedWeather(): WeatherResponse | null {
   if (cachedWeather && Date.now() - lastWeatherFetchTime < WEATHER_CACHE_TTL) {
     return cachedWeather;
@@ -28,5 +72,6 @@ export async function fetchCurrentWeather(force = false): Promise<WeatherRespons
   const data: WeatherResponse = await res.json();
   cachedWeather = data;
   lastWeatherFetchTime = now;
+  notifyWeatherListeners(data);
   return data;
 }

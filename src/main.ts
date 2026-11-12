@@ -32,6 +32,7 @@ import { renderMarketView, stopMarketView } from "./views/marketView";
 import { ClassNumber, GradeNumber } from "./types/timetable";
 import { MealCode } from "./types/meal";
 import { getCachedWeatherCode, getWeatherGreeting } from "./constants/weatherGreetings";
+import { startWeatherAutoRefresh } from "./services/weatherService";
 import { skyBackgroundService } from "./services/skyBackgroundService";
 
 export type TabName = "메인" | "시간표" | "방과후" | "급식" | "공지" | "타이머" | "금융 지표" | "브랜드";
@@ -501,6 +502,8 @@ async function loadProfileStockData(): Promise<void> {
   const skyPerfToggle = $<HTMLInputElement>("#setting-sky-perf-toggle");
   const skyOffsetSelect = $<HTMLSelectElement>("#setting-sky-offset-select");
   if (skyBgToggle) skyBgToggle.checked = skyBackgroundService.getIsEnabled();
+  const skyCloudsToggle = $<HTMLInputElement>("#setting-sky-clouds-toggle");
+  if (skyCloudsToggle) skyCloudsToggle.checked = skyBackgroundService.getIsCloudsEnabled();
   if (skyPerfToggle) skyPerfToggle.checked = skyBackgroundService.getIsPerfMode();
   if (skyOffsetSelect) skyOffsetSelect.value = String(skyBackgroundService.getTimeOffset());
 
@@ -638,6 +641,17 @@ function initProfileModal(): void {
   // 1-1. 화면 효과 및 저사양 성능 모드 스위치 이벤트
   const skyBgToggle = $<HTMLInputElement>("#setting-sky-bg-toggle");
   const skyPerfToggle = $<HTMLInputElement>("#setting-sky-perf-toggle");
+
+  const skyCloudsToggle = $<HTMLInputElement>("#setting-sky-clouds-toggle");
+  skyCloudsToggle?.addEventListener("change", () => {
+    const isChecked = skyCloudsToggle.checked;
+    skyBackgroundService.toggleClouds(isChecked);
+    showToast(
+      isChecked
+        ? "실시간 기상 구름 효과가 켜졌습니다."
+        : "실시간 기상 구름 효과가 꺼졌습니다."
+    );
+  });
 
   skyBgToggle?.addEventListener("change", () => {
     const isChecked = skyBgToggle.checked;
@@ -1294,6 +1308,7 @@ function preventAccidentalZoom(): void {
 
 document.addEventListener("DOMContentLoaded", () => {
   preventAccidentalZoom();
+  startWeatherAutoRefresh();
 
   const skyContainer = document.getElementById("sky-background");
   skyBackgroundService.setSuppressed(window.location.hash === "#brand" || window.location.pathname.endsWith("/brand") || window.location.pathname.endsWith("/brand.html"));

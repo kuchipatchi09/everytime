@@ -3,6 +3,7 @@ import { fetchSchoolTimetable, getClassTimetableSync } from "../services/timetab
 import { getRoutine } from "../constants/routines";
 import { fetchAfterschoolData } from "../services/afterschoolService";
 import { fetchCurrentWeather, getCachedWeather } from "../services/weatherService";
+import { skyBackgroundService } from "../services/skyBackgroundService";
 import { fetchDailyMeal, getCachedDailyMeal } from "../services/mealService";
 import { fetchNotices } from "../services/noticeService";
 import { esc } from "../utils/escape";
@@ -429,6 +430,7 @@ async function loadDashboardTimetable(now: Date): Promise<void> {
 async function loadDashboardWeather(): Promise<void> {
   try {
     const data = await fetchCurrentWeather();
+    skyBackgroundService.updateFromWeather(data);
     const weatherCard = $("#weather-card");
     if (!weatherCard) return;
 

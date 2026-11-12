@@ -9,6 +9,8 @@ interface SkyKeyframe {
 export function calcSkyColors(mG: number, solar: SunTimes): {
   zenith: string;
   horizon: string;
+  zenithRgb: [number, number, number];
+  horizonRgb: [number, number, number];
   brightness: number;
   colors: number[];
 } {
@@ -59,7 +61,7 @@ export function calcSkyColors(mG: number, solar: SunTimes): {
   const bright_colors = [235, 245, 255, 0.45, 0, 20, 40, 0, 20, 50, 0x00, 0x7a, 0xff, 0xfa, 0xfa, 0xfa, 55, 0.2];
   const colors = dark_colors.map((e, i) => e * (1 - tContrast) + bright_colors[i] * tContrast);
 
-  return { zenith, horizon, brightness, colors };
+  return { zenith, horizon, zenithRgb: [zr, zg, zb], horizonRgb: [r, g, b], brightness, colors };
 }
 
 export function calcTwilight(mG: number, solar: SunTimes): { starOpacity: number; starMaskY: number } {

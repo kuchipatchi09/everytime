@@ -12,5 +12,12 @@ export interface WeatherResponse {
     temp_min: number;
     temp_max: number;
   };
+  clouds?: {
+    all: number;
+  };
+  wind?: {
+    speed: number;
+    deg: number;
+  };
   name: string;
 }
