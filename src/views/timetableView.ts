@@ -157,11 +157,50 @@ function bindRefreshButton(): void {
   });
 }
 
+function toMinutes(hhmm: string): number {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+}
+
 function renderRoutineTable(): string {
   const labels = ["월", "화", "수", "목", "금"];
   const rows = getRoutine(routineDay).filter(
     (item) => item[2] !== "취침 및 등교 준비"
   );
+
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const isToday = now.getDay() === routineDay;
+
+  const groups: { title: string; items: typeof rows }[] = [
+    { title: "오전", items: rows.filter((r) => toMinutes(r[0]) < 12 * 60 + 30) },
+    {
+      title: "오후",
+      items: rows.filter(
+        (r) => toMinutes(r[0]) >= 12 * 60 + 30 && toMinutes(r[0]) < 19 * 60
+      ),
+    },
+    { title: "야간", items: rows.filter((r) => toMinutes(r[0]) >= 19 * 60) },
+  ];
+
+  const renderRow = (item: (typeof rows)[number]) => {
+    const start = toMinutes(item[0]);
+    const end = toMinutes(item[1]);
+    const isActive = isToday && nowMin >= start && nowMin < end;
+    const isBreak = item[2].includes("쉬는 시간");
+    const isMeal = item[2].includes("점심") || item[2].includes("저녁");
+
+    const classes = [
+      "routine-row",
+      isBreak ? "is-break" : "",
+      isMeal ? "is-meal" : "",
+      isActive ? "is-active" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    return `<div class="${classes}"><time>${item[0]}–${item[1]}</time><strong>${item[2]}</strong></div>`;
+  };
 
   return `
     <section class="routine-board">
@@ -179,11 +218,16 @@ function renderRoutineTable(): string {
             .join("")}
         </div>
       </div>
-      <div class="routine-rows">
-        ${rows
+      <div class="routine-groups">
+        ${groups
           .map(
-            (item) =>
-              `<div><time>${item[0]}–${item[1]}</time><strong>${item[2]}</strong></div>`
+            (g) => `
+          <div class="routine-group">
+            <div class="routine-group-title">${g.title}</div>
+            <div class="routine-list">
+              ${g.items.map(renderRow).join("")}
+            </div>
+          </div>`
           )
           .join("")}
       </div>

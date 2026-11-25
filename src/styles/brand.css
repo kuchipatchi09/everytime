@@ -15,7 +15,7 @@
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 1000;
+  z-index: var(--z-drawer);
   padding: 12px 18px;
   border: 1px solid var(--color-black);
   background: var(--color-black);
@@ -25,7 +25,7 @@
   gap: 10px;
   font-family: var(--font-mono);
   font-size: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-toast);
 }
 
 .brand-toast-swatch {
@@ -62,7 +62,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition-fast);
 }
 
 .brand-nav-btn:hover:not(.active) {
@@ -182,7 +182,7 @@
 .brand-hero-footer-bar {
   margin-top: 28px;
   padding-top: 14px;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: 1px solid var(--color-divider-alpha);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -414,7 +414,7 @@
   flex-direction: column;
   justify-content: space-between;
   min-height: 320px;
-  transition: all 0.2s ease;
+  transition: var(--transition-normal);
 }
 
 .brand-color-main-card h3 {
@@ -446,7 +446,7 @@
 
 .brand-color-bottom-bar {
   padding-top: 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: 1px solid var(--color-divider-alpha);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -467,12 +467,12 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.15s ease;
+  transition: var(--transition-fast);
 }
 
 .brand-copy-action-btn:hover {
   background: currentColor;
-  color: #000000;
+  color: var(--raw-black);
 }
 
 .brand-color-list-card {
@@ -509,7 +509,7 @@
   cursor: pointer;
   font-family: var(--font-mono);
   font-size: 12px;
-  transition: all 0.15s ease;
+  transition: var(--transition-fast);
 }
 
 .brand-color-row-item.active {

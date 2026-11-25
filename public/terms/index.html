@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="auto">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,30 +11,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Asta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+  <link rel="stylesheet" href="/ds/tokens.css" />
 
   <style>
     :root {
-      --color-black: #000000;
-      --color-carbon: #1C1C1E;
-      --color-graphite: #48484A;
-      --color-telemetry: #8E8E93;
-      --color-silver: #D1D1D6;
-      --color-vellum: #EBE9E1;
-      --color-paper: #F7F6F2;
-      --font-brand: 'Asta Sans', sans-serif;
-      --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --color-black: #F7F6F2;
-        --color-carbon: #EBE9E1;
-        --color-graphite: #A0A19B;
-        --color-telemetry: #77777A;
-        --color-silver: #2C2C2E;
-        --color-vellum: #18191C;
-        --color-paper: #0D0E10;
-      }
+      --font-brand: var(--font-sans);
+      --font-body: var(--font-sans);
     }
 
     * {

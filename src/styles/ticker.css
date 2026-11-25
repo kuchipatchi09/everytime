@@ -4,13 +4,13 @@
 
 .ticker-wrap {
   position: relative;
-  z-index: 90;
+  z-index: var(--z-ticker);
   width: 100%;
   overflow: hidden;
   background: var(--color-black);
   color: var(--color-paper);
   border-bottom: 1px solid var(--color-graphite);
-  height: 36px;
+  height: var(--ticker-height);
   display: flex;
   align-items: center;
   white-space: nowrap;
@@ -35,16 +35,16 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--color-paper);
-  z-index: 2;
+  z-index: var(--z-elevated);
 }
 
 .ticker-live-dot {
   width: 6px;
   height: 6px;
-  background: #00E676;
-  border-radius: 50%;
+  background: var(--ticker-live);
+  border-radius: var(--radius-full);
   display: inline-block;
-  box-shadow: 0 0 6px #00E676;
+  box-shadow: 0 0 6px var(--ticker-live);
   animation: live-blink 1.5s infinite ease-in-out;
 }
 
@@ -79,8 +79,8 @@
   font-weight: 800;
   color: var(--color-paper);
   padding: 1px 5px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--alpha-on-dark-subtle);
+  border: 1px solid var(--alpha-on-dark-medium);
   font-size: 10px;
   letter-spacing: 0.04em;
 }
@@ -93,7 +93,7 @@
 
 .ticker-val {
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--raw-white);
   font-size: 13px;
   margin-left: 2px;
 }
@@ -109,54 +109,54 @@
   font-size: 11px;
   font-weight: 700;
   padding: 1px 6px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .ticker-diff.diff-up {
-  color: #FF5252;
-  background: rgba(255, 82, 82, 0.15);
-  border: 1px solid rgba(255, 82, 82, 0.3);
+  color: var(--ticker-up);
+  background: var(--ticker-up-bg);
+  border: 1px solid var(--ticker-up-border);
 }
 
 .ticker-diff.diff-down {
-  color: #448AFF;
-  background: rgba(68, 138, 255, 0.15);
-  border: 1px solid rgba(68, 138, 255, 0.3);
+  color: var(--ticker-down);
+  background: var(--ticker-down-bg);
+  border: 1px solid var(--ticker-down-border);
 }
 
 .ticker-diff.diff-even {
   color: var(--color-telemetry);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--alpha-on-dark-subtle);
 }
 
 .ticker-status {
   font-size: 10px;
   font-weight: 700;
   padding: 1px 5px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   letter-spacing: 0.02em;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--alpha-on-dark-subtle);
   color: var(--color-telemetry);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--alpha-on-dark-soft);
 }
 
 .ticker-status.open {
-  color: #00E676;
-  background: rgba(0, 230, 118, 0.15);
-  border-color: rgba(0, 230, 118, 0.35);
+  color: var(--ticker-live);
+  background: var(--ticker-live-bg);
+  border-color: var(--ticker-live-border);
 }
 
 .ticker-status.closed {
-  color: #A0A0A5;
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--ticker-closed);
+  background: var(--alpha-on-dark-subtle);
+  border-color: var(--alpha-on-dark-subtle);
 }
 
 .ticker-status.pre,
 .ticker-status.post {
-  color: #FFB74D;
-  background: rgba(255, 183, 77, 0.15);
-  border-color: rgba(255, 183, 77, 0.35);
+  color: var(--ticker-prepost);
+  background: var(--ticker-prepost-bg);
+  border-color: var(--ticker-prepost-border);
 }
 
 @keyframes ticker-scroll {
