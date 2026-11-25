@@ -41,10 +41,10 @@
 .ticker-live-dot {
   width: 6px;
   height: 6px;
-  background: var(--ticker-live);
+  background: var(--color-green);
   border-radius: var(--radius-full);
   display: inline-block;
-  box-shadow: 0 0 6px var(--ticker-live);
+  box-shadow: 0 0 6px var(--color-green);
   animation: live-blink 1.5s infinite ease-in-out;
 }
 
@@ -113,15 +113,15 @@
 }
 
 .ticker-diff.diff-up {
-  color: var(--ticker-up);
-  background: var(--ticker-up-bg);
-  border: 1px solid var(--ticker-up-border);
+  color: var(--color-red);
+  background: var(--color-red-bg);
+  border: 1px solid var(--color-red-border);
 }
 
 .ticker-diff.diff-down {
-  color: var(--ticker-down);
-  background: var(--ticker-down-bg);
-  border: 1px solid var(--ticker-down-border);
+  color: var(--color-celadon);
+  background: var(--color-celadon-bg);
+  border: 1px solid var(--color-celadon-border);
 }
 
 .ticker-diff.diff-even {
@@ -141,22 +141,22 @@
 }
 
 .ticker-status.open {
-  color: var(--ticker-live);
-  background: var(--ticker-live-bg);
-  border-color: var(--ticker-live-border);
+  color: var(--color-green);
+  background: var(--color-green-bg);
+  border-color: var(--color-green-border);
 }
 
 .ticker-status.closed {
-  color: var(--ticker-closed);
+  color: var(--color-telemetry);
   background: var(--alpha-on-dark-subtle);
   border-color: var(--alpha-on-dark-subtle);
 }
 
 .ticker-status.pre,
 .ticker-status.post {
-  color: var(--ticker-prepost);
-  background: var(--ticker-prepost-bg);
-  border-color: var(--ticker-prepost-border);
+  color: var(--color-yellow);
+  background: var(--color-yellow-bg);
+  border-color: var(--color-yellow-border);
 }
 
 @keyframes ticker-scroll {

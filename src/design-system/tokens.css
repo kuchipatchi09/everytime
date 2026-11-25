@@ -85,77 +85,38 @@
   --blur-backdrop: blur(4px);
 
   /* ------------------------------------------------------------------------
-     5. Status & Feedback Colors
+     5. Unified 7-Color Accent Palette (Korean Traditional Colors)
+        Dancheong Red · Ripe Persimmon · Canola Yellow · Mugwort Green
+        Celadon Blue · Indigo Blue · Gromwell Violet
      ------------------------------------------------------------------------ */
-  --color-danger: #A33A31;
-  --color-danger-strong: #842C24;
-  --color-danger-bg: rgba(163, 58, 49, 0.09);
-  --color-danger-border: rgba(163, 58, 49, 0.32);
+  --color-red: #A33A31;
+  --color-red-strong: #842C24;
+  --color-red-bg: rgba(163, 58, 49, 0.1);
+  --color-red-border: rgba(163, 58, 49, 0.32);
 
-  --color-success: #556042;
-  --color-success-strong: #444E35;
-  --color-success-bg: rgba(85, 96, 66, 0.1);
-  --color-success-border: rgba(85, 96, 66, 0.32);
+  --color-persimmon: #C65D2B;
+  --color-persimmon-strong: #A1471D;
+  --color-persimmon-bg: rgba(198, 93, 43, 0.1);
+  --color-persimmon-border: rgba(198, 93, 43, 0.32);
 
-  --color-warning: #C65D2B;
-  --color-warning-strong: #A1471D;
-  --color-warning-bg: rgba(224, 169, 59, 0.14);
-  --color-warning-border: rgba(224, 169, 59, 0.45);
+  --color-yellow: #E0A93B;
+  --color-yellow-bg: rgba(224, 169, 59, 0.14);
+  --color-yellow-border: rgba(224, 169, 59, 0.42);
 
-  --color-info: #45707A;
-  --color-info-strong: #1F3A52;
-  --color-info-bg: rgba(69, 112, 122, 0.1);
-  --color-info-border: rgba(69, 112, 122, 0.32);
-  --color-mention-blue: var(--color-info);
+  --color-green: #556042;
+  --color-green-strong: #444E35;
+  --color-green-bg: rgba(85, 96, 66, 0.1);
+  --color-green-border: rgba(85, 96, 66, 0.32);
 
-  /* ------------------------------------------------------------------------
-     6. Market & Ticker Telemetry
-     ------------------------------------------------------------------------ */
-  --up-red: #A33A31;
-  --up-red-bg: rgba(163, 58, 49, 0.09);
-  --up-red-border: rgba(163, 58, 49, 0.32);
-  --down-blue: #45707A;
-  --down-blue-bg: rgba(69, 112, 122, 0.1);
-  --down-blue-border: rgba(69, 112, 122, 0.32);
+  --color-celadon: #45707A;
+  --color-celadon-bg: rgba(69, 112, 122, 0.1);
+  --color-celadon-border: rgba(69, 112, 122, 0.32);
 
-  --ticker-height: 36px;
-  --z-ticker: 90;
-  --ticker-live: #8FA171;
-  --ticker-live-bg: rgba(143, 161, 113, 0.18);
-  --ticker-live-border: rgba(143, 161, 113, 0.4);
-  --ticker-up: #D86E65;
-  --ticker-up-bg: rgba(216, 110, 101, 0.18);
-  --ticker-up-border: rgba(216, 110, 101, 0.38);
-  --ticker-down: #7BA8B3;
-  --ticker-down-bg: rgba(123, 168, 179, 0.18);
-  --ticker-down-border: rgba(123, 168, 179, 0.38);
-  --ticker-prepost: #E0A93B;
-  --ticker-prepost-bg: rgba(224, 169, 59, 0.16);
-  --ticker-prepost-border: rgba(224, 169, 59, 0.38);
-  --ticker-closed: #A0A0A5;
+  --color-indigo: #1F3A52;
 
-  /* ------------------------------------------------------------------------
-     7. Bot Mentions & Markdown Callouts
-     ------------------------------------------------------------------------ */
-  --mention-dasein-fg: #A33A31;
-  --mention-dasein-bg: rgba(163, 58, 49, 0.12);
-  --mention-meal-fg: #C65D2B;
-  --mention-meal-bg: rgba(198, 93, 43, 0.12);
-  --mention-timetable-fg: var(--color-info);
-  --mention-timetable-bg: var(--color-info-bg);
-  --mention-calendar-fg: var(--color-success);
-  --mention-calendar-bg: var(--color-success-bg);
-  --mention-classroom-fg: #5C3C58;
-  --mention-classroom-bg: rgba(92, 60, 88, 0.12);
-  --mention-archive-fg: var(--color-warning);
-  --mention-archive-bg: var(--color-warning-bg);
-
-  --callout-note: var(--color-info);
-  --callout-tip: var(--color-success);
-  --callout-important: #5C3C58;
-  --callout-important-bg: rgba(92, 60, 88, 0.09);
-  --callout-warning: var(--color-warning);
-  --callout-caution: var(--color-danger);
+  --color-violet: #5C3C58;
+  --color-violet-bg: rgba(92, 60, 88, 0.1);
+  --color-violet-border: rgba(92, 60, 88, 0.32);
 
   /* ------------------------------------------------------------------------
      8. Surface Modes (Paper Light / Carbon Dark / Translucent Glass)
@@ -316,6 +277,7 @@
   --container-px: var(--container-px-mobile);
   --drawer-width: 300px;
   --drawer-max-width: 85%;
+  --ticker-height: 36px;
 
   --bp-sm: 640px;
   --bp-md: 768px;
@@ -377,6 +339,7 @@
      ------------------------------------------------------------------------ */
   --z-base: 1;
   --z-elevated: 2;
+  --z-ticker: 90;
   --z-sticky: 100;
   --z-overlay: 900;
   --z-drawer: 1000;
@@ -498,53 +461,34 @@
   --color-divider-alpha: rgba(247, 246, 242, 0.18);
   --color-inverse-subtle: rgba(0, 0, 0, 0.2);
 
-  --color-danger: #D86E65;
-  --color-danger-strong: #E38880;
-  --color-danger-bg: rgba(216, 110, 101, 0.16);
-  --color-danger-border: rgba(216, 110, 101, 0.38);
+  --color-red: #D86E65;
+  --color-red-strong: #E38880;
+  --color-red-bg: rgba(216, 110, 101, 0.16);
+  --color-red-border: rgba(216, 110, 101, 0.38);
 
-  --color-success: #8FA171;
-  --color-success-strong: #A4B587;
-  --color-success-bg: rgba(143, 161, 113, 0.16);
-  --color-success-border: rgba(143, 161, 113, 0.38);
+  --color-persimmon: #E08659;
+  --color-persimmon-strong: #EBA07A;
+  --color-persimmon-bg: rgba(224, 134, 89, 0.16);
+  --color-persimmon-border: rgba(224, 134, 89, 0.38);
 
-  --color-warning: #E0A93B;
-  --color-warning-strong: #E08659;
-  --color-warning-bg: rgba(224, 169, 59, 0.16);
-  --color-warning-border: rgba(224, 169, 59, 0.38);
+  --color-yellow: #E0A93B;
+  --color-yellow-bg: rgba(224, 169, 59, 0.16);
+  --color-yellow-border: rgba(224, 169, 59, 0.38);
 
-  --color-info: #7BA8B3;
-  --color-info-strong: #94BFC9;
-  --color-info-bg: rgba(123, 168, 179, 0.16);
-  --color-info-border: rgba(123, 168, 179, 0.38);
-  --color-mention-blue: var(--color-info);
+  --color-green: #8FA171;
+  --color-green-strong: #A4B587;
+  --color-green-bg: rgba(143, 161, 113, 0.16);
+  --color-green-border: rgba(143, 161, 113, 0.38);
 
-  --up-red: #D86E65;
-  --up-red-bg: rgba(216, 110, 101, 0.16);
-  --up-red-border: rgba(216, 110, 101, 0.38);
-  --down-blue: #7BA8B3;
-  --down-blue-bg: rgba(123, 168, 179, 0.16);
-  --down-blue-border: rgba(123, 168, 179, 0.38);
+  --color-celadon: #7BA8B3;
+  --color-celadon-bg: rgba(123, 168, 179, 0.16);
+  --color-celadon-border: rgba(123, 168, 179, 0.38);
 
-  --mention-dasein-fg: #D86E65;
-  --mention-dasein-bg: rgba(216, 110, 101, 0.18);
-  --mention-meal-fg: #E08659;
-  --mention-meal-bg: rgba(224, 134, 89, 0.18);
-  --mention-timetable-fg: var(--color-info);
-  --mention-timetable-bg: var(--color-info-bg);
-  --mention-calendar-fg: var(--color-success);
-  --mention-calendar-bg: var(--color-success-bg);
-  --mention-classroom-fg: #A67FA1;
-  --mention-classroom-bg: rgba(166, 127, 161, 0.18);
-  --mention-archive-fg: var(--color-warning);
-  --mention-archive-bg: var(--color-warning-bg);
+  --color-indigo: #94BFC9;
 
-  --callout-note: var(--color-info);
-  --callout-tip: var(--color-success);
-  --callout-important: #A67FA1;
-  --callout-important-bg: rgba(166, 127, 161, 0.16);
-  --callout-warning: var(--color-warning);
-  --callout-caution: var(--color-danger);
+  --color-violet: #A67FA1;
+  --color-violet-bg: rgba(166, 127, 161, 0.16);
+  --color-violet-border: rgba(166, 127, 161, 0.38);
 
   --surface-glass-bg: rgba(24, 25, 28, 0.72);
   --surface-glass-bg-strong: rgba(24, 25, 28, 0.82);
@@ -609,53 +553,34 @@
     --color-divider-alpha: rgba(247, 246, 242, 0.18);
     --color-inverse-subtle: rgba(0, 0, 0, 0.2);
 
-    --color-danger: #D86E65;
-    --color-danger-strong: #E38880;
-    --color-danger-bg: rgba(216, 110, 101, 0.16);
-    --color-danger-border: rgba(216, 110, 101, 0.38);
+    --color-red: #D86E65;
+    --color-red-strong: #E38880;
+    --color-red-bg: rgba(216, 110, 101, 0.16);
+    --color-red-border: rgba(216, 110, 101, 0.38);
 
-    --color-success: #8FA171;
-    --color-success-strong: #A4B587;
-    --color-success-bg: rgba(143, 161, 113, 0.16);
-    --color-success-border: rgba(143, 161, 113, 0.38);
+    --color-persimmon: #E08659;
+    --color-persimmon-strong: #EBA07A;
+    --color-persimmon-bg: rgba(224, 134, 89, 0.16);
+    --color-persimmon-border: rgba(224, 134, 89, 0.38);
 
-    --color-warning: #E0A93B;
-    --color-warning-strong: #E08659;
-    --color-warning-bg: rgba(224, 169, 59, 0.16);
-    --color-warning-border: rgba(224, 169, 59, 0.38);
+    --color-yellow: #E0A93B;
+    --color-yellow-bg: rgba(224, 169, 59, 0.16);
+    --color-yellow-border: rgba(224, 169, 59, 0.38);
 
-    --color-info: #7BA8B3;
-    --color-info-strong: #94BFC9;
-    --color-info-bg: rgba(123, 168, 179, 0.16);
-    --color-info-border: rgba(123, 168, 179, 0.38);
-    --color-mention-blue: var(--color-info);
+    --color-green: #8FA171;
+    --color-green-strong: #A4B587;
+    --color-green-bg: rgba(143, 161, 113, 0.16);
+    --color-green-border: rgba(143, 161, 113, 0.38);
 
-    --up-red: #D86E65;
-    --up-red-bg: rgba(216, 110, 101, 0.16);
-    --up-red-border: rgba(216, 110, 101, 0.38);
-    --down-blue: #7BA8B3;
-    --down-blue-bg: rgba(123, 168, 179, 0.16);
-    --down-blue-border: rgba(123, 168, 179, 0.38);
+    --color-celadon: #7BA8B3;
+    --color-celadon-bg: rgba(123, 168, 179, 0.16);
+    --color-celadon-border: rgba(123, 168, 179, 0.38);
 
-    --mention-dasein-fg: #D86E65;
-    --mention-dasein-bg: rgba(216, 110, 101, 0.18);
-    --mention-meal-fg: #E08659;
-    --mention-meal-bg: rgba(224, 134, 89, 0.18);
-    --mention-timetable-fg: var(--color-info);
-    --mention-timetable-bg: var(--color-info-bg);
-    --mention-calendar-fg: var(--color-success);
-    --mention-calendar-bg: var(--color-success-bg);
-    --mention-classroom-fg: #A67FA1;
-    --mention-classroom-bg: rgba(166, 127, 161, 0.18);
-    --mention-archive-fg: var(--color-warning);
-    --mention-archive-bg: var(--color-warning-bg);
+    --color-indigo: #94BFC9;
 
-    --callout-note: var(--color-info);
-    --callout-tip: var(--color-success);
-    --callout-important: #A67FA1;
-    --callout-important-bg: rgba(166, 127, 161, 0.16);
-    --callout-warning: var(--color-warning);
-    --callout-caution: var(--color-danger);
+    --color-violet: #A67FA1;
+    --color-violet-bg: rgba(166, 127, 161, 0.16);
+    --color-violet-border: rgba(166, 127, 161, 0.38);
 
     --surface-glass-bg: rgba(24, 25, 28, 0.72);
     --surface-glass-bg-strong: rgba(24, 25, 28, 0.82);
