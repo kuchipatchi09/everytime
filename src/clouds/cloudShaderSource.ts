@@ -24,93 +24,88 @@ precision highp float;
 varying vec2 v_uv;
 varying vec3 v_viewRay;
 
-uniform float u_time;
+uniform float u_timeWarp;
 
 // 심리스 Perlin-Worley 텍스처 LUT (R: Macro, G: Billow, B: Wispy, A: Curl)
 uniform sampler2D u_noiseLut;
 
-// 구름 파라미터 (800 ~ 804 5단계 연동)
-uniform float u_coverage;       // 0 ~ 1.0 운량 임계치
-uniform float u_density;        // 0 ~ 1.0 구름 농도
-uniform float u_cloudType;      // 0.0: 권운, 0.5: 뭉게구름, 1.0: 층운
-uniform float u_puffiness;      // 뭉게구름 볼록도
-uniform float u_darkBase;       // 밑면 음영 농도
-uniform float u_mieIntensity;   // 실버 라이닝(전방 산란) 강도
-uniform float u_haloStrength;   // 22° 무리(Halo) 효과
-uniform float u_ambientDull;    // 흐린 날 회색조 감쇠 (0 ~ 1.0)
+// 구름 파라미터 (사전 계산된 프레임 상수 포함)
+uniform float u_density;
+uniform float u_cloudType;
+uniform float u_cloudThreshold;    // 0.79 - coverage * 0.44
+uniform float u_macroRejectThresh; // 0.64 - coverage * 0.44
+uniform float u_puffFactor;        // clamp(puffiness * 0.65, 0.0, 1.0)
+uniform float u_mieIntensity;
+uniform float u_haloStrength;
+uniform float u_cirrusThresh;      // 0.70 - coverage * 0.28
+uniform float u_cirrusScale;       // (1.0 - cloudType) * 0.55 * density
+uniform float u_dullFactor;        // ambientDull > 0.02 ? clamp(ambientDull, 0.0, 0.26) : 0.0
 
-// 광원 (태양 & 달)
-uniform vec3 u_sunDir;          // 3D 천구 광원 벡터
+// 광원 (CPU에서 프레임당 1회 사전 계산)
+uniform vec3 u_normSunDir;
+uniform vec3 u_activeLightDir;
 uniform vec3 u_sunColor;
 uniform float u_sunAlt;
-uniform vec3 u_moonDir;
-uniform vec3 u_moonColor;
-uniform float u_moonAlt;
-uniform float u_moonPhase;      // 0 ~ 1.0
+uniform float u_sunIntensity;
+uniform float u_sunsetFactor;
+uniform vec3 u_sunRadiance;
+uniform vec3 u_lightRadiance;
+uniform float u_darkBaseScale;     // mix(1.0, 0.75, darkBase)
+uniform float u_nightBaseScale;    // mix(0.70, 0.30, darkBase)
+uniform vec3 u_stormBase;          // vec3(0.55, 0.58, 0.65) * max(0.08, sunIntensity)
 
 // 대기 색상
 uniform vec3 u_skyZenith;
 uniform vec3 u_skyHorizon;
 
-// 바람 이동 오프셋
+// 바람 이동 오프셋 (상층운 + 3슬라이스 전단 사전 결합)
 uniform vec2 u_windOffsetHigh;
 uniform vec2 u_windOffsetLow;
+uniform vec2 u_shear1;
+uniform vec2 u_shear2;
+uniform vec2 u_shear3;
 
 // 레이어 가시성
 uniform float u_visibleHigh;
-uniform float u_visibleLow;
 
 // ============================================================================
-// 1. 위상 함수 (Henyey-Greenstein Phase Functions)
+// 1. 위상 함수 (Henyey-Greenstein 4*PI 정규화 상수 상쇄)
 // ============================================================================
 
-float hgPhase(float cosTheta, float g) {
-  float g2 = g * g;
-  return (1.0 - g2) / (pow(max(0.01, 1.0 + g2 - 2.0 * g * cosTheta), 1.5) * 12.56637);
-}
-
-float dualHg(float cosTheta, float forwardG, float backG, float weight) {
-  return mix(hgPhase(cosTheta, backG), hgPhase(cosTheta, forwardG), weight);
+float hg4Pi(float cosTheta, float oneMinusG2, float onePlusG2, float twoG) {
+  float denom = max(0.01, onePlusG2 - twoG * cosTheta);
+  return oneMinusG2 / (denom * sqrt(denom));
 }
 
 // ============================================================================
-// 2. [동글동글한 구체 100% 제거] 유기적 도메인 워핑 & 바람 전단 프랙탈 엔진
+// 2. 유기적 도메인 워핑 & 바람 전단 프랙탈 엔진 (상한 기반 조기 스킵 포함)
 // ============================================================================
 
-float sampleCloudDensityOrganic(vec2 p, float normHeight, float coverage, float puffiness, vec2 windDir) {
-  // 1. [바람 전단 (Wind Shear)] 상공으로 갈수록 바람을 타고 비스듬히 흩날리는 유체 결
-  vec2 shearedP = p + windDir * (normHeight * 0.28);
-
-  // 2. [비대칭 도메인 워핑 (Domain Warping)] 원형 대칭성을 완전히 분쇄하는 2단계 유체 소용돌이
-  vec2 warpUV = shearedP * 0.048 + vec2(u_time * 0.0012, 0.0);
+float sampleCloudDensityOrganic(vec2 shearedP, float heightScale) {
+  // 1. 비대칭 도메인 워핑
+  vec2 warpUV = shearedP * 0.048 + vec2(u_timeWarp, 0.0);
   vec4 warpSample = texture2D(u_noiseLut, warpUV);
   vec2 warp = (warpSample.ba - 0.5) * 0.12 + (warpSample.rg - 0.5) * 0.05;
 
-  // 3. [프랙탈 FBM 주도 형태] 거대하고 유기적인 자연 구름 윤곽
+  // 2. 프랙탈 FBM 주도 형태
   vec2 macroUV = shearedP * 0.088 + warp;
   vec4 lut = texture2D(u_noiseLut, macroUV);
 
   float macroFBM = lut.r;
-  float microBumps = lut.g;
+  float shape = macroFBM + u_puffFactor * 0.18 * (lut.g - macroFBM);
 
-  // [핵심] 인공적인 Worley 구체 가중치를 0.18로 낮추고, 유기적 FBM이 전체 형태를 주도
-  // 동글동글한 알사탕/비눗방울 덩어리가 완전히 사라지고 실제 하늘 사진 같은 장엄한 결이 살아남
-  float shape = mix(macroFBM, macroFBM * 0.82 + microBumps * 0.18, clamp(puffiness * 0.65, 0.0, 1.0));
+  // [무손실 상한 스킵] 이후 wispyErosion 감산은 항상 >= 0이므로 상한이 threshold 이하이면 0.0 확정
+  if (shape * heightScale <= u_cloudThreshold) {
+    return 0.0;
+  }
 
-  // 4. [고주파 솜털 및 잔물결 침식] 대기와 섞여 보슬보슬 흩날리는 미세 깃털 베일
+  // 3. 고주파 솜털 및 잔물결 침식
   vec2 microUV = shearedP * 0.26 + warp * 0.6;
-  vec4 microSample = texture2D(u_noiseLut, microUV);
-  float wispyErosion = microSample.b;
+  float wispyErosion = texture2D(u_noiseLut, microUV).b;
   shape -= (1.0 - wispyErosion) * 0.16 * (1.0 - shape);
+  shape *= heightScale;
 
-  // 5. 비대칭 고도 프로파일 (바람 부는 날 실제 적운: 하단 편평 + 상단 흩날림)
-  float baseCut = smoothstep(0.03, 0.20, normHeight);
-  float topFalloff = smoothstep(1.0, 0.62, normHeight);
-  shape *= mix(0.70, 1.25, baseCut * topFalloff);
-
-  // 6. 정밀 운량 임계치 (801/802 조각구름 쾌청한 푸른 하늘 보존)
-  float threshold = 0.79 - coverage * 0.44;
-  return smoothstep(threshold, threshold + 0.13, shape);
+  return smoothstep(u_cloudThreshold, u_cloudThreshold + 0.13, shape);
 }
 
 void main() {
@@ -119,112 +114,124 @@ void main() {
     return;
   }
 
-  // [원근 왜곡 100% 무왜곡 투영]
   vec3 rayDir = normalize(v_viewRay);
   float planeDist = 1.0 / max(0.06, rayDir.y);
   vec2 baseDomeCoord = vec2(rayDir.x, rayDir.z) * planeDist * 0.65;
-  vec2 marchCoord = baseDomeCoord + u_windOffsetLow;
 
-  // 바람 진행 방향 단위 벡터
-  vec2 windDir = normalize(u_windOffsetLow + vec2(0.001, 0.001));
-
-  // [초고속 조기 기각] 맑은 하늘 영역은 레이마칭 자체를 0ms로 스킵
-  vec2 coarseUV = marchCoord * 0.088 + vec2(u_time * 0.0012, 0.0);
-  vec4 macroSample = texture2D(u_noiseLut, coarseUV);
-  float macroThreshold = 0.77 - u_coverage * 0.44;
-  
-  if (macroSample.r < macroThreshold - 0.13 && (u_visibleHigh < 0.5 || u_cloudType >= 0.85)) {
-    discard;
-    return;
+  // [무손실 조기 기각] 804 등 상층운 미표시/고운형 구간에서만 coarseUV 룩업 수행
+  if (u_visibleHigh < 0.5 || u_cloudType >= 0.85) {
+    vec2 coarseUV = (baseDomeCoord + u_windOffsetLow) * 0.088 + vec2(u_timeWarp, 0.0);
+    if (texture2D(u_noiseLut, coarseUV).r < u_macroRejectThresh) {
+      discard;
+      return;
+    }
   }
 
-  // 지평선 원경 페이드
-  float horizonFade = smoothstep(0.02, 0.12, v_uv.y);
+  vec2 rayDirXZ = vec2(rayDir.x, rayDir.z);
 
-  // [광원 및 조명 색상]
-  vec3 normSunDir = normalize(u_sunDir);
-  vec3 normMoonDir = normalize(u_moonDir);
-  bool isSunActive = u_sunAlt > -4.5;
-  vec3 activeLightDir = isSunActive ? normSunDir : normMoonDir;
+  // 지연 공유 조명 상태 (구름이 실제로 존재하는 픽셀에서만 최대 1회 계산)
+  bool lightingReady = false;
+  float cosSun = 0.0;
+  float silverLiningFactor = 0.0;
+  vec3 ambientSky = vec3(0.0);
+  vec3 baseAmbient = vec3(0.0);
+  vec3 sliceDirectLight = vec3(0.0);
+  float lightFacing = 0.35;
 
-  float sunIntensity = smoothstep(-6.0, 2.5, u_sunAlt);
-  float moonIntensity = (1.0 - sunIntensity);
-
-  // 위상 함수 (Mie Forward Scattering)
-  float cosSun = dot(rayDir, normSunDir);
-  float phaseSun = dualHg(cosSun, 0.84, -0.24, 0.80) * 12.56637;
-  float silverLiningFactor = clamp(phaseSun * u_mieIntensity * 0.38 * sunIntensity, 0.0, 2.4);
-
-  if (u_haloStrength > 0.05) {
-    float haloAngleSun = abs(acos(clamp(cosSun, -1.0, 1.0)) - 0.384);
-    silverLiningFactor += smoothstep(0.065, 0.0, haloAngleSun) * u_haloStrength * 0.90 * sunIntensity;
-  }
-
-  // 낮 구름 고반사 순백색 Albedo 및 맑은 파스텔 연하늘빛 그림자
-  vec3 ambientSky = mix(u_skyHorizon, u_skyZenith, clamp(v_uv.y * 1.25, 0.0, 1.0));
-  float sunsetFactor = smoothstep(14.0, -4.0, u_sunAlt) * smoothstep(-8.0, -1.0, u_sunAlt);
-  vec3 sunsetShadowTint = vec3(0.60, 0.48, 0.75); // 라벤더/인디고
-  vec3 standardDayShadow = mix(vec3(0.88, 0.93, 1.0), ambientSky, 0.22);
-  vec3 dayShadowBase = mix(standardDayShadow, sunsetShadowTint, sunsetFactor * 0.65) * mix(1.0, 0.75, u_darkBase);
-  vec3 nightShadowBase = ambientSky * mix(0.70, 0.30, u_darkBase);
-  vec3 baseAmbient = mix(nightShadowBase, dayShadowBase, sunIntensity);
-
-  // 눈부신 1.65배 순백색 직사광
-  vec3 sunRadiance = u_sunColor * 1.65;
-  vec3 moonRadiance = u_moonColor * 1.10;
-  vec3 lightRadiance = mix(moonRadiance * moonIntensity, sunRadiance * sunIntensity, sunIntensity);
-
-  // [실크 스무스 3단계 볼류메트릭 레이마칭]
   vec3 accumColor = vec3(0.0);
   float transmittance = 1.0;
   float totalDensity = 0.0;
-  vec2 rayDirXZ = vec2(rayDir.x, rayDir.z);
 
-  // Slice 1: 하단 밑면 (h = 0.20)
+  // Slice 1: 하단 밑면 (h = 0.20, heightScale = 1.25)
   {
-    float h = 0.20;
-    vec2 p = marchCoord + rayDirXZ * 0.030;
-    float d = sampleCloudDensityOrganic(p, h, u_coverage, u_puffiness, windDir) * u_density;
+    vec2 p = baseDomeCoord + u_shear1 + rayDirXZ * 0.030;
+    float d = sampleCloudDensityOrganic(p, 1.25) * u_density;
     if (d > 0.005) {
-      float lightFacing = clamp(dot(rayDirXZ, activeLightDir.xz) * 0.5 + 0.5, 0.35, 1.0);
-      float shadow = mix(0.55, 1.0, lightFacing * h);
-      vec3 col = baseAmbient * 0.74 + lightRadiance * (shadow * (1.0 + silverLiningFactor * max(0.0, cosSun)));
+      if (!lightingReady) {
+        cosSun = dot(rayDir, u_normSunDir);
+        float phaseSun = mix(hg4Pi(cosSun, 0.9424, 1.0576, -0.48), hg4Pi(cosSun, 0.2944, 1.7056, 1.68), 0.80);
+        silverLiningFactor = clamp(phaseSun * u_mieIntensity * 0.38 * u_sunIntensity, 0.0, 2.4);
+        if (u_haloStrength > 0.05) {
+          float haloAngleSun = abs(acos(clamp(cosSun, -1.0, 1.0)) - 0.384);
+          silverLiningFactor += smoothstep(0.065, 0.0, haloAngleSun) * u_haloStrength * 0.90 * u_sunIntensity;
+        }
+        ambientSky = mix(u_skyHorizon, u_skyZenith, clamp(v_uv.y * 1.25, 0.0, 1.0));
+        vec3 standardDayShadow = mix(vec3(0.88, 0.93, 1.0), ambientSky, 0.22);
+        vec3 dayShadowBase = mix(standardDayShadow, vec3(0.60, 0.48, 0.75), u_sunsetFactor * 0.65) * u_darkBaseScale;
+        vec3 nightShadowBase = ambientSky * u_nightBaseScale;
+        baseAmbient = mix(nightShadowBase, dayShadowBase, u_sunIntensity);
+        lightFacing = clamp(dot(rayDirXZ, u_activeLightDir.xz) * 0.5 + 0.5, 0.35, 1.0);
+        sliceDirectLight = u_lightRadiance * (1.0 + silverLiningFactor * max(0.0, cosSun));
+        lightingReady = true;
+      }
+      float shadow = mix(0.55, 1.0, lightFacing * 0.20);
+      vec3 col = baseAmbient * 0.74 + sliceDirectLight * shadow;
       float sliceD = d * 0.34;
-      float st = exp(-sliceD * 2.2);
+      float st = exp2(-sliceD * 3.173928);
       accumColor += col * (transmittance * (1.0 - st));
       transmittance *= st;
       totalDensity += sliceD;
     }
   }
 
-  // Slice 2: 중간 돔 코어 (h = 0.50)
+  // Slice 2: 중간 돔 코어 (h = 0.50, heightScale = 1.25)
   if (transmittance > 0.02) {
-    float h = 0.50;
-    vec2 p = marchCoord + rayDirXZ * 0.075;
-    float d = sampleCloudDensityOrganic(p, h, u_coverage, u_puffiness, windDir) * u_density;
+    vec2 p = baseDomeCoord + u_shear2 + rayDirXZ * 0.075;
+    float d = sampleCloudDensityOrganic(p, 1.25) * u_density;
     if (d > 0.005) {
-      float lightFacing = clamp(dot(rayDirXZ, activeLightDir.xz) * 0.5 + 0.5, 0.35, 1.0);
-      float shadow = mix(0.55, 1.0, lightFacing * h);
-      vec3 col = baseAmbient * 0.86 + lightRadiance * (shadow * (1.0 + silverLiningFactor * max(0.0, cosSun)));
+      if (!lightingReady) {
+        cosSun = dot(rayDir, u_normSunDir);
+        float phaseSun = mix(hg4Pi(cosSun, 0.9424, 1.0576, -0.48), hg4Pi(cosSun, 0.2944, 1.7056, 1.68), 0.80);
+        silverLiningFactor = clamp(phaseSun * u_mieIntensity * 0.38 * u_sunIntensity, 0.0, 2.4);
+        if (u_haloStrength > 0.05) {
+          float haloAngleSun = abs(acos(clamp(cosSun, -1.0, 1.0)) - 0.384);
+          silverLiningFactor += smoothstep(0.065, 0.0, haloAngleSun) * u_haloStrength * 0.90 * u_sunIntensity;
+        }
+        ambientSky = mix(u_skyHorizon, u_skyZenith, clamp(v_uv.y * 1.25, 0.0, 1.0));
+        vec3 standardDayShadow = mix(vec3(0.88, 0.93, 1.0), ambientSky, 0.22);
+        vec3 dayShadowBase = mix(standardDayShadow, vec3(0.60, 0.48, 0.75), u_sunsetFactor * 0.65) * u_darkBaseScale;
+        vec3 nightShadowBase = ambientSky * u_nightBaseScale;
+        baseAmbient = mix(nightShadowBase, dayShadowBase, u_sunIntensity);
+        lightFacing = clamp(dot(rayDirXZ, u_activeLightDir.xz) * 0.5 + 0.5, 0.35, 1.0);
+        sliceDirectLight = u_lightRadiance * (1.0 + silverLiningFactor * max(0.0, cosSun));
+        lightingReady = true;
+      }
+      float shadow = mix(0.55, 1.0, lightFacing * 0.50);
+      vec3 col = baseAmbient * 0.86 + sliceDirectLight * shadow;
       float sliceD = d * 0.34;
-      float st = exp(-sliceD * 2.2);
+      float st = exp2(-sliceD * 3.173928);
       accumColor += col * (transmittance * (1.0 - st));
       transmittance *= st;
       totalDensity += sliceD;
     }
   }
 
-  // Slice 3: 상단 봉우리 (h = 0.80)
+  // Slice 3: 상단 봉우리 (h = 0.80, heightScale = 0.9966905)
   if (transmittance > 0.02) {
-    float h = 0.80;
-    vec2 p = marchCoord + rayDirXZ * 0.120;
-    float d = sampleCloudDensityOrganic(p, h, u_coverage, u_puffiness, windDir) * u_density;
+    vec2 p = baseDomeCoord + u_shear3 + rayDirXZ * 0.120;
+    float d = sampleCloudDensityOrganic(p, 0.9966905) * u_density;
     if (d > 0.005) {
-      float lightFacing = clamp(dot(rayDirXZ, activeLightDir.xz) * 0.5 + 0.5, 0.35, 1.0);
-      float shadow = mix(0.55, 1.0, lightFacing * h);
-      vec3 col = baseAmbient + lightRadiance * (shadow * (1.0 + silverLiningFactor * max(0.0, cosSun)));
+      if (!lightingReady) {
+        cosSun = dot(rayDir, u_normSunDir);
+        float phaseSun = mix(hg4Pi(cosSun, 0.9424, 1.0576, -0.48), hg4Pi(cosSun, 0.2944, 1.7056, 1.68), 0.80);
+        silverLiningFactor = clamp(phaseSun * u_mieIntensity * 0.38 * u_sunIntensity, 0.0, 2.4);
+        if (u_haloStrength > 0.05) {
+          float haloAngleSun = abs(acos(clamp(cosSun, -1.0, 1.0)) - 0.384);
+          silverLiningFactor += smoothstep(0.065, 0.0, haloAngleSun) * u_haloStrength * 0.90 * u_sunIntensity;
+        }
+        ambientSky = mix(u_skyHorizon, u_skyZenith, clamp(v_uv.y * 1.25, 0.0, 1.0));
+        vec3 standardDayShadow = mix(vec3(0.88, 0.93, 1.0), ambientSky, 0.22);
+        vec3 dayShadowBase = mix(standardDayShadow, vec3(0.60, 0.48, 0.75), u_sunsetFactor * 0.65) * u_darkBaseScale;
+        vec3 nightShadowBase = ambientSky * u_nightBaseScale;
+        baseAmbient = mix(nightShadowBase, dayShadowBase, u_sunIntensity);
+        lightFacing = clamp(dot(rayDirXZ, u_activeLightDir.xz) * 0.5 + 0.5, 0.35, 1.0);
+        sliceDirectLight = u_lightRadiance * (1.0 + silverLiningFactor * max(0.0, cosSun));
+        lightingReady = true;
+      }
+      float shadow = mix(0.55, 1.0, lightFacing * 0.80);
+      vec3 col = baseAmbient + sliceDirectLight * shadow;
       float sliceD = d * 0.34;
-      float st = exp(-sliceD * 2.2);
+      float st = exp2(-sliceD * 3.173928);
       accumColor += col * (transmittance * (1.0 - st));
       transmittance *= st;
       totalDensity += sliceD;
@@ -236,18 +243,33 @@ void main() {
     vec2 cirrusCoord = baseDomeCoord * 1.75 + u_windOffsetHigh * 0.12;
     vec4 cirrusSample = texture2D(u_noiseLut, cirrusCoord * 0.065);
     float cirrusRaw = cirrusSample.b * 0.70 + cirrusSample.r * 0.30;
-    float cirrusThresh = 0.70 - u_coverage * 0.28;
-    float cirrusDensity = smoothstep(cirrusThresh, cirrusThresh + 0.10, cirrusRaw) * (1.0 - u_cloudType) * 0.55 * u_density;
+    float cirrusDensity = smoothstep(u_cirrusThresh, u_cirrusThresh + 0.10, cirrusRaw) * u_cirrusScale;
 
     if (cirrusDensity > 0.005) {
-      vec3 cirrusColor = mix(baseAmbient, sunRadiance * sunIntensity * (1.0 + silverLiningFactor * 0.6), 0.82);
+      if (!lightingReady) {
+        cosSun = dot(rayDir, u_normSunDir);
+        float phaseSun = mix(hg4Pi(cosSun, 0.9424, 1.0576, -0.48), hg4Pi(cosSun, 0.2944, 1.7056, 1.68), 0.80);
+        silverLiningFactor = clamp(phaseSun * u_mieIntensity * 0.38 * u_sunIntensity, 0.0, 2.4);
+        if (u_haloStrength > 0.05) {
+          float haloAngleSun = abs(acos(clamp(cosSun, -1.0, 1.0)) - 0.384);
+          silverLiningFactor += smoothstep(0.065, 0.0, haloAngleSun) * u_haloStrength * 0.90 * u_sunIntensity;
+        }
+        ambientSky = mix(u_skyHorizon, u_skyZenith, clamp(v_uv.y * 1.25, 0.0, 1.0));
+        vec3 standardDayShadow = mix(vec3(0.88, 0.93, 1.0), ambientSky, 0.22);
+        vec3 dayShadowBase = mix(standardDayShadow, vec3(0.60, 0.48, 0.75), u_sunsetFactor * 0.65) * u_darkBaseScale;
+        vec3 nightShadowBase = ambientSky * u_nightBaseScale;
+        baseAmbient = mix(nightShadowBase, dayShadowBase, u_sunIntensity);
+        lightingReady = true;
+      }
+      vec3 cirrusColor = mix(baseAmbient, u_sunRadiance * u_sunIntensity * (1.0 + silverLiningFactor * 0.6), 0.82);
       accumColor += cirrusColor * (transmittance * cirrusDensity);
-      transmittance *= exp(-cirrusDensity * 1.2);
+      transmittance *= exp2(-cirrusDensity * 1.731234);
       totalDensity += cirrusDensity;
     }
   }
 
   // 지평선 원경 대기 페이딩 적용
+  float horizonFade = smoothstep(0.02, 0.12, v_uv.y);
   accumColor *= horizonFade;
   totalDensity *= horizonFade;
 
@@ -258,9 +280,10 @@ void main() {
 
   // [D] 크레퍼스큘러 갓레이(Crepuscular God Rays)
   if (u_sunAlt > -4.0 && cosSun > 0.40) {
-    float godRayRadial = pow(max(0.0, cosSun), 7.0);
+    float c2 = cosSun * cosSun;
+    float godRayRadial = c2 * c2 * c2 * cosSun;
     float gapMask = smoothstep(0.08, 0.45, transmittance) * smoothstep(0.92, 0.40, transmittance);
-    float godRayIntensity = godRayRadial * gapMask * sunIntensity * 0.60;
+    float godRayIntensity = godRayRadial * gapMask * u_sunIntensity * 0.60;
     accumColor += u_sunColor * godRayIntensity;
   }
 
@@ -269,15 +292,13 @@ void main() {
   accumColor = mix(accumColor, u_skyHorizon, aerialHaze * 0.38);
 
   // [F] 흐린 날(804) 폭풍우 틴팅
-  if (u_ambientDull > 0.02) {
-    float dullFactor = clamp(u_ambientDull, 0.0, 0.26);
-    vec3 stormTone = mix(ambientSky * 0.65, vec3(0.55, 0.58, 0.65) * max(0.08, sunIntensity), 0.70);
-    accumColor = mix(accumColor, stormTone, dullFactor);
+  if (u_dullFactor > 0.0) {
+    vec3 stormTone = mix(ambientSky * 0.65, u_stormBase, 0.70);
+    accumColor = mix(accumColor, stormTone, u_dullFactor);
   }
 
-  // [G] Filmic Extended Reinhard 톤 매핑
-  float whitePoint = 1.75;
-  accumColor = (accumColor * (vec3(1.0) + accumColor / (whitePoint * whitePoint))) / (vec3(1.0) + accumColor);
+  // [G] Filmic Extended Reinhard 톤 매핑 (whitePoint = 1.75 => 1 / wp^2 = 0.32653061)
+  accumColor = (accumColor * (vec3(1.0) + accumColor * 0.32653061)) / (vec3(1.0) + accumColor);
   accumColor = clamp(accumColor, 0.0, 1.0);
 
   float finalAlpha = clamp(1.0 - transmittance, 0.0, 1.0);

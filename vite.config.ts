@@ -1,151 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
-import net from "net";
-
-function parseCookies(cookieStr: string | undefined): Record<string, string> {
-  const cookies: Record<string, string> = {};
-  if (!cookieStr) return cookies;
-  for (const pair of cookieStr.split(";")) {
-    const [key, ...rest] = pair.trim().split("=");
-    if (key) cookies[key.trim()] = rest.join("=");
-  }
-  return cookies;
-}
-
-function authDevMiddleware(req: any, res: any, next: any) {
-  const url = req.url ? new URL(req.url, `http://${req.headers.host}`) : null;
-  if (!url) return next();
-
-  if (url.pathname === "/api/auth-callback") {
-    if (req.method === "POST") {
-      let body = "";
-      req.on("data", (chunk: any) => { body += chunk; });
-      req.on("end", async () => {
-        let ticket = "";
-        let token = "";
-        let uid = "";
-        let email = "";
-
-        const contentType = req.headers["content-type"] || "";
-        if (contentType.includes("application/x-www-form-urlencoded")) {
-          const params = new URLSearchParams(body);
-          ticket = params.get("ticket") || "";
-          token = params.get("token") || "";
-          uid = params.get("uid") || "";
-          email = params.get("email") || "";
-        } else if (contentType.includes("multipart/form-data")) {
-          const boundaryMatch = contentType.match(/boundary=(.+)$/);
-          const boundary = boundaryMatch ? boundaryMatch[1].trim() : "";
-          if (boundary) {
-            const parts = body.split(`--${boundary}`);
-            for (const part of parts) {
-              const nameMatch = part.match(/name="([^"]+)"/);
-              if (nameMatch) {
-                const name = nameMatch[1];
-                const content = part.split("\r\n\r\n")[1]?.split("\r\n--")[0]?.trim() || "";
-                if (name === "ticket") ticket = content;
-                if (name === "token") token = content;
-                if (name === "uid") uid = content;
-                if (name === "email") email = content;
-              }
-            }
-          }
-        }
-
-        // 중앙 인증 서버로 티켓 검증 요청
-        let emailVerified = false;
-        if (ticket) {
-          try {
-            const verifyRes = await fetch("https://login.knoblab.xyz/api/verify-sso-ticket", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Origin": "https://cnsh.life",
-              },
-              body: JSON.stringify({
-                ticket,
-                targetOrigin: "https://cnsh.life",
-              }),
-            });
-            if (verifyRes.ok) {
-              const data = (await verifyRes.json()) as any;
-              if (data?.valid && data?.uid) {
-                uid = data.uid;
-                email = data.email || "";
-                emailVerified = data.emailVerified === true;
-              }
-            }
-          } catch (e) {
-            console.warn("Dev ticket verification warning:", e);
-          }
-        }
-
-        if (uid || token) {
-          const cookieOpts = "Path=/; Max-Age=604800; HttpOnly; SameSite=Lax";
-          res.setHeader("Set-Cookie", [
-            `session_uid=${encodeURIComponent(uid || "dev_user")}; ${cookieOpts}`,
-            `session_email=${encodeURIComponent(email)}; ${cookieOpts}`,
-            `session_email_verified=${emailVerified ? "true" : "false"}; ${cookieOpts}`,
-            `session_token=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax`,
-          ]);
-        }
-
-        res.statusCode = 302;
-        res.setHeader("Location", "/");
-        res.end();
-      });
-      return;
-    } else {
-      res.statusCode = 302;
-      res.setHeader("Location", "/");
-      res.end();
-      return;
-    }
-  }
-
-  if (url.pathname === "/api/me") {
-    const cookies = parseCookies(req.headers.cookie);
-    const uid = cookies["session_uid"];
-    const email = cookies["session_email"];
-    const emailVerified = cookies["session_email_verified"] === "true";
-    const token = cookies["session_token"];
-
-    res.setHeader("Content-Type", "application/json");
-    res.setHeader("Cache-Control", "no-store");
-
-    if (uid) {
-      res.statusCode = 200;
-      res.end(JSON.stringify({
-        authenticated: true,
-        uid: decodeURIComponent(uid),
-        email: decodeURIComponent(email || ""),
-        emailVerified,
-        token: token ? decodeURIComponent(token) : "",
-      }));
-    } else {
-      res.statusCode = 401;
-      res.end(JSON.stringify({ authenticated: false }));
-    }
-    return;
-  }
-
-  if (url.pathname === "/api/logout") {
-    const clearOpts = "Path=/; Max-Age=0; HttpOnly; SameSite=Lax";
-    res.setHeader("Set-Cookie", [
-      `session_token=; ${clearOpts}`,
-      `session_uid=; ${clearOpts}`,
-      `session_email=; ${clearOpts}`,
-      `session_email_verified=; ${clearOpts}`,
-    ]);
-    res.setHeader("Content-Type", "application/json");
-    res.statusCode = 200;
-    res.end(JSON.stringify({ success: true }));
-    return;
-  }
-
-  next();
-}
+import http from "http";
+import crypto from "crypto";
 
 function marketProxyMiddleware(req: any, res: any, next: any) {
   if (req.url?.startsWith("/api/naver-market")) {
@@ -317,26 +174,123 @@ function tickerSearchMiddleware(req: any, res: any, next: any) {
   next();
 }
 
+const COMCIGAN_HOST = "comci.net";
+const COMCIGAN_PORT = 4082;
+const COMCIGAN_SCHOOL_CODE = 34089;
+
 let devCachedTimetable: any = null;
 let devCacheTimestamp = 0;
 const DEV_CACHE_TTL_MS = 5 * 60 * 1000;
 
-function fetchComciTcp(path: string): Promise<string> {
+function fetchComciganHttp(path: string, headers: Record<string, string> = {}): Promise<{ statusCode: number; headers: http.IncomingHttpHeaders; body: string }> {
   return new Promise((resolve, reject) => {
-    const client = net.connect({ host: "comci.net", port: 4082 }, () => {
-      client.write(`GET ${path} HTTP/1.1\r\nHost: comci.net:4082\r\nUser-Agent: Mozilla/5.0\r\nConnection: close\r\n\r\n`);
+    const req = http.request(
+      {
+        host: COMCIGAN_HOST,
+        port: COMCIGAN_PORT,
+        path,
+        method: "GET",
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+          Accept: "*/*",
+          Connection: "close",
+          ...headers,
+        },
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        let totalBytes = 0;
+        res.on("data", (chunk: Buffer) => {
+          totalBytes += chunk.length;
+          if (totalBytes > 2 * 1024 * 1024) {
+            req.destroy(new Error("Comcigan response payload exceeded maximum limit of 2MB"));
+            return;
+          }
+          chunks.push(chunk);
+        });
+        res.on("end", () => {
+          resolve({
+            statusCode: res.statusCode || 0,
+            headers: res.headers || {},
+            body: Buffer.concat(chunks).toString("utf-8"),
+          });
+        });
+      }
+    );
+    req.setTimeout(6000, () => {
+      req.destroy(new Error("컴시간 연결 시간 초과"));
     });
-    const chunks: Buffer[] = [];
-    client.on("data", (d) => chunks.push(d));
-    client.on("end", () => {
-      const buf = Buffer.concat(chunks);
-      resolve(buf.toString("utf8"));
-    });
-    client.on("error", reject);
+    req.on("error", reject);
+    req.end();
   });
 }
 
-function parseComciganJsonDev(json: any) {
+function decodeComciganObfuscatedBlocks(source: string, marker: string): string[] {
+  const blocks: string[] = [];
+  let pos = 0;
+  while ((pos = source.indexOf(marker, pos)) !== -1) {
+    const argStart = source.indexOf("([[", pos);
+    const argEnd = source.indexOf(");", argStart);
+    if (argStart === -1 || argEnd === -1) break;
+    const [arr, key] = JSON.parse("[" + source.slice(argStart + 1, argEnd) + "]");
+    let decoded = "";
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i][0]) {
+        decoded += arr[i][1];
+        continue;
+      }
+      const hex = arr[i][1];
+      for (let j = 0; j < hex.length; j += 4) {
+        decoded += String.fromCharCode(parseInt(hex.substr(j, 4), 16) ^ ((key + (j / 4) * 13) & 255));
+      }
+    }
+    blocks.push(decoded);
+    pos = argEnd + 2;
+  }
+  return blocks;
+}
+
+function decodeComciganText(encoded: any, xorKey: string): string {
+  if (!encoded) return "";
+  if (!xorKey) return String(encoded);
+  const buf = Buffer.from(String(encoded), "base64");
+  const bytes = new Uint8Array(buf.length);
+  for (let i = 0; i < buf.length; i++) {
+    bytes[i] = buf[i] ^ xorKey.charCodeAt(i % xorKey.length);
+  }
+  return new TextDecoder("euc-kr", { fatal: false }).decode(bytes);
+}
+
+function decryptComciganPayload(rawData: string, aesKey: Buffer | null): string {
+  const cleaned = String(rawData || "").replace(/\x00+$/, "");
+  if (cleaned.startsWith("{")) {
+    return cleaned;
+  }
+  const parts = cleaned.split(":");
+  if (parts.length !== 4 || !parts[0]) {
+    return cleaned;
+  }
+  if (!aesKey) {
+    throw new Error("컴시간 복호화 키를 찾을 수 없습니다.");
+  }
+  const encoding: BufferEncoding = parts[0] === "enc1" ? "hex" : "base64";
+  const iv = Buffer.from(parts[1], encoding);
+  const ciphertext = Buffer.from(parts[2], encoding);
+  const tag = Buffer.from(parts[3], encoding);
+
+  const hmacKey = crypto.createHash("sha256").update(aesKey).digest();
+  const expectedTag = crypto.createHmac("sha256", hmacKey).update(parts.slice(0, 3).join(":")).digest();
+  if (tag.length !== expectedTag.length || !crypto.timingSafeEqual(tag, expectedTag)) {
+    throw new Error("컴시간 시간표 데이터 HMAC 인증 실패");
+  }
+
+  const decipher = crypto.createDecipheriv("aes-256-cbc", aesKey, iv);
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()])
+    .toString("utf8")
+    .replace(/\x00+$/, "");
+}
+
+function parseComciganJsonDev(json: any, xorKey = "", fieldMap: Record<string, string | undefined> = {}) {
   const result: Record<string, Record<string, Record<string, string[]>>> = {
     "1": {},
     "2": {},
@@ -344,10 +298,19 @@ function parseComciganJsonDev(json: any) {
   };
   const DAYS = ["월", "화", "수", "목", "금"];
   const 분리 = json.분리 || 100;
-  const subjects: string[] = json.자료492 || [];
-  const teachers: string[] = json.자료446 || [];
-  const rawDefault = json.자료481;
-  const rawDaily = json.자료147;
+  const rawSubjects: any[] = (fieldMap.subjectKey && json[fieldMap.subjectKey]) || json.자료173 || json.자료492 || [];
+  const rawTeachers: any[] = (fieldMap.teacherKey && json[fieldMap.teacherKey]) || json.자료194 || json.자료446 || [];
+  const subjects: string[] = rawSubjects.map((v) => (v ? decodeComciganText(v, xorKey) : ""));
+  const teachers: string[] = rawTeachers.map((v) => {
+    if (!v) return "";
+    const name = decodeComciganText(v, xorKey);
+    if ((name.includes("*") && !name.startsWith("*") && !name.endsWith("*")) || (name.length === 2 && name[1] === "*")) {
+      return name;
+    }
+    return name.replace("*", "");
+  });
+  const rawDefault = (fieldMap.defaultKey && json[fieldMap.defaultKey]) || json.자료162 || json.자료481;
+  const rawDaily = (fieldMap.dailyKey && json[fieldMap.dailyKey]) || json.자료152 || json.자료147;
 
   function splitData(dat: any): number[] {
     if (!dat) return [0, 0];
@@ -380,7 +343,7 @@ function parseComciganJsonDev(json: any) {
       if (학년 === 학년2 && 반 === 반2 && 과목 === 과목2) {
         대상그룹 = 그룹;
       }
-      const rawVal = 자료.자료147?.[학년2]?.[반2]?.[요일]?.[교시] ?? 0;
+      const rawVal = ((fieldMap.dailyKey && 자료[fieldMap.dailyKey]) || 자료.자료152 || 자료.자료147)?.[학년2]?.[반2]?.[요일]?.[교시] ?? 0;
       const m3 = typeof rawVal === "string" && rawVal.startsWith(">") ? Number(rawVal.substring(1)) : Number(rawVal);
       const 과목3 = Math.floor(m3 / 1000);
       const 교사2 = m3 - 과목3 * 1000;
@@ -531,31 +494,96 @@ function timetableProxyMiddleware(req: any, res: any, next: any) {
       }
 
       try {
-        const pageHtml = await fetchComciTcp("/st");
-        const idx = pageHtml.indexOf("school_ra(sc)");
-        const idx2 = pageHtml.indexOf("sc_data('");
+        const stRes = await fetchComciganHttp("/st");
+        const pageHtml = stRes.body;
+        const cookies = (stRes.headers["set-cookie"] || []).map((c: string) => c.split(";")[0]).join("; ");
+        const tokenMatch = pageHtml.match(/window\.__HourRequestToken\s*=\s*'([^']+)'/);
+        const hourToken = tokenMatch ? tokenMatch[1] : "";
 
-        if (idx === -1 || idx2 === -1) {
-          throw new Error("컴시간 식별 코드를 찾을 수 없습니다.");
+        let dataPath = "";
+        let xorKey = "";
+        let aesKey: Buffer | null = null;
+        const fieldMap: Record<string, string | undefined> = {};
+
+        if (pageHtml.includes("/* hour-obfuscated-v2 */")) {
+          const outerBlocks = decodeComciganObfuscatedBlocks(pageHtml, "/* hour-obfuscated-v2 */");
+          const mainScript = outerBlocks[0] || "";
+          const nestedScript = decodeComciganObfuscatedBlocks(mainScript, "/* hour-ajax-obfuscated-v1 */").join("\n");
+
+          const timetableAjaxMatch = nestedScript.match(
+            /function\s+(\w+)\s*\(\s*sc\s*,\s*sc2\s*,\s*da1\s*,\s*r\s*,\s*success\s*\)[\s\S]*?url:'\.([^']+)'[\s\S]*?btoa\([^)]*?'(_[^']+)'\)/
+          );
+          if (!timetableAjaxMatch) {
+            throw new Error("컴시간 시간표 API 엔드포인트를 찾을 수 없습니다.");
+          }
+
+          const ajaxTimetableFn = timetableAjaxMatch[1];
+          const endpoint = timetableAjaxMatch[2].split("?")[0];
+          const querySuffix = timetableAjaxMatch[3];
+
+          const scDataFnMatch = mainScript.match(
+            new RegExp(`function\\s+(\\w+)\\s*\\(\\s*sc\\s*,\\s*sc2\\s*,\\s*r\\s*,\\s*nw\\s*\\)[\\s\\S]*?${ajaxTimetableFn}\\(sc,`)
+          );
+          const scDataFn = scDataFnMatch ? scDataFnMatch[1] : "sc_data";
+          const scPrefixMatch = mainScript.match(new RegExp(`${scDataFn}\\('([^']+)'`));
+          if (!scPrefixMatch) {
+            throw new Error("컴시간 학교 접두사 파라미터를 찾을 수 없습니다.");
+          }
+          const scPrefix = scPrefixMatch[1];
+
+          const s7 = scPrefix + COMCIGAN_SCHOOL_CODE;
+          const base64Query = Buffer.from(`${s7}_0_1${querySuffix}`).toString("base64");
+          dataPath = `${endpoint}?${base64Query}`;
+
+          const qKeyMatch = nestedScript.match(/String\.fromCharCode\(([\d,\s]+)\)[\s\S]*?TextDecoder\('euc-kr'/);
+          if (qKeyMatch) {
+            xorKey = qKeyMatch[1].split(",").map((n) => String.fromCharCode(Number(n.trim()))).join("");
+          }
+
+          const hKeyMatch = nestedScript.match(/CryptoJS\.enc\.Hex\.parse\(\(function\(a\)\{return\s+([^;]+);\}\)\(\[([^\]]+)\]\)\)/);
+          if (hKeyMatch) {
+            const partsArr = JSON.parse("[" + hKeyMatch[2].replace(/'/g, '"') + "]");
+            const orderMatches = [...hKeyMatch[1].matchAll(/a\[(\d+)\]/g)].map((m) => Number(m[1]));
+            const aesKeyHex = orderMatches.map((idx) => partsArr[idx]).join("");
+            aesKey = Buffer.from(aesKeyHex, "hex");
+          }
+
+          fieldMap.defaultKey = mainScript.match(/원자료=Q자료\(자료\.([A-Za-z0-9_가-힣]+)\[학년\]/)?.[1];
+          fieldMap.dailyKey = mainScript.match(/일일자료=Q자료\(자료\.([A-Za-z0-9_가-힣]+)\[학년\]/)?.[1];
+          fieldMap.teacherKey = mainScript.match(/성명=\w+\(자료\.([A-Za-z0-9_가-힣]+)\[th\]\)/)?.[1];
+          fieldMap.subjectKey = mainScript.match(/과목명=\w+\(자료\.([A-Za-z0-9_가-힣]+)\[sb\]\)/)?.[1];
+        } else {
+          const idx = pageHtml.indexOf("school_ra(sc)");
+          const idx2 = pageHtml.indexOf("sc_data('");
+          if (idx === -1 || idx2 === -1) {
+            throw new Error("컴시간 식별 코드를 찾을 수 없습니다.");
+          }
+          const extractSchoolRa = pageHtml.substr(idx, 50).replace(/\s/g, "");
+          const schoolRaMatch = extractSchoolRa.match(/url:'.(.*?)'/);
+          const extractScData = pageHtml.substr(idx2, 30).replace(/\s/g, "");
+          const scDataMatch = extractScData.match(/\(.*?\)/);
+          if (!schoolRaMatch || !scDataMatch) {
+            throw new Error("컴시간 파라미터 매칭 실패");
+          }
+          const extractCode = schoolRaMatch[1];
+          const scData = scDataMatch[0].replace(/[()]/g, "").replace(/'/g, "").split(",");
+          const s7 = scData[0] + COMCIGAN_SCHOOL_CODE;
+          const base64Query = Buffer.from(s7 + "_0_" + scData[2]).toString("base64");
+          dataPath = extractCode.split("?")[0] + "?" + base64Query;
         }
 
-        const extractSchoolRa = pageHtml.substr(idx, 50).replace(/\s/g, "");
-        const schoolRaMatch = extractSchoolRa.match(/url:'.(.*?)'/);
-        const extractScData = pageHtml.substr(idx2, 30).replace(/\s/g, "");
-        const scDataMatch = extractScData.match(/\(.*?\)/);
+        const requestHeaders: Record<string, string> = {
+          Referer: `http://${COMCIGAN_HOST}:${COMCIGAN_PORT}/st`,
+        };
+        if (cookies) requestHeaders.Cookie = cookies;
+        if (hourToken) requestHeaders["X-Hour-Token"] = hourToken;
 
-        if (!schoolRaMatch || !scDataMatch) {
-          throw new Error("컴시간 파라미터 매칭 실패");
+        const dataRes = await fetchComciganHttp(dataPath, requestHeaders);
+        if (dataRes.statusCode >= 400) {
+          throw new Error(`컴시간 데이터 요청 실패 (HTTP ${dataRes.statusCode})`);
         }
 
-        const extractCode = schoolRaMatch[1];
-        const scData = scDataMatch[0].replace(/[()]/g, "").replace(/'/g, "").split(",");
-
-        const s7 = scData[0] + 34089;
-        const base64Query = Buffer.from(s7 + "_0_" + scData[2]).toString("base64");
-        const dataPath = extractCode.split("?")[0] + "?" + base64Query;
-
-        const dataRaw = await fetchComciTcp(dataPath);
+        const dataRaw = decryptComciganPayload(dataRes.body, aesKey);
         const jsonStart = dataRaw.indexOf("{");
         const jsonEnd = dataRaw.lastIndexOf("}");
         if (jsonStart === -1 || jsonEnd === -1) {
@@ -563,7 +591,7 @@ function timetableProxyMiddleware(req: any, res: any, next: any) {
         }
 
         const json = JSON.parse(dataRaw.substring(jsonStart, jsonEnd + 1));
-        const timetable = parseComciganJsonDev(json);
+        const timetable = parseComciganJsonDev(json, xorKey, fieldMap);
 
         devCachedTimetable = timetable;
         devCacheTimestamp = now;
@@ -601,15 +629,6 @@ function timetableProxyMiddleware(req: any, res: any, next: any) {
 export default defineConfig({
   plugins: [
     react(),
-    {
-      name: "auth-dev-proxy",
-      configureServer(server) {
-        server.middlewares.use(authDevMiddleware);
-      },
-      configurePreviewServer(server) {
-        server.middlewares.use(authDevMiddleware);
-      }
-    },
     {
       name: "naver-market-proxy",
       configureServer(server) {

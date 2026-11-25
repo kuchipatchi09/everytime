@@ -12,15 +12,21 @@
  * - A: 대류 유동 왜곡 맵 (Curl / Advection Field)
  */
 
-export function createNoiseTexture(gl: WebGLRenderingContext): WebGLTexture | null {
+let cachedNoiseData: Uint8Array | null = null;
+
+function generateNoiseBytes(): Uint8Array {
+  if (cachedNoiseData) return cachedNoiseData;
+
   const size = 256;
   const data = new Uint8Array(size * size * 4);
 
   // 1. 심리스 의사 난수 해시 그리드 (Periodic Hash Grid for seamless tiling)
   function hash2D(x: number, y: number, period: number): number {
-    const px = ((x % period) + period) % period;
-    const py = ((y % period) + period) % period;
-    let n = Math.sin(px * 127.1 + py * 311.7) * 43758.5453123;
+    const mask = period - 1;
+    const isPow2 = (period & mask) === 0;
+    const px = isPow2 ? (x & mask) : (((x % period) + period) % period);
+    const py = isPow2 ? (y & mask) : (((y % period) + period) % period);
+    const n = Math.sin(px * 127.1 + py * 311.7) * 43758.5453123;
     return n - Math.floor(n);
   }
 
@@ -61,14 +67,14 @@ export function createNoiseTexture(gl: WebGLRenderingContext): WebGLTexture | nu
     return sum / maxAmp;
   }
 
-  // 4. 심리스 주기적 Worley (Cellular) 노이즈 (Inverted for billowy clouds)
+  // 4. 심리스 주기적 Worley (Cellular) 노이즈 (제곱 거리 비교로 sqrt 호출 9x 절감)
   function periodicWorley(x: number, y: number, period: number): number {
     const xi = Math.floor(x);
     const yi = Math.floor(y);
     const xf = x - xi;
     const yf = y - yi;
 
-    let minDist = 1.0;
+    let minDistSq = 1.0;
 
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
@@ -77,13 +83,15 @@ export function createNoiseTexture(gl: WebGLRenderingContext): WebGLTexture | nu
         const hx = hash2D(cx, cy, period);
         const hy = hash2D(cx + 31, cy + 17, period);
 
-        const dist = Math.hypot(dx + hx - xf, dy + hy - yf);
-        if (dist < minDist) {
-          minDist = dist;
+        const rx = dx + hx - xf;
+        const ry = dy + hy - yf;
+        const distSq = rx * rx + ry * ry;
+        if (distSq < minDistSq) {
+          minDistSq = distSq;
         }
       }
     }
-    return Math.min(1.0, minDist);
+    return Math.sqrt(minDistSq);
   }
 
   // 5. 텍스처 데이터 생성 루프
@@ -118,6 +126,14 @@ export function createNoiseTexture(gl: WebGLRenderingContext): WebGLTexture | nu
       data[ptr++] = Math.round(aVal * 255);
     }
   }
+
+  cachedNoiseData = data;
+  return data;
+}
+
+export function createNoiseTexture(gl: WebGLRenderingContext): WebGLTexture | null {
+  const size = 256;
+  const data = generateNoiseBytes();
 
   // 6. WebGL 텍스처 생성 및 바인딩
   const tex = gl.createTexture();

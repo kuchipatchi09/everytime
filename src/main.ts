@@ -3,25 +3,20 @@ import "./styles/styles.css";
 import { $, showToast } from "./utils/dom";
 import { esc } from "./utils/escape";
 import {
+  getAgreedAt,
   getSavedClass,
   getSavedName,
+  getSavedStudentNum,
   getSavedTickers,
+  hasAgreedTerms,
   setSavedClass,
   setSavedName,
+  setSavedStudentNum,
   setSavedTickers,
-} from "./utils/storage";
-import {
-  checkAuth,
-  getAuthUser,
-  loginWithKnoblab,
-  logout,
-  onAuthStateChange,
-  hasAgreedTerms,
   setTermsAgreement,
-  updateUserProfileOnServer,
-} from "./utils/auth";
+} from "./utils/storage";
 import { TickerConfigItem } from "./types/market";
-import { renderDashboard, stopNowCardContinuousTicker, exitNowFullscreen, updateDashboardClassAndTimetable } from "./views/dashboardView";
+import { renderDashboard, stopNowCardContinuousTicker, exitNowFullscreen } from "./views/dashboardView";
 import { renderTimetable } from "./views/timetableView";
 import { renderAfterschool } from "./views/afterschoolView";
 import { renderMeals, setMealCode } from "./views/mealView";
@@ -170,7 +165,6 @@ function initTopClassBadge(): void {
 function updateProfileTermsUI(): void {
   const statusEl = $("#profile-terms-status");
   const dateEl = $("#profile-terms-date");
-  const user = getAuthUser();
   const agreed = hasAgreedTerms();
 
   if (statusEl) {
@@ -184,13 +178,7 @@ function updateProfileTermsUI(): void {
   }
 
   if (dateEl) {
-    let dateVal = user?.agreedAt;
-    if (!dateVal) {
-      try {
-        const saved = localStorage.getItem("asterisk_agreed_at");
-        if (saved) dateVal = Number(saved);
-      } catch (_) {}
-    }
+    const dateVal = getAgreedAt();
     if (dateVal) {
       const d = new Date(dateVal);
       dateEl.textContent = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
@@ -257,35 +245,22 @@ function initWelcomeModal(): void {
   const welcomeModal = $("#welcome");
   const nameInput = $<HTMLInputElement>("#name-input");
   const guestForm = $("#welcome-guest-form");
-  const knoblabBtn = $("#welcome-btn-knoblab");
 
-  const authUser = getAuthUser();
   const savedName = getSavedName();
 
   if (!savedName) {
-    if (authUser?.email) {
-      const emailPrefix = authUser.email.split("@")[0];
-      nameInput.value = emailPrefix;
-      setSavedName(emailPrefix);
-    } else {
-      welcomeModal.classList.remove("hidden");
-      setTimeout(() => nameInput.focus(), 0);
-    }
+    welcomeModal.classList.remove("hidden");
+    setTimeout(() => nameInput.focus(), 0);
   }
 
-  // Knoblab SSO 통합 로그인 버튼
-  knoblabBtn?.addEventListener("click", () => {
-    loginWithKnoblab();
-  });
-
-  // 게스트 모드 닉네임 입력 폼 제출
+  // 닉네임 입력 폼 제출
   guestForm?.addEventListener("submit", (e) => {
     e.preventDefault();
     const value = nameInput.value.trim();
     if (!value) return;
     setSavedName(value);
     welcomeModal.classList.add("hidden");
-    showToast(`${value}님, 환영합니다! (게스트 모드)`);
+    showToast(`${value}님, 환영합니다!`);
     updateAuthUI();
     switchTab("메인");
   });
@@ -321,7 +296,7 @@ function initNameChangeModal(): void {
     if (e.target === modal) closeNameChangeModal();
   });
 
-  form?.addEventListener("submit", async (e) => {
+  form?.addEventListener("submit", (e) => {
     e.preventDefault();
     const newName = input.value.trim();
     if (!newName) return;
@@ -332,71 +307,22 @@ function initNameChangeModal(): void {
     if (currentTab === "메인") {
       switchTab("메인", false);
     }
-
-    const authUser = getAuthUser();
-    if (authUser) {
-      updateUserProfileOnServer({ displayName: newName }).catch((err) => {
-        console.warn("chating-main 이름 동기화 오류:", err);
-      });
-    }
   });
 }
 
-import {
-  fetchMyStock,
-  submitStudentStock,
-} from "./services/studentStockApi";
 import { searchTickers } from "./services/marketService";
-import { StudentStockSubmission } from "./types/studentStock";
 
 export function openProfileModal(): void {
   updateProfileTermsUI();
   const modal = $("#profile-modal");
-  const user = getAuthUser();
   const savedName = getSavedName() || "학생";
 
   const nameInput = $<HTMLInputElement>("#profile-name-input");
-  const displayEmailEl = $("#profile-display-email");
-  const displayUidEl = $("#profile-display-uid");
-  const logoutBtn = $("#profile-btn-logout");
-
   if (nameInput) nameInput.value = savedName;
-  if (displayEmailEl) displayEmailEl.textContent = user?.email || "게스트 모드 (미연동)";
-  if (displayUidEl) displayUidEl.textContent = user?.uid || "Local Guest";
-
-  if (logoutBtn) {
-    if (user) {
-      logoutBtn.textContent = "로그아웃";
-      logoutBtn.className = "btn-profile-auth-action is-logout";
-    } else {
-      logoutBtn.textContent = "Knoblab 계정으로 로그인";
-      logoutBtn.className = "btn-profile-auth-action is-login";
-    }
-  }
-
 
   loadProfileStockData();
 
   modal.classList.remove("hidden");
-}
-
-const STORAGE_KEY_PENDING_STOCK = "pending_student_stock_submission";
-
-export function getPendingStockSubmission(): StudentStockSubmission | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_PENDING_STOCK);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function setPendingStockSubmission(data: StudentStockSubmission | null): void {
-  if (data) {
-    localStorage.setItem(STORAGE_KEY_PENDING_STOCK, JSON.stringify(data));
-  } else {
-    localStorage.removeItem(STORAGE_KEY_PENDING_STOCK);
-  }
 }
 
 export function closeProfileModal(): void {
@@ -404,78 +330,7 @@ export function closeProfileModal(): void {
   modal.classList.add("hidden");
 }
 
-/**
- * 서버에서 내 학년/반/번호 및 주식 티커 데이터를 조회하여 로컬 스토리지와 UI(상단 바 포함)에 동기화합니다.
- * 대기 중이던 미반영 설정(Pending submission)이 있으면 먼저 서버로 전송합니다.
- */
-export async function syncUserDataFromServer(): Promise<void> {
-  const user = getAuthUser();
-  if (!user) return;
-
-  // 1. 대기 중이던 저장 요청이 있으면 서버에 먼저 전송하여 자동 적용
-  const pending = getPendingStockSubmission();
-  if (pending) {
-    try {
-      await submitStudentStock(pending);
-      setPendingStockSubmission(null);
-      showToast("로그인 완료: 저장 대기 중이던 설정이 서버에 성공적으로 동기화되었습니다.");
-    } catch (err: any) {
-      console.warn("대기 중인 설정 동기화 실패:", err);
-    }
-  }
-
-  // 2. 서버의 최신 정보로 UI 동기화
-  try {
-    const data = await fetchMyStock();
-    if (!data) return;
-
-    if (data.grade && data.class_num) {
-      // chating-main에 설정된 학년/반이 있다면 최우선 적용, 없을 때만 워커 데이터 폴백
-      const g = (user.schoolGrade || String(data.grade)) as GradeNumber;
-      const c = (user.schoolClass || String(data.class_num)) as ClassNumber;
-      setSavedClass({ g, c });
-
-      // 상단 바 학년/반 텍스트 배지 동기화
-      updateTopClassBadge();
-
-      // 프로필 모달 입력창 동기화
-      const profileGrade = $<HTMLSelectElement>("#profile-stock-grade");
-      const profileClass = $<HTMLInputElement>("#profile-stock-class");
-      const profileNum = $<HTMLInputElement>("#profile-stock-num");
-      if (profileGrade) profileGrade.value = g;
-      if (profileClass) profileClass.value = c;
-      if (profileNum && data.student_num) profileNum.value = String(data.student_num);
-    }
-
-    // 주식 티커 동기화
-    const syncedTickers: TickerConfigItem[] = [
-      { name: data.ticker_1, symbol: data.ticker_1, code: data.ticker_1, unit: "pt" },
-      { name: data.ticker_2, symbol: data.ticker_2, code: data.ticker_2, unit: "pt" },
-      { name: data.ticker_3, symbol: data.ticker_3, code: data.ticker_3, unit: "pt" },
-    ].filter((t) => t.code);
-    if (syncedTickers.length > 0) {
-      setSavedTickers(syncedTickers);
-    }
-
-    const ticker1Input = $<HTMLInputElement>("#profile-stock-ticker-1");
-    const ticker2Input = $<HTMLInputElement>("#profile-stock-ticker-2");
-    const ticker3Input = $<HTMLInputElement>("#profile-stock-ticker-3");
-    if (ticker1Input && data.ticker_1) ticker1Input.value = data.ticker_1.toUpperCase();
-    if (ticker2Input && data.ticker_2) ticker2Input.value = data.ticker_2.toUpperCase();
-    if (ticker3Input && data.ticker_3) ticker3Input.value = data.ticker_3.toUpperCase();
-
-    if (currentTab === "메인") {
-      updateDashboardClassAndTimetable();
-    } else {
-      renderActiveView();
-    }
-  } catch (err: any) {
-    console.warn("서버 데이터 동기화 실패:", err);
-  }
-}
-
-async function loadProfileStockData(): Promise<void> {
-  const user = getAuthUser();
+function loadProfileStockData(): void {
   const statusBadge = $("#profile-stock-status-badge");
   const nameInput = $<HTMLInputElement>("#profile-name-input");
   const gradeSelect = $<HTMLSelectElement>("#profile-stock-grade");
@@ -492,6 +347,9 @@ async function loadProfileStockData(): Promise<void> {
   if (gradeSelect) gradeSelect.value = localClass.g;
   if (classInput && !classInput.value) classInput.value = localClass.c;
 
+  const localNum = getSavedStudentNum();
+  if (numInput && !numInput.value && localNum) numInput.value = String(localNum);
+
   const localTickers = getSavedTickers();
   if (ticker1Input && !ticker1Input.value && localTickers[0]) ticker1Input.value = localTickers[0].symbol;
   if (ticker2Input && !ticker2Input.value && localTickers[1]) ticker2Input.value = localTickers[1].symbol;
@@ -507,69 +365,9 @@ async function loadProfileStockData(): Promise<void> {
   if (skyPerfToggle) skyPerfToggle.checked = skyBackgroundService.getIsPerfMode();
   if (skyOffsetSelect) skyOffsetSelect.value = String(skyBackgroundService.getTimeOffset());
 
-
-
-  if (!user) {
-    if (statusBadge) {
-      statusBadge.textContent = "게스트 모드 (로컬 설정)";
-      statusBadge.className = "profile-stock-status-badge";
-    }
-    return;
-  }
-
   if (statusBadge) {
-    statusBadge.textContent = "서버 데이터 조회 중...";
-    statusBadge.className = "profile-stock-status-badge status-loading";
-  }
-
-  try {
-    const data = await fetchMyStock();
-
-    if (data) {
-      const g = (user.schoolGrade || (data.grade ? String(data.grade) : "")) as GradeNumber;
-      const c = (user.schoolClass || (data.class_num ? String(data.class_num) : "")) as ClassNumber;
-      if (gradeSelect && g) gradeSelect.value = String(g);
-      if (classInput && c) classInput.value = String(c);
-      if (numInput && data.student_num) numInput.value = String(data.student_num);
-      if (ticker1Input && data.ticker_1) ticker1Input.value = data.ticker_1.toUpperCase();
-      if (ticker2Input && data.ticker_2) ticker2Input.value = data.ticker_2.toUpperCase();
-      if (ticker3Input && data.ticker_3) ticker3Input.value = data.ticker_3.toUpperCase();
-
-      // 상단 바 및 로컬 스토리지도 즉시 동기화
-      if (g && c) {
-        setSavedClass({ g, c });
-        updateTopClassBadge();
-      }
-
-      if (statusBadge) {
-        statusBadge.textContent = data.updated_at
-          ? `서버 로드 완료 (${new Date(data.updated_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })})`
-          : "서버 데이터 로드됨";
-        statusBadge.className = "profile-stock-status-badge status-ok";
-      }
-
-      // 대시보드 티커도 동기화
-      const syncedTickers: TickerConfigItem[] = [
-        { name: data.ticker_1, symbol: data.ticker_1, code: data.ticker_1, unit: "pt" },
-        { name: data.ticker_2, symbol: data.ticker_2, code: data.ticker_2, unit: "pt" },
-        { name: data.ticker_3, symbol: data.ticker_3, code: data.ticker_3, unit: "pt" },
-      ].filter((t) => t.code);
-      if (syncedTickers.length > 0) {
-        setSavedTickers(syncedTickers);
-      }
-      renderActiveView();
-    } else {
-      if (statusBadge) {
-        statusBadge.textContent = "기존 제출 데이터 없음 (신규)";
-        statusBadge.className = "profile-stock-status-badge";
-      }
-    }
-  } catch (err: any) {
-    console.warn("서버 주식 데이터 조회 실패:", err);
-    if (statusBadge) {
-      statusBadge.textContent = "조회 실패";
-      statusBadge.className = "profile-stock-status-badge status-error";
-    }
+    statusBadge.textContent = "브라우저 저장";
+    statusBadge.className = "profile-stock-status-badge status-ok";
   }
 }
 
@@ -597,9 +395,7 @@ function initProfileModal(): void {
 
   const modal = $("#profile-modal");
   const closeBtn = $("#profile-modal-close");
-  const logoutBtn = $("#profile-btn-logout");
   const form = $<HTMLFormElement>("#profile-stock-form");
-  const submitBtn = $<HTMLButtonElement>("#btn-profile-stock-submit");
 
   const ticker1Input = $<HTMLInputElement>("#profile-stock-ticker-1");
   const ticker2Input = $<HTMLInputElement>("#profile-stock-ticker-2");
@@ -608,16 +404,6 @@ function initProfileModal(): void {
   closeBtn?.addEventListener("click", closeProfileModal);
   modal?.addEventListener("click", (e) => {
     if (e.target === modal) closeProfileModal();
-  });
-
-  logoutBtn?.addEventListener("click", () => {
-    const user = getAuthUser();
-    closeProfileModal();
-    if (user) {
-      handleLogout();
-    } else {
-      loginWithKnoblab();
-    }
   });
 
   // 1. 설정 탭 전환 (내 정보 <-> 관심 주식)
@@ -811,12 +597,10 @@ function initProfileModal(): void {
     });
   });
 
-  // 폼 제출 핸들러 (POST /submit)
-  // 폼 제출 핸들러 (환경설정 통합 저장)
-  form?.addEventListener("submit", async (e) => {
+  // 폼 제출 핸들러 (브라우저 캐시 저장)
+  form?.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const user = getAuthUser();
     const nameInput = $<HTMLInputElement>("#profile-name-input");
     const gradeSelect = $<HTMLSelectElement>("#profile-stock-grade");
     const classInput = $<HTMLInputElement>("#profile-stock-class");
@@ -838,14 +622,15 @@ function initProfileModal(): void {
     // 1. 이름 저장
     setSavedName(nameVal);
 
-    // 2. 학년/반 로컬 스토리지 및 상단 바 텍스트 배지 동기화
+    // 2. 학년/반/번호 브라우저 캐시 저장 및 상단 바 텍스트 배지 동기화
     setSavedClass({
       g: String(gradeVal) as GradeNumber,
       c: String(classVal) as ClassNumber,
     });
+    setSavedStudentNum(numVal > 0 ? numVal : null);
     updateTopClassBadge();
 
-    // 3. 로컬 스토리지에 티커 동기화 (티커가 입력된 경우)
+    // 3. 브라우저 캐시에 티커 동기화 (티커가 입력된 경우)
     if (t1 || t2 || t3) {
       const newTickers: TickerConfigItem[] = [
         { name: t1 || "코스피", symbol: t1 || "KOSPI", code: t1 || "KOSPI", unit: "pt" },
@@ -855,211 +640,79 @@ function initProfileModal(): void {
       setSavedTickers(newTickers);
     }
 
-    // 4. 화면 및 인증 UI 즉시 갱신
+    // 4. 화면 및 UI 즉시 갱신
     updateAuthUI();
     renderActiveView();
 
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = "저장 중...";
+    const statusBadge = $("#profile-stock-status-badge");
+    if (statusBadge) {
+      statusBadge.textContent = `저장 완료 (${new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })})`;
+      statusBadge.className = "profile-stock-status-badge status-ok";
     }
 
-    if (!user) {
-      showToast("설정이 로컬에 저장되었습니다. Knoblab 로그인 시 클라우드에도 영구 저장됩니다.");
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "설정 저장하기";
-      }
-      return;
-    }
-
-    try {
-      // 5. chating-main 프로필 양방향 동기화
-      const profileSyncRes = await updateUserProfileOnServer({
-        displayName: nameVal,
-        schoolGrade: String(gradeVal),
-        schoolClass: String(classVal),
-      });
-
-      if (!profileSyncRes.success) {
-        console.warn("chating-main 프로필 동기화 경고:", profileSyncRes.error);
-      }
-
-      // 6. 주식 티커 및 학생 정보가 모두 갖춰진 경우 주식 워커에도 저장
-      if (numVal && t1 && t2 && t3) {
-        const payload: StudentStockSubmission = {
-          grade: gradeVal,
-          class_num: classVal,
-          student_num: numVal,
-          ticker_1: t1,
-          ticker_2: t2,
-          ticker_3: t3,
-        };
-        setPendingStockSubmission(payload);
-        await submitStudentStock(payload);
-        setPendingStockSubmission(null);
-      }
-
-      showToast("환경설정(학생 정보 및 프로필)이 성공적으로 저장되었습니다!");
-
-      const statusBadge = $("#profile-stock-status-badge");
-      if (statusBadge) {
-        statusBadge.textContent = `저장 완료 (${new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })})`;
-        statusBadge.className = "profile-stock-status-badge status-ok";
-      }
-    } catch (err: any) {
-      console.warn("서버 저장 실패:", err);
-      const isAuthError =
-        err.message?.includes("AUTH_EXPIRED") ||
-        err.message?.includes("401") ||
-        err.message?.includes("만료") ||
-        err.message?.includes("인증") ||
-        err.message?.includes("유효");
-
-      if (isAuthError) {
-        showToast("인증 세션 갱신을 위해 로그인 페이지로 이동합니다. (작성한 설정은 로그인 후 자동 저장됩니다)");
-        setTimeout(() => {
-          loginWithKnoblab();
-        }, 1200);
-      } else {
-        showToast(`서버 저장 실패 (${err.message || "네트워크 오류"}), 로컬에는 안전하게 저장되었습니다.`);
-      }
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "설정 저장하기";
-      }
-    }
+    showToast("설정이 브라우저에 저장되었습니다!");
   });
 }
 
 
 export function updateAuthUI(): void {
-  const user = getAuthUser();
   const savedName = getSavedName() || "학생";
-  const initial = (savedName || user?.email || "U").trim()[0].toUpperCase();
+  const initial = savedName.trim()[0]?.toUpperCase() || "U";
   const navContainer = document.getElementById("nav-auth-container");
   const drawerContainer = document.getElementById("drawer-auth-container");
   const mobToggle = document.getElementById("mobile-profile-toggle");
 
-  // 모바일 헤더 좌측 프로필/로그인 아이콘 업데이트
+  // 모바일 헤더 좌측 프로필 아이콘 업데이트
   if (mobToggle) {
-    if (user) {
-      mobToggle.innerHTML = `
-        <span class="user-avatar-fallback" style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-black); color: var(--color-paper); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;">
-          ${esc(initial)}
-        </span>
-      `;
-    } else {
-      mobToggle.innerHTML = `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-      `;
-    }
+    mobToggle.innerHTML = `
+      <span class="user-avatar-fallback" style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-black); color: var(--color-paper); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;">
+        ${esc(initial)}
+      </span>
+    `;
   }
 
-  // 데스크탑 네비게이션: chating-main과 100% 동일한 디자인 적용
+  // 데스크탑 네비게이션
   if (navContainer) {
-    if (user) {
-      navContainer.innerHTML = `
-        <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="프로필 및 설정 열기">
-          <span class="user-avatar-fallback" style="width: 22px; height: 22px; border-radius: 50%; background: var(--color-black); color: var(--color-paper); display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;">
-            ${esc(initial)}
-          </span>
-          <span class="btn-nav-profile-name">${esc(savedName)}</span>
-        </button>
-      `;
-      $("#btn-nav-profile")?.addEventListener("click", () => openProfileModal());
-    } else {
-      navContainer.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <button type="button" id="btn-nav-settings" class="btn-icon-nav" title="설정 (화면 효과 및 환경설정)" aria-label="설정">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-          </button>
-          <button type="button" id="btn-nav-login" class="primary" style="padding: 6px 14px; height: 36px; display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; border-radius: 2px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            <span>로그인</span>
-          </button>
-        </div>
-      `;
-      $("#btn-nav-settings")?.addEventListener("click", () => openProfileModal());
-      $("#btn-nav-login")?.addEventListener("click", () => loginWithKnoblab());
-    }
+    navContainer.innerHTML = `
+      <button type="button" class="btn-nav-profile" id="btn-nav-profile" title="프로필 및 설정 열기">
+        <span class="user-avatar-fallback" style="width: 22px; height: 22px; border-radius: 50%; background: var(--color-black); color: var(--color-paper); display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;">
+          ${esc(initial)}
+        </span>
+        <span class="btn-nav-profile-name">${esc(savedName)}</span>
+      </button>
+    `;
+    $("#btn-nav-profile")?.addEventListener("click", () => openProfileModal());
   }
 
   // 모바일 드로어
   if (drawerContainer) {
-    if (user) {
-      drawerContainer.innerHTML = `
-        <div class="drawer-auth-user-card" id="drawer-user-card" role="button" tabindex="0" title="내 프로필 및 티커 설정">
-          <div class="drawer-auth-user-info">
-            <div class="user-name" style="display: flex; align-items: center; gap: 6px;">
-              <span class="user-avatar-fallback" style="width: 20px; height: 20px; border-radius: 50%; background: var(--color-black); color: var(--color-paper); display: inline-flex; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;">
-                ${esc(initial)}
-              </span>
-              <strong>${esc(savedName)}</strong>
-            </div>
-            <div class="user-email">${esc(user.email || user.uid)}</div>
+    drawerContainer.innerHTML = `
+      <div class="drawer-auth-user-card" id="drawer-user-card" role="button" tabindex="0" title="프로필 및 티커 설정">
+        <div class="drawer-auth-user-info">
+          <div class="user-name" style="display: flex; align-items: center; gap: 6px;">
+            <span class="user-avatar-fallback" style="width: 20px; height: 20px; border-radius: 50%; background: var(--color-black); color: var(--color-paper); display: inline-flex; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;">
+              ${esc(initial)}
+            </span>
+            <strong>${esc(savedName)}</strong>
           </div>
-          <span class="drawer-profile-arrow" style="display: inline-flex; align-items: center; gap: 4px;">설정 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span>
+          <div class="user-email">브라우저 로컬 저장 모드</div>
         </div>
-        <div class="drawer-auth-actions">
-          <button type="button" class="btn-drawer-primary" id="drawer-btn-profile">
-            내 프로필 & 티커 설정
-          </button>
-        </div>
-      `;
-      $("#drawer-user-card")?.addEventListener("click", () => {
-        closeMobileDrawer();
-        openProfileModal();
-      });
-      $("#drawer-btn-profile")?.addEventListener("click", () => {
-        closeMobileDrawer();
-        openProfileModal();
-      });
-    } else {
-      drawerContainer.innerHTML = `
-        <div class="drawer-auth-user-card" id="drawer-user-card" role="button" tabindex="0" title="프로필 및 티커 설정">
-          <div class="drawer-auth-user-info">
-            <div class="user-name">${esc(savedName)}님 (게스트)</div>
-            <div class="user-email">프로필 및 티커를 자유롭게 설정하세요.</div>
-          </div>
-          <span class="drawer-profile-arrow" style="display: inline-flex; align-items: center; gap: 4px;">설정 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span>
-        </div>
-        <div class="drawer-auth-actions">
-          <button type="button" class="btn-drawer-secondary" id="drawer-btn-profile">프로필 & 티커 설정</button>
-          <button type="button" class="btn-drawer-primary" id="drawer-btn-login">로그인</button>
-        </div>
-      `;
-      $("#drawer-user-card")?.addEventListener("click", () => {
-        closeMobileDrawer();
-        openProfileModal();
-      });
-      $("#drawer-btn-profile")?.addEventListener("click", () => {
-        closeMobileDrawer();
-        openProfileModal();
-      });
-      $("#drawer-btn-login")?.addEventListener("click", () => {
-        loginWithKnoblab();
-      });
-    }
-  }
-}
-
-async function handleLogout(): Promise<void> {
-  await logout();
-  showToast("로그아웃되었습니다.");
-  updateAuthUI();
-  if (currentTab === "메인") {
-    switchTab("메인", false);
+        <span class="drawer-profile-arrow" style="display: inline-flex; align-items: center; gap: 4px;">설정 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span>
+      </div>
+      <div class="drawer-auth-actions">
+        <button type="button" class="btn-drawer-primary" id="drawer-btn-profile">
+          내 프로필 & 티커 설정
+        </button>
+      </div>
+    `;
+    $("#drawer-user-card")?.addEventListener("click", () => {
+      closeMobileDrawer();
+      openProfileModal();
+    });
+    $("#drawer-btn-profile")?.addEventListener("click", () => {
+      closeMobileDrawer();
+      openProfileModal();
+    });
   }
 }
 
@@ -1322,33 +975,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initProfileModal();
 
   updateAuthUI();
-  onAuthStateChange(async (user) => {
-    if (user) {
-      // 1. chating-main 프로필 데이터(닉네임, 학년/반) 최우선 동기화
-      if (user.displayName) {
-        setSavedName(user.displayName);
-      } else if (!getSavedName() && user.email) {
-        const emailPrefix = user.email.split("@")[0];
-        setSavedName(emailPrefix);
-      }
-
-      if (user.schoolGrade && user.schoolClass) {
-        setSavedClass({
-          g: user.schoolGrade as GradeNumber,
-          c: user.schoolClass as ClassNumber,
-        });
-        updateTopClassBadge();
-      }
-
-      const welcomeModal = $("#welcome");
-      welcomeModal?.classList.add("hidden");
-    }
-    updateAuthUI();
-    if (user) {
-      await syncUserDataFromServer();
-    }
-  });
-  checkAuth();
   initNavigation();
   handleUrlRoute();
 });

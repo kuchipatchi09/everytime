@@ -2,8 +2,12 @@ import { ClassConfig } from "../types/timetable";
 import { TickerConfigItem } from "../types/market";
 
 const CLASS_STORAGE_KEY = "class";
+const STUDENT_NUM_STORAGE_KEY = "student_num";
 const NAME_STORAGE_KEY = "chunggwa-name";
 const FINANCE_TICKERS_STORAGE_KEY = "custom_finance_tickers";
+const TERMS_STORAGE_KEY = "asterisk_agreed_terms";
+const PRIVACY_STORAGE_KEY = "asterisk_agreed_privacy";
+const AGREED_AT_STORAGE_KEY = "asterisk_agreed_at";
 
 export const DEFAULT_FINANCE_TICKERS: TickerConfigItem[] = [
   { name: "코스피", symbol: "KOSPI", code: "KOSPI", unit: "pt" },
@@ -101,6 +105,65 @@ export function getSavedSkyTimeOffset(): number {
 
 export function setSavedSkyTimeOffset(offset: number): void {
   localStorage.setItem(SKY_TIME_OFFSET_STORAGE_KEY, String(offset));
+}
+
+export function getSavedStudentNum(): number | null {
+  try {
+    const raw = localStorage.getItem(STUDENT_NUM_STORAGE_KEY);
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setSavedStudentNum(num: number | null): void {
+  try {
+    if (num && Number.isFinite(num) && num > 0) {
+      localStorage.setItem(STUDENT_NUM_STORAGE_KEY, String(num));
+    } else {
+      localStorage.removeItem(STUDENT_NUM_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export function hasAgreedTerms(): boolean {
+  try {
+    const terms = localStorage.getItem(TERMS_STORAGE_KEY) === "true";
+    const privacy = localStorage.getItem(PRIVACY_STORAGE_KEY) === "true";
+    return terms && privacy;
+  } catch {
+    return false;
+  }
+}
+
+export function getAgreedAt(): number | null {
+  try {
+    const saved = localStorage.getItem(AGREED_AT_STORAGE_KEY);
+    if (!saved) return null;
+    const n = Number(saved);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setTermsAgreement(agreedTerms: boolean, agreedPrivacy: boolean): void {
+  const agreedAt = agreedTerms && agreedPrivacy ? Date.now() : null;
+  try {
+    localStorage.setItem(TERMS_STORAGE_KEY, String(agreedTerms));
+    localStorage.setItem(PRIVACY_STORAGE_KEY, String(agreedPrivacy));
+    if (agreedAt) {
+      localStorage.setItem(AGREED_AT_STORAGE_KEY, String(agreedAt));
+    } else {
+      localStorage.removeItem(AGREED_AT_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 

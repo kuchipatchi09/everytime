@@ -308,38 +308,20 @@
           </div>
         </div>
       </div>
-      <!-- 첫 접속 온보딩 모달 (Knoblab 로그인 / 게스트 모드) -->
+      <!-- 첫 접속 온보딩 모달 -->
       <div id="welcome" class="welcome hidden">
         <div class="welcome-card">
           <span class="eyebrow">WELCOME TO ASTERISK</span>
           <h2>시작하기</h2>
-          <p class="welcome-desc">원하시는 방법으로 시작하세요. Knoblab 계정으로 로그인하거나, 닉네임만 입력하고 게스트로 바로 이용할 수 있습니다.</p>
+          <p class="welcome-desc">이름(닉네임)을 입력하고 바로 시작하세요. 입력한 정보는 이 브라우저에 저장됩니다.</p>
 
-          <!-- Knoblab SSO 로그인 섹션 -->
-          <div class="welcome-auth-section">
-            <button type="button" class="btn-welcome-knoblab" id="welcome-btn-knoblab">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                <polyline points="10 17 15 12 10 7"></polyline>
-                <line x1="15" y1="12" x2="3" y2="12"></line>
-              </svg>
-              <span>Knoblab 통합 ID로 로그인</span>
-            </button>
-            <span class="welcome-subtext">Knoblab 서비스 간 계정 및 데이터 연동</span>
-          </div>
-
-          <div class="welcome-divider">
-            <span>또는 게스트 모드</span>
-          </div>
-
-          <!-- 게스트 모드 폼 -->
           <form id="welcome-guest-form" class="welcome-guest-form">
             <label for="name-input">
-              <span>게스트 닉네임</span>
+              <span>이름 / 닉네임</span>
               <input id="name-input" maxlength="12" autocomplete="name" placeholder="닉네임 입력 (최대 12자)" required />
             </label>
-            <button type="submit" class="btn-welcome-guest" id="welcome-btn-guest">게스트로 시작하기</button>
-            <small>입력한 닉네임은 이 기기에만 저장되며, 나중에도 언제든지 로그인할 수 있습니다.</small>
+            <button type="submit" class="btn-welcome-guest" id="welcome-btn-guest">시작하기</button>
+            <small>모든 설정(이름, 학년/반, 관심 주식)은 현재 브라우저 캐시에 저장됩니다.</small>
           </form>
         </div>
       </div>
@@ -446,23 +428,6 @@
 
               <div class="profile-section-divider"></div>
 
-              <!-- 연동 계정 정보 & 로그아웃 -->
-              <div class="profile-info-box">
-                <div class="profile-row">
-                  <span class="profile-label">연동 계정 (이메일)</span>
-                  <span class="profile-val" id="profile-display-email">-</span>
-                </div>
-                <div class="profile-row">
-                  <span class="profile-label">Knoblab UID</span>
-                  <span class="profile-val uid" id="profile-display-uid">-</span>
-                </div>
-                <div style="margin-top: 12px;">
-                  <button type="button" class="btn-profile-auth-action is-login" id="profile-btn-logout">Knoblab 계정으로 로그인</button>
-                </div>
-              </div>
-
-              <div class="profile-section-divider"></div>
-
               <!-- 약관 및 개인정보 처리방침 동의 관리 -->
               <div class="profile-info-box">
                 <div class="settings-section-header" style="margin-bottom: 8px;">
@@ -499,7 +464,7 @@
                     <h3>메인 대시보드 주식 (3개)</h3>
                   </div>
                   <span class="profile-stock-status-badge" id="profile-stock-status-badge">
-                    서버 조회 중...
+                    브라우저 저장
                   </span>
                 </div>
                 <p class="profile-ticker-desc">

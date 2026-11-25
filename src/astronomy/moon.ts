@@ -86,12 +86,12 @@ export function calcMoonCoords(
   if (haMoon >= -105 && haMoon <= 105) {
     const rad = (haMoon * Math.PI) / 180;
 
-    const dx = 38 * Math.sin(rad);
+    const dx = Math.round(38 * Math.sin(rad) * 1000) / 1000;
     // 황도상 달의 위치에 따른 적위 및 남중고도 계산 (보름달은 태양 반대 적위, 신월은 태양과 같은 적위)
     const moonDeclDeg = -solar.declDeg * Math.cos((elongation * Math.PI) / 180);
     const moonMaxAlt = Math.max(15, Math.min(80, 90 - lat + moonDeclDeg));
     const R_y = 25 + moonMaxAlt * 0.45;
-    const dy = 25 - R_y * Math.cos(rad);
+    const dy = Math.round((25 - R_y * Math.cos(rad)) * 1000) / 1000;
     const alt = (25 - dy) / 0.62;
 
     moonCoords = {
