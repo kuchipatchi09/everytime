@@ -87,73 +87,73 @@
   /* ------------------------------------------------------------------------
      5. Status & Feedback Colors
      ------------------------------------------------------------------------ */
-  --color-danger: #DC2626;
-  --color-danger-strong: #B91C1C;
-  --color-danger-bg: rgba(220, 38, 38, 0.08);
-  --color-danger-border: rgba(220, 38, 38, 0.3);
+  --color-danger: #A33A31;
+  --color-danger-strong: #842C24;
+  --color-danger-bg: rgba(163, 58, 49, 0.09);
+  --color-danger-border: rgba(163, 58, 49, 0.32);
 
-  --color-success: #16A34A;
-  --color-success-strong: #15803D;
-  --color-success-bg: rgba(22, 163, 74, 0.08);
-  --color-success-border: rgba(22, 163, 74, 0.3);
+  --color-success: #556042;
+  --color-success-strong: #444E35;
+  --color-success-bg: rgba(85, 96, 66, 0.1);
+  --color-success-border: rgba(85, 96, 66, 0.32);
 
-  --color-warning: #D97706;
-  --color-warning-strong: #B45309;
-  --color-warning-bg: rgba(217, 119, 6, 0.08);
-  --color-warning-border: rgba(217, 119, 6, 0.3);
+  --color-warning: #C65D2B;
+  --color-warning-strong: #A1471D;
+  --color-warning-bg: rgba(224, 169, 59, 0.14);
+  --color-warning-border: rgba(224, 169, 59, 0.45);
 
-  --color-info: #2563EB;
-  --color-info-strong: #1D4ED8;
-  --color-info-bg: rgba(37, 99, 235, 0.08);
-  --color-info-border: rgba(37, 99, 235, 0.3);
+  --color-info: #45707A;
+  --color-info-strong: #1F3A52;
+  --color-info-bg: rgba(69, 112, 122, 0.1);
+  --color-info-border: rgba(69, 112, 122, 0.32);
   --color-mention-blue: var(--color-info);
 
   /* ------------------------------------------------------------------------
      6. Market & Ticker Telemetry
      ------------------------------------------------------------------------ */
-  --up-red: #E03020;
-  --up-red-bg: rgba(224, 48, 32, 0.08);
-  --up-red-border: rgba(224, 48, 32, 0.28);
-  --down-blue: #0066CC;
-  --down-blue-bg: rgba(0, 102, 204, 0.08);
-  --down-blue-border: rgba(0, 102, 204, 0.28);
+  --up-red: #A33A31;
+  --up-red-bg: rgba(163, 58, 49, 0.09);
+  --up-red-border: rgba(163, 58, 49, 0.32);
+  --down-blue: #45707A;
+  --down-blue-bg: rgba(69, 112, 122, 0.1);
+  --down-blue-border: rgba(69, 112, 122, 0.32);
 
   --ticker-height: 36px;
   --z-ticker: 90;
-  --ticker-live: #00E676;
-  --ticker-live-bg: rgba(0, 230, 118, 0.15);
-  --ticker-live-border: rgba(0, 230, 118, 0.35);
-  --ticker-up: #FF5252;
-  --ticker-up-bg: rgba(255, 82, 82, 0.15);
-  --ticker-up-border: rgba(255, 82, 82, 0.3);
-  --ticker-down: #448AFF;
-  --ticker-down-bg: rgba(68, 138, 255, 0.15);
-  --ticker-down-border: rgba(68, 138, 255, 0.3);
-  --ticker-prepost: #FFB74D;
-  --ticker-prepost-bg: rgba(255, 183, 77, 0.15);
-  --ticker-prepost-border: rgba(255, 183, 77, 0.35);
+  --ticker-live: #8FA171;
+  --ticker-live-bg: rgba(143, 161, 113, 0.18);
+  --ticker-live-border: rgba(143, 161, 113, 0.4);
+  --ticker-up: #D86E65;
+  --ticker-up-bg: rgba(216, 110, 101, 0.18);
+  --ticker-up-border: rgba(216, 110, 101, 0.38);
+  --ticker-down: #7BA8B3;
+  --ticker-down-bg: rgba(123, 168, 179, 0.18);
+  --ticker-down-border: rgba(123, 168, 179, 0.38);
+  --ticker-prepost: #E0A93B;
+  --ticker-prepost-bg: rgba(224, 169, 59, 0.16);
+  --ticker-prepost-border: rgba(224, 169, 59, 0.38);
   --ticker-closed: #A0A0A5;
 
   /* ------------------------------------------------------------------------
      7. Bot Mentions & Markdown Callouts
      ------------------------------------------------------------------------ */
-  --mention-dasein-fg: #8B1F28;
-  --mention-dasein-bg: rgba(139, 31, 40, 0.12);
-  --mention-meal-fg: #EA580C;
-  --mention-meal-bg: rgba(234, 88, 12, 0.12);
+  --mention-dasein-fg: #A33A31;
+  --mention-dasein-bg: rgba(163, 58, 49, 0.12);
+  --mention-meal-fg: #C65D2B;
+  --mention-meal-bg: rgba(198, 93, 43, 0.12);
   --mention-timetable-fg: var(--color-info);
   --mention-timetable-bg: var(--color-info-bg);
   --mention-calendar-fg: var(--color-success);
   --mention-calendar-bg: var(--color-success-bg);
-  --mention-classroom-fg: #7C3AED;
-  --mention-classroom-bg: rgba(124, 58, 237, 0.12);
+  --mention-classroom-fg: #5C3C58;
+  --mention-classroom-bg: rgba(92, 60, 88, 0.12);
   --mention-archive-fg: var(--color-warning);
   --mention-archive-bg: var(--color-warning-bg);
 
   --callout-note: var(--color-info);
   --callout-tip: var(--color-success);
-  --callout-important: #8250DF;
-  --callout-important-bg: rgba(130, 80, 223, 0.08);
+  --callout-important: #5C3C58;
+  --callout-important-bg: rgba(92, 60, 88, 0.09);
   --callout-warning: var(--color-warning);
   --callout-caution: var(--color-danger);
 
@@ -498,44 +498,51 @@
   --color-divider-alpha: rgba(247, 246, 242, 0.18);
   --color-inverse-subtle: rgba(0, 0, 0, 0.2);
 
-  --color-danger: #F87171;
-  --color-danger-strong: #EF4444;
-  --color-danger-bg: rgba(239, 68, 68, 0.16);
-  --color-danger-border: rgba(248, 113, 113, 0.35);
+  --color-danger: #D86E65;
+  --color-danger-strong: #E38880;
+  --color-danger-bg: rgba(216, 110, 101, 0.16);
+  --color-danger-border: rgba(216, 110, 101, 0.38);
 
-  --color-success: #4ADE80;
-  --color-success-strong: #22C55E;
-  --color-success-bg: rgba(34, 197, 94, 0.16);
-  --color-success-border: rgba(74, 222, 128, 0.35);
+  --color-success: #8FA171;
+  --color-success-strong: #A4B587;
+  --color-success-bg: rgba(143, 161, 113, 0.16);
+  --color-success-border: rgba(143, 161, 113, 0.38);
 
-  --color-warning: #FBBF24;
-  --color-warning-strong: #F59E0B;
-  --color-warning-bg: rgba(245, 158, 11, 0.16);
-  --color-warning-border: rgba(251, 191, 36, 0.35);
+  --color-warning: #E0A93B;
+  --color-warning-strong: #E08659;
+  --color-warning-bg: rgba(224, 169, 59, 0.16);
+  --color-warning-border: rgba(224, 169, 59, 0.38);
 
-  --color-info: #60A5FA;
-  --color-info-strong: #3B82F6;
-  --color-info-bg: rgba(96, 165, 250, 0.16);
-  --color-info-border: rgba(96, 165, 250, 0.35);
+  --color-info: #7BA8B3;
+  --color-info-strong: #94BFC9;
+  --color-info-bg: rgba(123, 168, 179, 0.16);
+  --color-info-border: rgba(123, 168, 179, 0.38);
   --color-mention-blue: var(--color-info);
 
-  --mention-dasein-fg: #E57373;
-  --mention-dasein-bg: rgba(229, 115, 115, 0.18);
-  --mention-meal-fg: #FB923C;
-  --mention-meal-bg: rgba(251, 146, 60, 0.18);
+  --up-red: #D86E65;
+  --up-red-bg: rgba(216, 110, 101, 0.16);
+  --up-red-border: rgba(216, 110, 101, 0.38);
+  --down-blue: #7BA8B3;
+  --down-blue-bg: rgba(123, 168, 179, 0.16);
+  --down-blue-border: rgba(123, 168, 179, 0.38);
+
+  --mention-dasein-fg: #D86E65;
+  --mention-dasein-bg: rgba(216, 110, 101, 0.18);
+  --mention-meal-fg: #E08659;
+  --mention-meal-bg: rgba(224, 134, 89, 0.18);
   --mention-timetable-fg: var(--color-info);
   --mention-timetable-bg: var(--color-info-bg);
   --mention-calendar-fg: var(--color-success);
   --mention-calendar-bg: var(--color-success-bg);
-  --mention-classroom-fg: #A78BFA;
-  --mention-classroom-bg: rgba(167, 139, 250, 0.18);
+  --mention-classroom-fg: #A67FA1;
+  --mention-classroom-bg: rgba(166, 127, 161, 0.18);
   --mention-archive-fg: var(--color-warning);
   --mention-archive-bg: var(--color-warning-bg);
 
   --callout-note: var(--color-info);
   --callout-tip: var(--color-success);
-  --callout-important: #A78BFA;
-  --callout-important-bg: rgba(167, 139, 250, 0.16);
+  --callout-important: #A67FA1;
+  --callout-important-bg: rgba(166, 127, 161, 0.16);
   --callout-warning: var(--color-warning);
   --callout-caution: var(--color-danger);
 
@@ -602,44 +609,51 @@
     --color-divider-alpha: rgba(247, 246, 242, 0.18);
     --color-inverse-subtle: rgba(0, 0, 0, 0.2);
 
-    --color-danger: #F87171;
-    --color-danger-strong: #EF4444;
-    --color-danger-bg: rgba(239, 68, 68, 0.16);
-    --color-danger-border: rgba(248, 113, 113, 0.35);
+    --color-danger: #D86E65;
+    --color-danger-strong: #E38880;
+    --color-danger-bg: rgba(216, 110, 101, 0.16);
+    --color-danger-border: rgba(216, 110, 101, 0.38);
 
-    --color-success: #4ADE80;
-    --color-success-strong: #22C55E;
-    --color-success-bg: rgba(34, 197, 94, 0.16);
-    --color-success-border: rgba(74, 222, 128, 0.35);
+    --color-success: #8FA171;
+    --color-success-strong: #A4B587;
+    --color-success-bg: rgba(143, 161, 113, 0.16);
+    --color-success-border: rgba(143, 161, 113, 0.38);
 
-    --color-warning: #FBBF24;
-    --color-warning-strong: #F59E0B;
-    --color-warning-bg: rgba(245, 158, 11, 0.16);
-    --color-warning-border: rgba(251, 191, 36, 0.35);
+    --color-warning: #E0A93B;
+    --color-warning-strong: #E08659;
+    --color-warning-bg: rgba(224, 169, 59, 0.16);
+    --color-warning-border: rgba(224, 169, 59, 0.38);
 
-    --color-info: #60A5FA;
-    --color-info-strong: #3B82F6;
-    --color-info-bg: rgba(96, 165, 250, 0.16);
-    --color-info-border: rgba(96, 165, 250, 0.35);
+    --color-info: #7BA8B3;
+    --color-info-strong: #94BFC9;
+    --color-info-bg: rgba(123, 168, 179, 0.16);
+    --color-info-border: rgba(123, 168, 179, 0.38);
     --color-mention-blue: var(--color-info);
 
-    --mention-dasein-fg: #E57373;
-    --mention-dasein-bg: rgba(229, 115, 115, 0.18);
-    --mention-meal-fg: #FB923C;
-    --mention-meal-bg: rgba(251, 146, 60, 0.18);
+    --up-red: #D86E65;
+    --up-red-bg: rgba(216, 110, 101, 0.16);
+    --up-red-border: rgba(216, 110, 101, 0.38);
+    --down-blue: #7BA8B3;
+    --down-blue-bg: rgba(123, 168, 179, 0.16);
+    --down-blue-border: rgba(123, 168, 179, 0.38);
+
+    --mention-dasein-fg: #D86E65;
+    --mention-dasein-bg: rgba(216, 110, 101, 0.18);
+    --mention-meal-fg: #E08659;
+    --mention-meal-bg: rgba(224, 134, 89, 0.18);
     --mention-timetable-fg: var(--color-info);
     --mention-timetable-bg: var(--color-info-bg);
     --mention-calendar-fg: var(--color-success);
     --mention-calendar-bg: var(--color-success-bg);
-    --mention-classroom-fg: #A78BFA;
-    --mention-classroom-bg: rgba(167, 139, 250, 0.18);
+    --mention-classroom-fg: #A67FA1;
+    --mention-classroom-bg: rgba(166, 127, 161, 0.18);
     --mention-archive-fg: var(--color-warning);
     --mention-archive-bg: var(--color-warning-bg);
 
     --callout-note: var(--color-info);
     --callout-tip: var(--color-success);
-    --callout-important: #A78BFA;
-    --callout-important-bg: rgba(167, 139, 250, 0.16);
+    --callout-important: #A67FA1;
+    --callout-important-bg: rgba(166, 127, 161, 0.16);
     --callout-warning: var(--color-warning);
     --callout-caution: var(--color-danger);
 
