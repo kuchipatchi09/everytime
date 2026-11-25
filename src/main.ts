@@ -35,17 +35,18 @@ export type TabName = "메인" | "시간표" | "방과후" | "급식" | "공지"
 let currentTab: TabName = "메인";
 
 export function switchTab(tab: TabName, updateUrl = true): void {
+  if (tab === "브랜드") {
+    window.location.href = "https://asterisk.knoblab.xyz";
+    return;
+  }
+
   currentTab = tab;
   stopNowCardContinuousTicker();
   stopMarketView();
   exitNowFullscreen();
 
 
-  // 브랜드는 고정된 브랜드 캔버스를 사용하므로, 저장된 설정은 유지한 채 하늘만 숨긴다.
-  skyBackgroundService.setSuppressed(tab === "브랜드");
-  if (skyBackgroundService.getIsEnabled() && tab !== "브랜드") {
-    skyBackgroundService.resume();
-  }
+  skyBackgroundService.setSuppressed(false);
 
   const pageTitle = $("#page-title");
 
@@ -66,20 +67,18 @@ export function switchTab(tab: TabName, updateUrl = true): void {
       </button>
     `;
     $("#title-name-edit-btn")?.addEventListener("click", () => openProfileModal());
-  } else if (tab === "브랜드") {
-    pageTitle.textContent = "브랜드 스토리";
   } else if (tab === "타이머") {
     pageTitle.textContent = "자습 타이머";
   } else {
     pageTitle.textContent = tab;
   }
 
-  // 브랜드 탭일 때와 일반 탭일 때의 상단 타이틀 및 학년/반 배지 표시 제어
+  // 상단 타이틀 및 학년/반 배지 표시 제어
   if (titleContainer) {
-    titleContainer.classList.toggle("tab-hidden", tab === "브랜드");
+    titleContainer.classList.remove("tab-hidden");
   }
   if (topClassBadge) {
-    topClassBadge.classList.toggle("tab-hidden", ["브랜드", "공지", "타이머", "금융 지표"].includes(tab));
+    topClassBadge.classList.toggle("tab-hidden", ["공지", "타이머", "금융 지표"].includes(tab));
   }
 
   // 데스크탑 네비게이션 및 모바일 드로어 탭 활성화 상태 동기화
@@ -93,9 +92,7 @@ export function switchTab(tab: TabName, updateUrl = true): void {
   });
 
   if (updateUrl) {
-    if (tab === "브랜드") {
-      history.pushState(null, "", "#brand");
-    } else if (tab === "타이머") {
+    if (tab === "타이머") {
       history.pushState(null, "", "#timer");
     } else if (tab === "메인") {
       history.pushState(null, "", window.location.pathname);

@@ -22,30 +22,73 @@ import { getCachedWeather, onWeatherUpdate } from './weatherService';
 export class SkyBackgroundService {
   private container: HTMLElement | null = null;
   private flareEls: FlareElements | null = null;
-  private moonCrescentPathEl: SVGPathElement | null = null;
   private skyLayerEl: HTMLElement | null = null;
+  private skyAtmosphereEl: HTMLElement | null = null;
+  private starWrapperEl: HTMLElement | null = null;
+  private starContainerEl: HTMLElement | null = null;
+  private moonAuraEl: HTMLElement | null = null;
+  private moonDiskEl: HTMLElement | null = null;
+  private moonEarthshineEl: HTMLElement | null = null;
+  private moonCrescentEl: HTMLElement | null = null;
+  private moonCrescentPathEl: SVGPathElement | null = null;
+  private sunDiskEl: HTMLElement | null = null;
+  private sunStreakEl: HTMLElement | null = null;
   private satController: SatelliteController | null = null;
 
   // 구름 렌더러
   private cloudRenderer: WebGLCloudRenderer | null = null;
   private cloudCanvasEl: HTMLCanvasElement | null = null;
   private resizeHandler: (() => void) | null = null;
+  private visibilityHandler: (() => void) | null = null;
   private isCloudsEnabled: boolean = true;
-  private lastRafTimestamp: number = 0;
+  private lastCloudRenderTs: number = 0;
   private readonly _boundLoop: (ts: number) => void;
+  private readonly _boundIdleTick: () => void;
   private unregisterWeather: (() => void) | null = null;
 
   private rafId: number | null = null;
-  private isEnabled: boolean = true;
+  private idleIntervalId: number | null = null;
+  private isEnabled: boolean = false;
   private isPerfMode: boolean = false;
   private timeOffset: number = 0; // 시간 단위 오프셋 (-12 ~ +14)
   private isRunning: boolean = false;
   private isPaused: boolean = false;
   private isSuppressed: boolean = false;
 
+  // 2초 단위 상태 캐시 키 (청명/구름 정적 천체 계산 스킵용)
+  private lastSkyKey: number = -1;
+
+  // DOM 더티 체크 캐시 (값이 바뀐 요소만 최소 갱신)
   private lastZenith: string = '';
   private lastHorizon: string = '';
-  private frameCounter: number = -1;
+  private lastAtmVisible: boolean = true;
+  private lastAtmPos: string = '';
+  private lastAtmOpacity: string = '';
+  private lastSunVisible: boolean = true;
+  private lastSunPos: string = '';
+  private lastSunOpacity: string = '';
+  private lastSunFcVisible: boolean = true;
+  private lastSunFcOpacity: string = '';
+  private lastSunStreakPos: string = '';
+  private lastMoonVisible: boolean = true;
+  private lastMoonPos: string = '';
+  private lastMoonOpacity: string = '';
+  private lastMoonAuraVisible: boolean = true;
+  private lastMoonAuraPos: string = '';
+  private lastMoonAuraOpacity: string = '';
+  private lastEarthshineOpacity: string = '';
+  private lastMoonGlow: string = '';
+  private lastMoonPath: string = '';
+  private lastMoonFcVisible: boolean = true;
+  private lastMoonFcOpacity: string = '';
+  private lastStarWrapperVisible: boolean = true;
+  private lastStarMaskVisible: boolean = true;
+  private lastStarWrapperMoonPos: string = '';
+  private lastStarContainerVisible: boolean = true;
+  private lastStarOpacity: string = '';
+  private lastStarRot: string = '';
+  private lastStarMaskNone: boolean = false;
+  private lastStarMaskY: string = '';
 
   // 마지막 updateSky에서 계산된 조명 컨텍스트
   private _lastLightingCtx: CloudLightingContext = {
@@ -63,6 +106,7 @@ export class SkyBackgroundService {
 
   constructor() {
     this._boundLoop = this.loop.bind(this);
+    this._boundIdleTick = this.onIdleTick.bind(this);
   }
 
   public init(container: HTMLElement | null): void {
@@ -72,14 +116,17 @@ export class SkyBackgroundService {
     this.isCloudsEnabled = getSavedSkyClouds();
     this.timeOffset = getSavedSkyTimeOffset();
 
-    // 탭 비활성화(브라우저 백그라운드) 시 불필요한 루프 일시정지
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        this.pause();
-      } else if (this.isEnabled && !this.isSuppressed && this.isRunning) {
-        this.resume();
-      }
-    });
+    // 탭 비활성화(브라우저 백그라운드) 시 불필요한 루프 일시정지 (중복 등록 방지)
+    if (!this.visibilityHandler) {
+      this.visibilityHandler = () => {
+        if (document.hidden) {
+          this.pause();
+        } else if (this.isEnabled && !this.isSuppressed && this.isRunning) {
+          this.resume();
+        }
+      };
+      document.addEventListener('visibilitychange', this.visibilityHandler);
+    }
 
     if (this.isEnabled && !this.isSuppressed && this.container) {
       this.start();
@@ -114,39 +161,51 @@ export class SkyBackgroundService {
     }
   }
 
+  private getSimTime(): { currentMinutes: number; simDate: Date; skyKey: number } {
+    const nowMs = Date.now();
+    const simMs = nowMs + this.timeOffset * 3600000;
+    const simDate = new Date(simMs);
+    const nowDate = this.timeOffset === 0 ? simDate : new Date(nowMs);
+    const currentMinutes =
+      nowDate.getHours() * 60 + nowDate.getMinutes() + nowDate.getSeconds() / 60 + this.timeOffset * 60;
+    return {
+      currentMinutes,
+      simDate,
+      skyKey: Math.floor(simMs / 2000),
+    };
+  }
+
+  private refreshNow(): void {
+    if (!this.isRunning) return;
+    this.lastSkyKey = -1;
+    const { currentMinutes, simDate, skyKey } = this.getSimTime();
+    this.lastSkyKey = skyKey;
+    this.updateSky(currentMinutes, simDate);
+    if (!this.isPaused) {
+      this.syncScheduler();
+    }
+  }
+
   public setTimeOffset(offset: number): void {
     this.timeOffset = offset;
     setSavedSkyTimeOffset(offset);
-    if (this.isRunning) {
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60 + this.timeOffset * 60;
-      const simDate = new Date(now.getTime() + this.timeOffset * 3600000);
-      this.updateSky(currentMinutes, simDate);
-    }
+    this.refreshNow();
   }
 
   public toggleClouds(enabled: boolean): void {
     this.isCloudsEnabled = enabled;
     setSavedSkyClouds(enabled);
-    if (this.cloudCanvasEl) {
-      this.cloudCanvasEl.style.display = enabled ? '' : 'none';
+    if (!enabled) {
+      if (this.cloudCanvasEl) {
+        this.cloudCanvasEl.style.display = 'none';
+      }
     }
-    if (this.isRunning) {
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60 + this.timeOffset * 60;
-      const simDate = new Date(now.getTime() + this.timeOffset * 3600000);
-      this.updateSky(currentMinutes, simDate);
-    }
+    this.refreshNow();
   }
 
   public setCloudLevel(level: number): void {
     this.cloudRenderer?.setStageLevel(level);
-    if (this.isRunning) {
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60 + this.timeOffset * 60;
-      const simDate = new Date(now.getTime() + this.timeOffset * 3600000);
-      this.updateSky(currentMinutes, simDate);
-    }
+    this.refreshNow();
   }
 
   public getCloudLevel(): number {
@@ -188,16 +247,62 @@ export class SkyBackgroundService {
     const windDeg = (typeof data.wind?.deg === 'number') ? data.wind.deg : 45;
     this.cloudRenderer?.setWind(windSpeed, windDeg);
 
-    if (this.isRunning) {
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60 + this.timeOffset * 60;
-      const simDate = new Date(now.getTime() + this.timeOffset * 3600000);
-      this.updateSky(currentMinutes, simDate);
+    this.refreshNow();
+  }
+
+  private needsCloudRaf(): boolean {
+    if (!this.isCloudsEnabled || !this.cloudRenderer) return false;
+    return this.cloudRenderer.getStageProfile().coverage > 0.001;
+  }
+
+  private clearSchedulers(): void {
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    if (this.idleIntervalId !== null) {
+      clearInterval(this.idleIntervalId);
+      this.idleIntervalId = null;
+    }
+  }
+
+  private syncScheduler(): void {
+    if (!this.isRunning || this.isPaused) {
+      this.clearSchedulers();
+      return;
+    }
+
+    if (this.needsCloudRaf()) {
+      if (this.idleIntervalId !== null) {
+        clearInterval(this.idleIntervalId);
+        this.idleIntervalId = null;
+      }
+      if (this.rafId === null) {
+        this.lastCloudRenderTs = performance.now();
+        this.rafId = requestAnimationFrame(this._boundLoop);
+      }
+    } else {
+      if (this.rafId !== null) {
+        cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+      }
+      if (this.idleIntervalId === null) {
+        this.idleIntervalId = window.setInterval(this._boundIdleTick, 2000);
+      }
+    }
+  }
+
+  private syncStarWrapperVisibility(): void {
+    if (!this.starWrapperEl) return;
+    const shouldShow = this.lastStarContainerVisible || (this.satController?.hasActive() ?? false);
+    if (this.lastStarWrapperVisible !== shouldShow) {
+      this.lastStarWrapperVisible = shouldShow;
+      this.starWrapperEl.style.display = shouldShow ? '' : 'none';
     }
   }
 
   /**
-   * 하늘 배경 시뮬레이션 시작 (DOM 생성, RAF 루프 가동, 위성 스케줄러 등록, 구름 렌더러 초기화)
+   * 하늘 배경 시뮬레이션 시작 (DOM 생성, 루프 가동, 위성 스케줄러 등록, 구름 렌더러 초기화)
    */
   public start(): void {
     if (this.isRunning || this.isSuppressed) return;
@@ -214,10 +319,14 @@ export class SkyBackgroundService {
 
     const satLayer = this.container.querySelector<HTMLElement>('#satLayer');
     if (satLayer) {
-      this.satController = setupSatelliteLoops(satLayer, () => this.isPerfMode);
+      this.satController = setupSatelliteLoops(
+        satLayer,
+        () => this.isPerfMode,
+        () => this.syncStarWrapperVisibility()
+      );
     }
 
-    // 구름 렌더러 초기화
+    // 구름 렌더러 초기화 (초기 쾌청 시 GL 컨텍스트 지연 생성)
     this.cloudCanvasEl = this.container.querySelector<HTMLCanvasElement>('#cloudCanvas');
     if (this.cloudCanvasEl) {
       this.cloudRenderer = new WebGLCloudRenderer(this.cloudCanvasEl);
@@ -244,16 +353,7 @@ export class SkyBackgroundService {
 
     this.isRunning = true;
     this.isPaused = false;
-    this.frameCounter = -1;
-    this.lastRafTimestamp = performance.now();
-
-    // 첫 프레임 즉각 동기 렌더링 (깜빡임/지연 방지)
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60 + this.timeOffset * 60;
-    const simDate = new Date(now.getTime() + this.timeOffset * 3600000);
-    this.updateSky(currentMinutes, simDate);
-
-    this.rafId = requestAnimationFrame(this._boundLoop);
+    this.refreshNow();
   }
 
   /**
@@ -263,11 +363,8 @@ export class SkyBackgroundService {
     this.isRunning = false;
     this.isPaused = false;
 
-    // 1. requestAnimationFrame 즉시 취소
-    if (this.rafId !== null) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
-    }
+    // 1. rAF 및 유휴 타이머 즉시 취소
+    this.clearSchedulers();
 
     // 2. 리사이즈 이벤트 리스너 해제
     if (this.resizeHandler) {
@@ -298,27 +395,21 @@ export class SkyBackgroundService {
     document.body.classList.remove('sky-bg-active');
     document.body.classList.remove('perf-active');
 
-    // 7. DOM 완전 정리
+    // 7. DOM 및 캐시 상태 완전 정리
     if (this.container) {
       this.container.innerHTML = '';
     }
-    this.flareEls = null;
-    this.moonCrescentPathEl = null;
-    this.skyLayerEl = null;
-    this.lastZenith = '';
-    this.lastHorizon = '';
+    this.clearDomRefs();
   }
 
   /**
-   * 메인 탭 이탈 시 임시 일시정지 (루프만 정지하여 CPU/GPU 절약)
+   * 메인 탭 이탈 시 임시 일시정지 (루프 및 위성 루프 정지하여 CPU/GPU 절약)
    */
   public pause(): void {
     if (!this.isRunning || this.isPaused) return;
     this.isPaused = true;
-    if (this.rafId !== null) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
-    }
+    this.clearSchedulers();
+    this.satController?.pause();
   }
 
   /**
@@ -333,10 +424,8 @@ export class SkyBackgroundService {
     if (!this.isPaused) return;
 
     this.isPaused = false;
-    this.lastRafTimestamp = performance.now();
-    if (this.rafId === null) {
-      this.rafId = requestAnimationFrame(this._boundLoop);
-    }
+    this.satController?.resume();
+    this.refreshNow();
   }
 
   public toggle(enabled: boolean): void {
@@ -362,8 +451,56 @@ export class SkyBackgroundService {
     }
   }
 
+  private clearDomRefs(): void {
+    this.flareEls = null;
+    this.skyLayerEl = null;
+    this.skyAtmosphereEl = null;
+    this.starWrapperEl = null;
+    this.starContainerEl = null;
+    this.moonAuraEl = null;
+    this.moonDiskEl = null;
+    this.moonEarthshineEl = null;
+    this.moonCrescentEl = null;
+    this.moonCrescentPathEl = null;
+    this.sunDiskEl = null;
+    this.sunStreakEl = null;
+
+    this.lastSkyKey = -1;
+    this.lastZenith = '';
+    this.lastHorizon = '';
+    this.lastAtmVisible = true;
+    this.lastAtmPos = '';
+    this.lastAtmOpacity = '';
+    this.lastSunVisible = true;
+    this.lastSunPos = '';
+    this.lastSunOpacity = '';
+    this.lastSunFcVisible = true;
+    this.lastSunFcOpacity = '';
+    this.lastSunStreakPos = '';
+    this.lastMoonVisible = true;
+    this.lastMoonPos = '';
+    this.lastMoonOpacity = '';
+    this.lastMoonAuraVisible = true;
+    this.lastMoonAuraPos = '';
+    this.lastMoonAuraOpacity = '';
+    this.lastEarthshineOpacity = '';
+    this.lastMoonGlow = '';
+    this.lastMoonPath = '';
+    this.lastMoonFcVisible = true;
+    this.lastMoonFcOpacity = '';
+    this.lastStarWrapperVisible = true;
+    this.lastStarMaskVisible = true;
+    this.lastStarWrapperMoonPos = '';
+    this.lastStarContainerVisible = true;
+    this.lastStarOpacity = '';
+    this.lastStarRot = '';
+    this.lastStarMaskNone = false;
+    this.lastStarMaskY = '';
+  }
+
   private mountDOM(): void {
     if (!this.container) return;
+    this.clearDomRefs();
 
     this.container.innerHTML = `
       <div class="sky-bg-layer sky-base"></div>
@@ -403,7 +540,16 @@ export class SkyBackgroundService {
     `;
 
     this.skyLayerEl = this.container.querySelector<HTMLElement>('#skyLayer');
+    this.skyAtmosphereEl = this.container.querySelector<HTMLElement>('.sky-atmosphere');
+    this.starWrapperEl = this.container.querySelector<HTMLElement>('.star-wrapper');
+    this.starContainerEl = this.container.querySelector<HTMLElement>('.star-container');
+    this.moonAuraEl = this.container.querySelector<HTMLElement>('.moon-aura');
+    this.moonDiskEl = this.container.querySelector<HTMLElement>('.moon-disk');
+    this.moonEarthshineEl = this.container.querySelector<HTMLElement>('.moon-earthshine');
+    this.moonCrescentEl = this.container.querySelector<HTMLElement>('.moon-crescent');
     this.moonCrescentPathEl = this.container.querySelector<SVGPathElement>('#moonCrescentPath');
+    this.sunDiskEl = this.container.querySelector<HTMLElement>('.sun-disk');
+    this.sunStreakEl = this.container.querySelector<HTMLElement>('.sun-streak');
 
     this.flareEls = {
       'h-1': this.container.querySelector<HTMLElement>('#h-1'),
@@ -418,26 +564,66 @@ export class SkyBackgroundService {
     };
   }
 
-  private updateOptics(dx: number, dy: number, alt: number, isMoon = false, moonGlowFactor = 1, occlusionFactor = 1): void {
-    if (!this.flareEls) return;
+  private updateOptics(
+    dx: number,
+    dy: number,
+    alt: number,
+    isMoon = false,
+    moonGlowFactor = 1,
+    occlusionFactor = 1
+  ): boolean {
+    if (!this.flareEls) return false;
     const cont = isMoon ? this.flareEls.moonFC : this.flareEls.sunFC;
-    if (!cont) return;
+    if (!cont) return false;
 
     const fadeStart = 0;
     const visibleRange = 0.3;
     const rawOpacity = (alt - fadeStart) / visibleRange;
     const finalOpacity = Math.max(0, Math.min(1, rawOpacity)) * occlusionFactor;
-
     const maxOpacity = isMoon ? 0.4 * moonGlowFactor : 0.95;
-    cont.style.opacity = (finalOpacity * maxOpacity).toString();
+    const netOpacity = finalOpacity * maxOpacity;
 
-    if (finalOpacity <= 0) return;
+    if (netOpacity <= 0.001) {
+      if (isMoon) {
+        if (this.lastMoonFcVisible) {
+          this.lastMoonFcVisible = false;
+          cont.style.display = 'none';
+        }
+      } else {
+        if (this.lastSunFcVisible) {
+          this.lastSunFcVisible = false;
+          cont.style.display = 'none';
+        }
+      }
+      return false;
+    }
+
+    const opStr = netOpacity.toFixed(4);
+    if (isMoon) {
+      if (!this.lastMoonFcVisible) {
+        this.lastMoonFcVisible = true;
+        cont.style.display = '';
+      }
+      if (opStr !== this.lastMoonFcOpacity) {
+        this.lastMoonFcOpacity = opStr;
+        cont.style.opacity = opStr;
+      }
+    } else {
+      if (!this.lastSunFcVisible) {
+        this.lastSunFcVisible = true;
+        cont.style.display = '';
+      }
+      if (opStr !== this.lastSunFcOpacity) {
+        this.lastSunFcOpacity = opStr;
+        cont.style.opacity = opStr;
+      }
+    }
 
     const setFP = (id: keyof FlareElements, s: number) => {
       const el = this.flareEls?.[id];
       if (el) {
-        const px = dx * (1 - s);
-        const py = dy * (1 - s);
+        const px = (dx * (1 - s)).toFixed(3);
+        const py = (dy * (1 - s)).toFixed(3);
         el.style.transform = `translate3d(calc(50vw + ${px}vmax), calc(50vh + ${py}vmax), 0) translate(-50%, -50%)`;
       }
     };
@@ -452,10 +638,11 @@ export class SkyBackgroundService {
       setFP('mg-1', 1.2);
       setFP('mh-1', 0.5);
     }
+
+    return true;
   }
 
   private updateSky(m: number, simDate: Date): void {
-    const root = document.documentElement.style;
     const mG = ((m % 1440) + 1440) % 1440;
     const solar = getSunTimes(simDate);
     const { zenith, horizon, zenithRgb, horizonRgb, brightness } = calcSkyColors(mG, solar);
@@ -484,53 +671,83 @@ export class SkyBackgroundService {
       displayHorizon = `rgb(${hR}, ${hG}, ${hB})`;
     }
 
-    const earthshineOpacity = Math.max(0, Math.min(1, 1 - (brightness - 21.67) / 8)) * (1 - moonOcc);
-    const moonAuraOpacity = Math.max(0, Math.min(1, 1 - (brightness - 21.67) / 15)) * (1 - moonOcc);
-    root.setProperty('--moon-earthshine-opacity', earthshineOpacity.toString());
-    root.setProperty('--moon-aura-opacity', moonAuraOpacity.toString());
-
-    if (brightness > 30 || moonOcc > 0.6) {
-      root.setProperty('--moon-crescent-glow', 'none');
-    } else {
-      root.setProperty(
-        '--moon-crescent-glow',
-        'drop-shadow(0 0 5px rgba(255, 245, 220, 0.85)) drop-shadow(0 0 15px rgba(200, 225, 255, 0.4))'
-      );
-    }
-
     if (displayZenith !== this.lastZenith || displayHorizon !== this.lastHorizon) {
       if (this.skyLayerEl) {
         this.skyLayerEl.style.background = `linear-gradient(to bottom, ${displayZenith} 0%, ${displayHorizon} 100%)`;
       }
-      root.setProperty('--sky-zenith', displayZenith);
-      root.setProperty('--sky-horizon', displayHorizon);
       this.lastZenith = displayZenith;
       this.lastHorizon = displayHorizon;
     }
 
-    // 1. 태양 좌표 및 렌더링
+    // 1. 태양 좌표 및 렌더링 (보이는 요소만 갱신, 불가시 레이어 컬링)
     const sunCoords = calcSunCoords(mG, solar);
     const rawSunOpacity = Math.max(0, Math.min(1, (sunCoords.altitude - -2) / 7));
     const sunOpacity = rawSunOpacity * (1 - sunOcc);
-    root.setProperty('--sun-opacity', sunOpacity.toString());
+    const sunPosKey = `${sunCoords.x}|${sunCoords.y}`;
+
+    if (sunCoords.altitude >= -2.0 && sunOpacity > 0.001) {
+      if (this.sunDiskEl) {
+        if (!this.lastSunVisible) {
+          this.lastSunVisible = true;
+          this.sunDiskEl.style.display = '';
+        }
+        const sunOpStr = sunOpacity.toFixed(4);
+        if (sunOpStr !== this.lastSunOpacity) {
+          this.lastSunOpacity = sunOpStr;
+          this.sunDiskEl.style.opacity = sunOpStr;
+        }
+        if (sunPosKey !== this.lastSunPos) {
+          this.lastSunPos = sunPosKey;
+          this.sunDiskEl.style.transform = `translate3d(${sunCoords.x}, ${sunCoords.y}, 0) translate(-50%, -50%)`;
+        }
+      }
+    } else if (this.sunDiskEl && this.lastSunVisible) {
+      this.lastSunVisible = false;
+      this.sunDiskEl.style.display = 'none';
+    }
 
     if (sunCoords.altitude >= -2.0) {
-      root.setProperty('--sun-x', sunCoords.x);
-      root.setProperty('--sun-y', sunCoords.y);
-
       const maxAltFactor = solar.maxAlt / 90;
       const normalizedAlt = Math.max(0, sunCoords.altitude / 90);
-      root.setProperty(
-        '--atm-opacity',
-        (Math.max(0, Math.min(0.85, (normalizedAlt / maxAltFactor) * 1.2)) * (1 - sunOcc * 0.7)).toString()
-      );
+      const atmOpacity = Math.max(0, Math.min(0.85, (normalizedAlt / maxAltFactor) * 1.2)) * (1 - sunOcc * 0.7);
+
+      if (this.skyAtmosphereEl) {
+        if (atmOpacity > 0.001) {
+          if (!this.lastAtmVisible) {
+            this.lastAtmVisible = true;
+            this.skyAtmosphereEl.style.display = '';
+          }
+          const atmOpStr = atmOpacity.toFixed(4);
+          if (atmOpStr !== this.lastAtmOpacity) {
+            this.lastAtmOpacity = atmOpStr;
+            this.skyAtmosphereEl.style.opacity = atmOpStr;
+          }
+          if (sunPosKey !== this.lastAtmPos) {
+            this.lastAtmPos = sunPosKey;
+            this.skyAtmosphereEl.style.setProperty('--atm-x', sunCoords.x);
+            this.skyAtmosphereEl.style.setProperty('--atm-y', sunCoords.y);
+          }
+        } else if (this.lastAtmVisible) {
+          this.lastAtmVisible = false;
+          this.skyAtmosphereEl.style.display = 'none';
+        }
+      }
 
       const flareOcc = Math.pow(Math.max(0, 1 - sunOcc), 2.8);
-      this.updateOptics(sunCoords.dx, sunCoords.dy, sunCoords.altitude, false, 1, flareOcc);
+      const sunFcVisible = this.updateOptics(sunCoords.dx, sunCoords.dy, sunCoords.altitude, false, 1, flareOcc);
+      if (sunFcVisible && this.sunStreakEl && sunPosKey !== this.lastSunStreakPos) {
+        this.lastSunStreakPos = sunPosKey;
+        this.sunStreakEl.style.transform = `translate3d(${sunCoords.x}, ${sunCoords.y}, 0) translate(-50%, -50%) rotate(-3deg)`;
+      }
     } else {
-      root.setProperty('--sun-y', '150vh');
-      root.setProperty('--atm-opacity', '0');
-      if (this.flareEls?.sunFC) this.flareEls.sunFC.style.opacity = '0';
+      if (this.skyAtmosphereEl && this.lastAtmVisible) {
+        this.lastAtmVisible = false;
+        this.skyAtmosphereEl.style.display = 'none';
+      }
+      if (this.flareEls?.sunFC && this.lastSunFcVisible) {
+        this.lastSunFcVisible = false;
+        this.flareEls.sunFC.style.display = 'none';
+      }
     }
 
     // 2. 달 좌표 및 렌더링
@@ -539,34 +756,165 @@ export class SkyBackgroundService {
 
     const rawMoonOpacity = Math.max(0, Math.min(1, (moonCoords.altitude - -2) / 7));
     const moonOpacity = rawMoonOpacity * (1 - moonOcc);
-    root.setProperty('--moon-opacity', moonOpacity.toString());
+    const moonVisible = moonCoords.altitude >= -2.0 && moonOpacity > 0.001;
+    const moonPosKey = `${moonCoords.x}|${moonCoords.y}`;
 
-    if (moonCoords.altitude >= -2.0) {
-      root.setProperty('--moon-x', moonCoords.x);
-      root.setProperty('--moon-y', moonCoords.y);
+    if (moonVisible) {
+      const moonOpStr = moonOpacity.toFixed(4);
+      const earthshineOpacity = Math.max(0, Math.min(1, 1 - (brightness - 21.67) / 8)) * (1 - moonOcc);
+      const moonAuraOpacity = Math.max(0, Math.min(1, 1 - (brightness - 21.67) / 15)) * (1 - moonOcc);
+      const earthshineOpStr = earthshineOpacity.toFixed(4);
+      const auraTotalOp = moonOpacity * moonAuraOpacity;
+
+      if (this.moonDiskEl) {
+        if (!this.lastMoonVisible) {
+          this.lastMoonVisible = true;
+          this.moonDiskEl.style.display = '';
+        }
+        if (moonOpStr !== this.lastMoonOpacity) {
+          this.lastMoonOpacity = moonOpStr;
+          this.moonDiskEl.style.opacity = moonOpStr;
+          if (this.moonCrescentEl) {
+            this.moonCrescentEl.style.opacity = moonOpStr;
+          }
+        }
+        if (moonPosKey !== this.lastMoonPos) {
+          this.lastMoonPos = moonPosKey;
+          this.moonDiskEl.style.transform = `translate3d(${moonCoords.x}, ${moonCoords.y}, 0) translate(-50%, -50%)`;
+        }
+      }
+
+      if (this.moonEarthshineEl && earthshineOpStr !== this.lastEarthshineOpacity) {
+        this.lastEarthshineOpacity = earthshineOpStr;
+        this.moonEarthshineEl.style.opacity = earthshineOpStr;
+      }
+
+      if (this.moonCrescentEl) {
+        const glowVal =
+          brightness > 30 || moonOcc > 0.6
+            ? 'none'
+            : 'drop-shadow(0 0 5px rgba(255, 245, 220, 0.85)) drop-shadow(0 0 15px rgba(200, 225, 255, 0.4))';
+        if (glowVal !== this.lastMoonGlow) {
+          this.lastMoonGlow = glowVal;
+          this.moonCrescentEl.style.filter = glowVal;
+        }
+      }
 
       const moonPath = getMoonPath(moonAge);
-      if (this.moonCrescentPathEl) {
+      if (this.moonCrescentPathEl && moonPath !== this.lastMoonPath) {
+        this.lastMoonPath = moonPath;
         this.moonCrescentPathEl.setAttribute('d', moonPath);
+      }
+
+      if (this.moonAuraEl) {
+        if (auraTotalOp > 0.001) {
+          if (!this.lastMoonAuraVisible) {
+            this.lastMoonAuraVisible = true;
+            this.moonAuraEl.style.display = '';
+          }
+          const auraOpStr = auraTotalOp.toFixed(4);
+          if (auraOpStr !== this.lastMoonAuraOpacity) {
+            this.lastMoonAuraOpacity = auraOpStr;
+            this.moonAuraEl.style.opacity = auraOpStr;
+          }
+          if (moonPosKey !== this.lastMoonAuraPos) {
+            this.lastMoonAuraPos = moonPosKey;
+            this.moonAuraEl.style.transform = `translate3d(${moonCoords.x}, ${moonCoords.y}, 0) translate(-50%, -50%)`;
+          }
+        } else if (this.lastMoonAuraVisible) {
+          this.lastMoonAuraVisible = false;
+          this.moonAuraEl.style.display = 'none';
+        }
       }
 
       const moonGlowFactor = Math.max(0, Math.min(1, 1 - (brightness - 21.67) / 20));
       const moonFlareOcc = Math.pow(Math.max(0, 1 - moonOcc), 2.8);
       this.updateOptics(moonCoords.dx, moonCoords.dy, moonCoords.altitude, true, moonGlowFactor * moonOpacity, moonFlareOcc);
     } else {
-      root.setProperty('--moon-y', '150vh');
-      if (this.flareEls?.moonFC) this.flareEls.moonFC.style.opacity = '0';
+      if (this.moonDiskEl && this.lastMoonVisible) {
+        this.lastMoonVisible = false;
+        this.moonDiskEl.style.display = 'none';
+      }
+      if (this.moonAuraEl && this.lastMoonAuraVisible) {
+        this.lastMoonAuraVisible = false;
+        this.moonAuraEl.style.display = 'none';
+      }
+      if (this.flareEls?.moonFC && this.lastMoonFcVisible) {
+        this.lastMoonFcVisible = false;
+        this.flareEls.moonFC.style.display = 'none';
+      }
     }
 
-    // 3. 밤하늘 은하수 / 황혼 페이딩
+    // 3. 밤하늘 은하수 / 황혼 페이딩 및 별 마스크 제어
     const { starOpacity: rawStarOpacity, starMaskY } = calcTwilight(mG, solar);
-    const lst = getSiderealTime(simDate);
-    const starRot = getStarRotation(lst);
     const starOpacity = rawStarOpacity * (1 - starOcc);
+    const starVisible = starOpacity > 0.001;
 
-    root.setProperty('--star-opacity', starOpacity.toString());
-    root.setProperty('--star-mask-y', `${starMaskY}%`);
-    root.setProperty('--star-rot', `${starRot}deg`);
+    if (this.starContainerEl) {
+      if (starVisible) {
+        if (!this.lastStarContainerVisible) {
+          this.lastStarContainerVisible = true;
+          this.starContainerEl.style.display = '';
+        }
+
+        const starOpStr = starOpacity.toFixed(4);
+        if (starOpStr !== this.lastStarOpacity) {
+          this.lastStarOpacity = starOpStr;
+          this.starContainerEl.style.opacity = starOpStr;
+        }
+
+        const lst = getSiderealTime(simDate);
+        const starRotStr = getStarRotation(lst).toFixed(3);
+        if (starRotStr !== this.lastStarRot) {
+          this.lastStarRot = starRotStr;
+          this.starContainerEl.style.transform = `translate(-50%, -50%) rotate(${starRotStr}deg) translate3d(0, 0, 0)`;
+        }
+
+        if (starMaskY >= 140) {
+          if (!this.lastStarMaskNone) {
+            this.lastStarMaskNone = true;
+            this.starContainerEl.style.maskImage = 'none';
+            this.starContainerEl.style.webkitMaskImage = 'none';
+          }
+        } else {
+          if (this.lastStarMaskNone) {
+            this.lastStarMaskNone = false;
+            this.starContainerEl.style.maskImage = '';
+            this.starContainerEl.style.webkitMaskImage = '';
+          }
+          const maskYStr = `${starMaskY.toFixed(2)}%`;
+          if (maskYStr !== this.lastStarMaskY) {
+            this.lastStarMaskY = maskYStr;
+            this.starContainerEl.style.setProperty('--star-mask-y', maskYStr);
+          }
+        }
+      } else if (this.lastStarContainerVisible) {
+        this.lastStarContainerVisible = false;
+        this.starContainerEl.style.display = 'none';
+      }
+    }
+
+    if (this.starWrapperEl) {
+      this.syncStarWrapperVisibility();
+      if (this.lastStarWrapperVisible) {
+        if (moonVisible) {
+          if (!this.lastStarMaskVisible) {
+            this.lastStarMaskVisible = true;
+            this.starWrapperEl.style.maskImage = '';
+            this.starWrapperEl.style.webkitMaskImage = '';
+          }
+          if (moonPosKey !== this.lastStarWrapperMoonPos) {
+            this.lastStarWrapperMoonPos = moonPosKey;
+            this.starWrapperEl.style.setProperty('--moon-x', moonCoords.x);
+            this.starWrapperEl.style.setProperty('--moon-y', moonCoords.y);
+          }
+        } else if (this.lastStarMaskVisible) {
+          this.lastStarMaskVisible = false;
+          this.starWrapperEl.style.maskImage = 'none';
+          this.starWrapperEl.style.webkitMaskImage = 'none';
+        }
+      }
+    }
 
     // 4. 구름 렌더러에 실시간 3D 광원 조명 컨텍스트 전달 및 렌더링
     if (this.isCloudsEnabled && this.cloudRenderer) {
@@ -598,31 +946,45 @@ export class SkyBackgroundService {
     }
   }
 
+  private onIdleTick(): void {
+    if (!this.isRunning || this.isPaused) return;
+    const { currentMinutes, simDate, skyKey } = this.getSimTime();
+    if (skyKey !== this.lastSkyKey) {
+      this.lastSkyKey = skyKey;
+      this.updateSky(currentMinutes, simDate);
+    }
+  }
+
   private loop(timestamp: number): void {
     if (!this.isRunning || this.isPaused) return;
 
-    const deltaSec = (timestamp - this.lastRafTimestamp) / 1000;
-    this.lastRafTimestamp = timestamp;
-
-    if (deltaSec > 0 && deltaSec < 2 && this.isCloudsEnabled) {
-      // 1. 구름 실시간 이동 애니메이션 (바람에 따른 유체 드리프트)
-      this.cloudRenderer?.update(deltaSec);
-
-      // 2. 적응형 DRS (동적 해상도 스케일링)
-      const deltaMs = deltaSec * 1000;
-      this.cloudRenderer?.adaptiveDRS(deltaMs);
+    if (!this.needsCloudRaf()) {
+      this.syncScheduler();
+      return;
     }
 
-    this.frameCounter++;
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60 + this.timeOffset * 60;
-    const simDate = new Date(now.getTime() + this.timeOffset * 3600000);
+    // 1-A: 일반 모드 최대 60fps(~14.17ms 임계치로 60Hz VSync 미스 방지 + 120/144/165Hz 제한),
+    //      저사양 모드 최대 30fps 제한
+    const targetIntervalMs = this.isPerfMode ? 1000 / 30 : 1000 / 60;
+    const elapsedMs = timestamp - this.lastCloudRenderTs;
 
-    // 저사양 모드 시 15프레임마다 연산, 일반 모드 시 매 프레임 연산
-    if (!this.isPerfMode || this.frameCounter % 15 === 0) {
-      this.updateSky(currentMinutes, simDate);
-    } else if (this.isCloudsEnabled) {
-      this.cloudRenderer?.renderCached();
+    if (elapsedMs >= targetIntervalMs - 2.5) {
+      this.lastCloudRenderTs = timestamp;
+      const clampedMs = Math.min(elapsedMs, 2000);
+      const dtSec = clampedMs / 1000;
+
+      if (dtSec > 0 && this.cloudRenderer) {
+        this.cloudRenderer.update(dtSec);
+        this.cloudRenderer.adaptiveDRS(clampedMs);
+      }
+
+      const { currentMinutes, simDate, skyKey } = this.getSimTime();
+      if (skyKey !== this.lastSkyKey) {
+        this.lastSkyKey = skyKey;
+        this.updateSky(currentMinutes, simDate);
+      } else {
+        this.cloudRenderer?.renderCached();
+      }
     }
 
     this.rafId = requestAnimationFrame(this._boundLoop);

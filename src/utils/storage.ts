@@ -71,7 +71,7 @@ const SKY_PERF_STORAGE_KEY = "asterisk_sky_perf_enabled";
 
 export function getSavedSkyBg(): boolean {
   const val = localStorage.getItem(SKY_BG_STORAGE_KEY);
-  return val !== null ? val === "true" : true; // 기본값: 활성화
+  return val !== null ? val === "true" : false; // 기본값: 꺼짐
 }
 
 export function setSavedSkyBg(enabled: boolean): void {
